@@ -1,0 +1,55 @@
+{
+  "name": "form-page-builder",
+  "version": "0.1.0",
+  "description": "Embeddable bilingual drag-and-drop form/content builder for React and Next.js — builds and previews a JSON form schema (fields, sections, layout blocks); does not handle or store submitted data itself.",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "nextjs",
+    "form-builder",
+    "drag-and-drop",
+    "bilingual",
+    "i18n",
+    "form-schema",
+    "page-builder"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "dev": "vite",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "dependencies": {
+    "lucide-react": "^0.400.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vite": "^5.4.0"
+  }
+}
