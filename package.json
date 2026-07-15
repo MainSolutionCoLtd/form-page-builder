@@ -3,6 +3,18 @@
   "version": "0.1.0",
   "description": "Embeddable bilingual drag-and-drop form/content builder for React and Next.js — builds and previews a JSON form schema (fields, sections, layout blocks); does not handle or store submitted data itself.",
   "license": "MIT",
+  "author": "MainSolutionCoLtd",
+  "homepage": "https://mainsolutioncoltd.github.io/form-page-builder/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MainSolutionCoLtd/form-page-builder.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MainSolutionCoLtd/form-page-builder/issues"
+  },
+  "engines": {
+    "node": ">=18.18"
+  },
   "keywords": [
     "react",
     "nextjs",
@@ -11,7 +23,8 @@
     "bilingual",
     "i18n",
     "form-schema",
-    "page-builder"
+    "page-builder",
+    "form-page-builder"
   ],
   "type": "module",
   "main": "./dist/index.cjs",
@@ -32,8 +45,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsup",
+    "build:demo": "vite build",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "changeset": "changeset",
+    "changeset:version": "changeset version"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -43,6 +59,8 @@
     "lucide-react": "^0.400.0"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.27.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.0",

@@ -1,5 +1,11 @@
 # form-page-builder
 
+[![npm](https://img.shields.io/npm/v/form-page-builder.svg)](https://www.npmjs.com/package/form-page-builder)
+[![CI](https://github.com/MainSolutionCoLtd/form-page-builder/actions/workflows/ci.yml/badge.svg)](https://github.com/MainSolutionCoLtd/form-page-builder/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/form-page-builder.svg)](./LICENSE)
+
+**[Live demo](https://mainsolutioncoltd.github.io/form-page-builder/)**
+
 Embeddable, bilingual (EN/JA by default, extensible), drag-and-drop form builder widget for React. Ships a single `<FormBuilder />` component with a Build mode (drag/drop canvas, field inspector) and a Preview mode (responsive, validating runtime form), plus a JSON export of the resulting document.
 
 **This is a builder + viewer, not a data handler.** It builds and previews a JSON *schema* describing a form's fields, sections, and layout blocks (including plain content blocks like paragraphs and images, not just inputs). It never receives or stores real end-user submissions — Preview mode's "Submit" just shows a mock "here's what would be sent to your backend" modal. The only thing this package persists on its own is the *builder's own* draft/library state (via the pluggable `StorageAdapter` below); wiring actual form submissions to a backend is up to the host app.
@@ -85,5 +91,17 @@ There's no build target for raw PHP output — a React component tree still need
 npm install
 npm run dev        # Vite dev harness at http://localhost:5173, imports FormBuilder from src/
 npm run typecheck
-npm run build       # tsup -> dist/ (ESM + CJS + .d.ts)
+npm run build       # tsup -> dist/ (ESM + CJS + .d.ts), the published package
+npm run build:demo  # vite build -> pages-dist/, the GitHub Pages demo site
 ```
+
+## Releasing
+
+Versioning and the changelog are managed by [Changesets](https://github.com/changesets/changesets); publishing to npm is a separate, deliberate step.
+
+1. On your PR, describe the change for consumers: `npx changeset` (pick patch/minor/major, write a summary, commit the generated file in `.changeset/`).
+2. Once merged to `main`, a bot opens/updates a **"Version Packages"** PR that bumps `package.json` and writes `CHANGELOG.md` from the accumulated changesets ([.github/workflows/version.yml](.github/workflows/version.yml)).
+3. Merge that PR when you're ready to ship.
+4. Cut a [GitHub Release](https://github.com/MainSolutionCoLtd/form-page-builder/releases/new) tagged `vX.Y.Z` matching the new version — this triggers [.github/workflows/release.yml](.github/workflows/release.yml), which builds and runs `npm publish` (requires the `NPM_TOKEN` repo secret).
+
+Pushes to `main` also rebuild and redeploy the [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) via [.github/workflows/pages.yml](.github/workflows/pages.yml).

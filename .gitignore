@@ -1,4 +1,5 @@
 node_modules
 dist
+pages-dist
 .DS_Store
 *.log
