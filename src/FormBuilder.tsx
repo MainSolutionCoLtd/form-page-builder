@@ -22,7 +22,6 @@ import { PreviewPane } from "./components/PreviewPane";
 import { JsonModal } from "./components/modals/JsonModal";
 import { TemplatesModal } from "./components/modals/TemplatesModal";
 import { SaveAsModal } from "./components/modals/SaveAsModal";
-import { SettingsModal } from "./components/modals/SettingsModal";
 import { css } from "./styles/globalCss";
 import { styles } from "./styles/styles";
 
@@ -49,7 +48,6 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
 
   const [mode, setMode] = useState<"build" | "preview">("build");
   const [showJson, setShowJson] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -72,7 +70,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const jsonDoc = {
     version: 4 as const,
     title: doc.title, submitLabel: doc.submitLabel, submitMode: doc.submitMode, submitStyle: doc.submitStyle, theme, themeOverrides,
-    sections: doc.sections.map((s) => ({ id: s.id, title: s.title, background: s.background, collapsed: s.collapsed, submitStyle: s.submitStyle, fields: s.fields })),
+    sections: doc.sections.map((s) => ({ id: s.id, title: s.title, background: s.background, collapsed: s.collapsed, submitStyle: s.submitStyle, submitLabel: s.submitLabel, fields: s.fields })),
   };
   const jsonString = JSON.stringify(jsonDoc, null, 2);
 
@@ -125,7 +123,6 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
         onTitleChange={doc.updateTitle}
         onLanguageChange={setLanguage}
         onModeChange={setMode}
-        onOpenSettings={() => setShowSettings(true)}
         onNewForm={persistence.newForm}
         onOpenLibrary={() => setShowLibrary(true)}
         onSaveExisting={persistence.saveExisting}
@@ -145,11 +142,18 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
             onAddField={doc.addField}
             themeEditable={themeEditable}
             theme={theme}
+            sections={doc.sections}
             submitStyle={doc.submitStyle}
             updateThemeColor={updateThemeColor}
             updateThemeLayout={updateThemeLayout}
             onSubmitStyleChange={doc.updateSubmitStyle}
             resetTheme={resetTheme}
+            submitLabel={doc.submitLabel}
+            submitMode={doc.submitMode}
+            language={language}
+            strings={strings}
+            onSubmitLabelChange={doc.updateSubmitLabel}
+            onSubmitModeChange={doc.setSubmitMode}
           />
 
           <Canvas
@@ -170,7 +174,9 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
             onMoveSection={doc.moveSection}
             onDeleteSection={doc.deleteSection}
             onUpdateSectionSubmitStyle={doc.updateSectionSubmitStyle}
+            onUpdateSectionSubmitLabel={doc.updateSectionSubmitLabel}
             onClearSectionSubmitStyle={doc.clearSectionSubmitStyle}
+            defaultSubmitLabel={doc.submitLabel}
             onAddSection={doc.addSection}
             onSelectField={(sectionId, fieldId) => { doc.setSelectedId(fieldId); doc.setActiveSectionId(sectionId); }}
             onFieldChange={doc.updateField}
@@ -222,19 +228,6 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
           suggestedName={persistence.saveAsPrompt.suggestedName}
           onSave={persistence.saveAs}
           onClose={persistence.dismissSaveAsPrompt}
-        />
-      )}
-
-      {showSettings && (
-        <SettingsModal
-          chrome={chrome}
-          strings={strings}
-          submitLabel={doc.submitLabel}
-          language={language}
-          submitMode={doc.submitMode}
-          onSubmitLabelChange={doc.updateSubmitLabel}
-          onSubmitModeChange={doc.setSubmitMode}
-          onClose={() => setShowSettings(false)}
         />
       )}
     </div>

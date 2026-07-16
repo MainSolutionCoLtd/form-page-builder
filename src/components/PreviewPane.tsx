@@ -9,6 +9,7 @@ import { getMeta } from "../constants/fieldTypes";
 import { validateField } from "../lib/validate";
 import { formatValue } from "../lib/format";
 import { collectFieldValues } from "../lib/collectSubmission";
+import { sectionHasFormFields, formHasFormFields } from "../lib/submittable";
 import { t } from "../lib/bilingual";
 import { styles } from "../styles/styles";
 import { Segmented } from "./Segmented";
@@ -41,7 +42,7 @@ export function PreviewPane({ title, sections, onFieldChange, language, strings,
   const maxWidth = (deviceOptions.find((d) => d.value === device) || deviceOptions[0]).maxWidth;
   const allFields = sections.flatMap((s) => s.fields);
   const submitText = t(submitLabel, language) || strings.submit;
-  const overallHasFormFields = allFields.some((f) => !getMeta(f.type).isContent);
+  const overallHasFormFields = formHasFormFields(sections);
 
   function runValidation(fields: typeof allFields) {
     const errs: Record<string, string> = {};
@@ -64,6 +65,10 @@ export function PreviewPane({ title, sections, onFieldChange, language, strings,
     const sectionsBreakdown = buildSectionsBreakdown();
     const all = collectFieldValues(allFields);
     onSubmit?.({ scope: "combined", values: all, sections: sectionsBreakdown, all });
+  }
+
+  function sectionSubmitText(section: Section) {
+    return t(section.submitLabel || undefined, language) || submitText;
   }
 
   function handleSubmitSection(section: Section) {
@@ -89,7 +94,7 @@ export function PreviewPane({ title, sections, onFieldChange, language, strings,
           {allFields.length === 0 && <p style={{ color: "var(--fb-muted)", fontSize: 14 }}>{strings.addFieldsHint}</p>}
 
           {sections.map((section) => {
-            const sectionHasFormFields = section.fields.some((f) => !getMeta(f.type).isContent);
+            const sectionHasFields = sectionHasFormFields(section);
             const sectionHasErrors = section.fields.some((f) => errors[f.id]);
             return (
               <div key={section.id} style={{ background: section.background || "transparent", padding: section.background ? 16 : 0, borderRadius: section.background ? 10 : 0, marginBottom: "var(--fb-space-section)" }}>
@@ -105,9 +110,9 @@ export function PreviewPane({ title, sections, onFieldChange, language, strings,
                     );
                   })}
                 </div>
-                {submitMode === "perSection" && sectionHasFormFields && (
+                {submitMode === "perSection" && sectionHasFields && (
                   <>
-                    <button style={{ ...styles.submitBtn, ...resolveSubmitStyle(section.submitStyle || submitStyle) }} onClick={() => handleSubmitSection(section)}>{submitText}</button>
+                    <button style={{ ...styles.submitBtn, ...resolveSubmitStyle(section.submitStyle || submitStyle) }} onClick={() => handleSubmitSection(section)}>{sectionSubmitText(section)}</button>
                     {sectionHasErrors && (<p style={styles.formErrorNote}><CircleAlert size={13} /> {strings.fixErrors}</p>)}
                   </>
                 )}

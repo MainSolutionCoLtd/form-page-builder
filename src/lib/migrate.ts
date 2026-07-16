@@ -52,6 +52,7 @@ export function migrateDocument(raw: RawDocument | null | undefined): DocumentFi
         background: s.background || "",
         collapsed: !!s.collapsed,
         submitStyle: s.submitStyle || null,
+        submitLabel: typeof s.submitLabel === "string" ? bi(s.submitLabel) : s.submitLabel || null,
         fields: migrateFields(s.fields || []),
       })),
     };

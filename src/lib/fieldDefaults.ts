@@ -53,5 +53,5 @@ export function defaultFieldFor(type: FieldType, language: string, chrome: Chrom
 }
 
 export function defaultSection(titleEn = ""): Section {
-  return { id: genSectionId(), title: bi(titleEn, ""), background: "", collapsed: false, submitStyle: null, fields: [] };
+  return { id: genSectionId(), title: bi(titleEn, ""), background: "", collapsed: false, submitStyle: null, submitLabel: null, fields: [] };
 }

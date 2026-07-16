@@ -148,6 +148,8 @@ export interface Section {
   background: string;
   collapsed: boolean;
   submitStyle: SubmitStyle | null;
+  /** Per-section override of the submit button's text; falls back to the form's global submitLabel when null. */
+  submitLabel: LocalizedString | null;
   fields: FormField[];
 }
 

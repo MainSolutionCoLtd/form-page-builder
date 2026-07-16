@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import type { ChromeShape } from "../i18n/chrome";
-import type { FieldType, SubmitStyle, Theme } from "../types";
+import type { StringsShape } from "../i18n/strings";
+import type { FieldType, LocalizedString, Section, SubmitStyle, Theme } from "../types";
 import { CONTENT_TYPES, FORM_TYPES, FIELD_TYPE_CHROME_KEY } from "../constants/fieldTypes";
 import { styles } from "../styles/styles";
 import { Segmented } from "./Segmented";
@@ -10,19 +11,26 @@ import { DesignPanel } from "./DesignPanel";
 export interface PaletteProps {
   activeSectionLabel: string;
   chrome: ChromeShape;
+  strings: StringsShape;
   onAddField: (type: FieldType) => void;
   themeEditable: boolean;
   theme: Theme;
+  sections: Section[];
   submitStyle: SubmitStyle;
+  submitLabel: LocalizedString;
+  submitMode: "combined" | "perSection";
+  language: string;
   updateThemeColor: (key: keyof Omit<Theme, "layout">, value: string) => void;
   updateThemeLayout: (key: keyof Theme["layout"], value: number) => void;
   onSubmitStyleChange: (patch: Partial<SubmitStyle>) => void;
+  onSubmitLabelChange: (value: string) => void;
+  onSubmitModeChange: (mode: "combined" | "perSection") => void;
   resetTheme: () => void;
 }
 
 export function Palette({
-  activeSectionLabel, chrome, onAddField, themeEditable, theme, submitStyle,
-  updateThemeColor, updateThemeLayout, onSubmitStyleChange, resetTheme,
+  activeSectionLabel, chrome, strings, onAddField, themeEditable, theme, sections, submitStyle, submitLabel, submitMode, language,
+  updateThemeColor, updateThemeLayout, onSubmitStyleChange, onSubmitLabelChange, onSubmitModeChange, resetTheme,
 }: PaletteProps) {
   const [tab, setTab] = useState<"blocks" | "design">("blocks");
 
@@ -44,11 +52,18 @@ export function Palette({
       {tab === "design" && themeEditable ? (
         <DesignPanel
           chrome={chrome}
+          strings={strings}
           theme={theme}
+          sections={sections}
           submitStyle={submitStyle}
+          submitLabel={submitLabel}
+          submitMode={submitMode}
+          language={language}
           updateThemeColor={updateThemeColor}
           updateThemeLayout={updateThemeLayout}
           onSubmitStyleChange={onSubmitStyleChange}
+          onSubmitLabelChange={onSubmitLabelChange}
+          onSubmitModeChange={onSubmitModeChange}
           resetTheme={resetTheme}
         />
       ) : (

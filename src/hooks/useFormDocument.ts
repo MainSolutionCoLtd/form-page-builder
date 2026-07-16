@@ -80,8 +80,11 @@ export function useFormDocument({ language, chrome }: UseFormDocumentArgs) {
   function updateSectionSubmitStyle(sectionId: string, patch: Partial<SubmitStyle>) {
     setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, submitStyle: { ...(s.submitStyle || submitStyle), ...patch } } : s)));
   }
+  function updateSectionSubmitLabel(sectionId: string, value: string) {
+    setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, submitLabel: withLang(s.submitLabel || bi(), language, value) } : s)));
+  }
   function clearSectionSubmitStyle(sectionId: string) {
-    setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, submitStyle: null } : s)));
+    setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, submitStyle: null, submitLabel: null } : s)));
   }
 
   function addField(type: FieldType) {
@@ -186,7 +189,7 @@ export function useFormDocument({ language, chrome }: UseFormDocumentArgs) {
     updateTitle, updateSubmitLabel, updateSubmitStyle,
     addSection, duplicateSection, deleteSection, moveSection,
     updateSectionTitle, updateSectionBackground, toggleSectionCollapse,
-    updateSectionSubmitStyle, clearSectionSubmitStyle,
+    updateSectionSubmitStyle, updateSectionSubmitLabel, clearSectionSubmitStyle,
     addField, updateField, deleteField, duplicateField, moveField, reorderWithinSection,
     updateOption, addOption, removeOption,
     loadDocument, resetToBlank,
