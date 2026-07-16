@@ -97,10 +97,20 @@ export interface ImageField extends BaseField {
   link: string;
   shape: "square" | "circle" | "banner";
 }
+export interface ButtonField extends BaseField {
+  type: "button";
+  action: "link" | "submit";
+  buttonStyle: SubmitStyle;
+  /** Used when `action === "link"`. */
+  href: string;
+  target: "_self" | "_blank";
+  /** Used when `action === "submit"`. */
+  submitScope: "section" | "form";
+}
 
 export type FormField =
   | InputField | TextareaField | SelectField | RadioField | CheckboxGroupField
-  | CheckboxField | ToggleField | ParagraphField | ImageField;
+  | CheckboxField | ToggleField | ParagraphField | ImageField | ButtonField;
 
 /**
  * Flat, fully-optional patch type for updateField/updateOption call sites.
@@ -135,6 +145,11 @@ export interface FieldPatch {
   alt?: LocalizedString;
   link?: string;
   shape?: ImageField["shape"];
+  action?: ButtonField["action"];
+  buttonStyle?: SubmitStyle;
+  href?: string;
+  target?: ButtonField["target"];
+  submitScope?: ButtonField["submitScope"];
 }
 
 // --- section / document ---
@@ -147,23 +162,17 @@ export interface Section {
   title: LocalizedString;
   background: string;
   collapsed: boolean;
-  submitStyle: SubmitStyle | null;
-  /** Per-section override of the submit button's text; falls back to the form's global submitLabel when null. */
-  submitLabel: LocalizedString | null;
   fields: FormField[];
 }
 
 export interface DocumentFields {
   title: LocalizedString;
-  submitLabel: LocalizedString;
-  submitMode: "combined" | "perSection";
-  submitStyle: SubmitStyle;
   themeOverrides: ThemeOverrides;
   sections: Section[];
 }
 /** Shape used only for the "View JSON" export (stamped with a version). */
 export interface FormDocument extends DocumentFields {
-  version: 4;
+  version: 5;
   /** Fully resolved theme (DEFAULT_THEME merged with `themeOverrides`) — lets a host re-render this document's styling without needing its own copy of the defaults. */
   theme: Theme;
 }
@@ -217,8 +226,10 @@ export interface StorageAdapter {
 
 // --- runtime submission (Preview mode "Submit") ---
 export interface SubmitPayload {
-  /** Whether this submission came from the single combined submit button or one section's own button. */
-  scope: "combined" | "section";
+  /** id of the button field that triggered this submission. */
+  buttonId: string;
+  /** Whether the triggering button's scope was the whole form or just its own section. */
+  scope: "form" | "section";
   /** Set when `scope === "section"`. */
   sectionId?: string;
   /** fieldId -> raw value, scoped to whatever was just submitted (the whole form for "combined", one section for "section"). */

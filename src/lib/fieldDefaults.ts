@@ -44,6 +44,12 @@ export function defaultFieldFor(type: FieldType, language: string, chrome: Chrom
     base.fontStyle = "normal";
     base.textAlign = "left";
     base.color = "";
+  } else if (type === "button") {
+    base.action = "submit";
+    base.submitScope = "form";
+    base.buttonStyle = { color: "", size: "md" };
+    base.href = "";
+    base.target = "_self";
   } else {
     base.defaultValue = "";
   }
@@ -53,5 +59,5 @@ export function defaultFieldFor(type: FieldType, language: string, chrome: Chrom
 }
 
 export function defaultSection(titleEn = ""): Section {
-  return { id: genSectionId(), title: bi(titleEn, ""), background: "", collapsed: false, submitStyle: null, submitLabel: null, fields: [] };
+  return { id: genSectionId(), title: bi(titleEn, ""), background: "", collapsed: false, fields: [] };
 }
