@@ -213,6 +213,20 @@ export interface StorageAdapter {
   delete(key: string): Promise<void>;
 }
 
+// --- runtime submission (Preview mode "Submit") ---
+export interface SubmitPayload {
+  /** Whether this submission came from the single combined submit button or one section's own button. */
+  scope: "combined" | "section";
+  /** Set when `scope === "section"`. */
+  sectionId?: string;
+  /** fieldId -> raw value, scoped to whatever was just submitted (the whole form for "combined", one section for "section"). */
+  values: Record<string, unknown>;
+  /** Section-wise breakdown of the *entire* form, regardless of scope. */
+  sections: { sectionId: string; values: Record<string, unknown> }[];
+  /** Flattened fieldId -> raw value across every section, for convenience. */
+  all: Record<string, unknown>;
+}
+
 // --- props ---
 export interface FormBuilderProps {
   theme?: Partial<Theme>;
@@ -222,4 +236,5 @@ export interface FormBuilderProps {
   chrome?: Record<string, Partial<ChromeShape>>;
   themeEditable?: boolean;
   storage?: StorageAdapter;
+  onSubmit?: (payload: SubmitPayload) => void;
 }

@@ -2,12 +2,13 @@ import { useState } from "react";
 import { PartyPopper, X, CircleAlert } from "lucide-react";
 import type { ChromeShape } from "../i18n/chrome";
 import type { StringsShape } from "../i18n/strings";
-import type { FieldPatch, LocalizedString, Section, SubmitStyle } from "../types";
+import type { FieldPatch, LocalizedString, Section, SubmitPayload, SubmitStyle } from "../types";
 import { buildDeviceOptions, effectiveWidth, WIDTH_PERCENT, ALIGN_MAP } from "../constants/layout";
 import { resolveSubmitStyle } from "../constants/submitStyle";
 import { getMeta } from "../constants/fieldTypes";
 import { validateField } from "../lib/validate";
 import { formatValue } from "../lib/format";
+import { collectFieldValues } from "../lib/collectSubmission";
 import { t } from "../lib/bilingual";
 import { styles } from "../styles/styles";
 import { Segmented } from "./Segmented";
@@ -24,6 +25,7 @@ export interface PreviewPaneProps {
   submitLabel: LocalizedString;
   submitMode: "combined" | "perSection";
   submitStyle: SubmitStyle;
+  onSubmit?: (payload: SubmitPayload) => void;
 }
 
 interface SubmittedRow {
@@ -31,7 +33,7 @@ interface SubmittedRow {
   value: string;
 }
 
-export function PreviewPane({ title, sections, onFieldChange, language, strings, chrome, baseMaxWidth, submitLabel, submitMode, submitStyle }: PreviewPaneProps) {
+export function PreviewPane({ title, sections, onFieldChange, language, strings, chrome, baseMaxWidth, submitLabel, submitMode, submitStyle, onSubmit }: PreviewPaneProps) {
   const [device, setDevice] = useState<"laptop" | "tablet" | "mobile">("laptop");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState<SubmittedRow[] | null>(null);
@@ -50,11 +52,18 @@ export function PreviewPane({ title, sections, onFieldChange, language, strings,
     return errs;
   }
 
+  function buildSectionsBreakdown() {
+    return sections.map((s) => ({ sectionId: s.id, values: collectFieldValues(s.fields) }));
+  }
+
   function handleSubmitAll() {
     const errs = runValidation(allFields);
     setErrors(errs);
     if (Object.keys(errs).length > 0) { setSubmitted(null); return; }
     setSubmitted(allFields.filter((f) => !getMeta(f.type).isContent).map((f) => ({ label: t(f.label, language), value: formatValue(f, language) })));
+    const sectionsBreakdown = buildSectionsBreakdown();
+    const all = collectFieldValues(allFields);
+    onSubmit?.({ scope: "combined", values: all, sections: sectionsBreakdown, all });
   }
 
   function handleSubmitSection(section: Section) {
@@ -66,6 +75,9 @@ export function PreviewPane({ title, sections, onFieldChange, language, strings,
     });
     if (Object.keys(errs).length > 0) { setSubmitted(null); return; }
     setSubmitted(section.fields.filter((f) => !getMeta(f.type).isContent).map((f) => ({ label: t(f.label, language), value: formatValue(f, language) })));
+    const sectionsBreakdown = buildSectionsBreakdown();
+    const all = collectFieldValues(allFields);
+    onSubmit?.({ scope: "section", sectionId: section.id, values: collectFieldValues(section.fields), sections: sectionsBreakdown, all });
   }
 
   return (

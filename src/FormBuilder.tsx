@@ -33,6 +33,7 @@ export default function FormBuilder({
   chrome: chromeOverride,
   themeEditable = false,
   storage: storageProp,
+  onSubmit,
 }: FormBuilderProps = {}) {
   const storage = storageProp ?? localStorageAdapter;
   const { theme, updateThemeColor, updateThemeLayout, resetTheme, replaceThemeOverrides, themeOverrides } = useTheme(themeOverrideProp);
@@ -181,6 +182,7 @@ export default function FormBuilder({
           title={doc.title} sections={doc.sections} onFieldChange={doc.updateField} language={language}
           strings={strings} chrome={chrome} baseMaxWidth={theme.layout.maxWidth}
           submitLabel={doc.submitLabel} submitMode={doc.submitMode} submitStyle={doc.submitStyle}
+          onSubmit={onSubmit}
         />
       )}
 

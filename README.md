@@ -43,12 +43,13 @@ If you *do* size a wrapper to exactly `100vh`/`100dvh` and still see the page it
 | Prop | Type | Description |
 |---|---|---|
 | `theme` | `Partial<Theme>` | Override default colors/layout spacing. |
-| `themeEditable` | `boolean` | Show an in-app theme/spacing editor popover in the toolbar. |
+| `themeEditable` | `boolean` | Show the in-app "Design" tab (theme/spacing/submit-button controls) in the left sidebar. |
 | `language` | `string` | Initial builder language (defaults to the first entry in `languages`). |
 | `languages` | `{ code: string; label: string }[]` | Language switcher options (default: EN/JA). |
 | `strings` | partial override of runtime/validation strings, keyed by language code | |
 | `chrome` | partial override of builder-UI strings, keyed by language code | |
-| `storage` | `StorageAdapter` | Pluggable persistence backend for the builder's own draft/library — see below. |
+| `storage` | `StorageAdapter` | Pluggable persistence backend for the builder's own draft/Templates library — see below. |
+| `onSubmit` | `(payload: SubmitPayload) => void` | Called when Preview mode's Submit button is clicked and validation passes — see below. |
 
 ### Persistence: `StorageAdapter`
 
@@ -85,7 +86,24 @@ const apiStorage: StorageAdapter = {
 <FormBuilder storage={apiStorage} />;
 ```
 
-This is separate from — and unrelated to — however you choose to handle real end-user form submissions in your own app; this package doesn't send or receive those.
+This is separate from — and unrelated to — however you choose to handle real end-user form submissions in your own app; this package doesn't send or receive those on its own (see `onSubmit` below if you want Preview mode's Submit button to hand you the entered values).
+
+### Handling submissions: `onSubmit`
+
+Preview mode's Submit button (combined or per-section) validates the visible fields and, once they pass, calls `onSubmit` with the entered values — pass this if you want to do something with them (send to your backend, log them, etc.) instead of just seeing the built-in "here's what would be sent" confirmation:
+
+```tsx
+import { FormBuilder, type SubmitPayload } from "form-page-builder";
+
+function handleSubmit(payload: SubmitPayload) {
+  // payload.all: every field's raw value across the whole form, keyed by field id
+  // payload.sections: the same values, broken down section by section
+  // payload.values: just whatever was submitted (the whole form, or one section if submitMode is "perSection")
+  console.log(payload);
+}
+
+<FormBuilder onSubmit={handleSubmit} />;
+```
 
 ## Using in a plain HTML page (no bundler)
 

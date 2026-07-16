@@ -6,4 +6,5 @@ export type {
   SavedFormMeta, LocalizedString, LanguageOption, ChromeShape, StringsShape,
   InputField, TextareaField, SelectField, RadioField, CheckboxGroupField,
   CheckboxField, ToggleField, ParagraphField, ImageField, SubmitStyle,
+  SubmitPayload,
 } from "./types";
