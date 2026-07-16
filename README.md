@@ -93,15 +93,20 @@ This is separate from — and unrelated to — however you choose to handle real
 
 ### Handling submissions: `onSubmit`
 
-Preview mode's Submit button (combined or per-section) validates the visible fields and, once they pass, calls `onSubmit` with the entered values — pass this if you want to do something with them (send to your backend, log them, etc.) instead of just seeing the built-in "here's what would be sent" confirmation:
+A submit action lives on a **Button field** — drag one into a section from the palette (next to Paragraph/Image) and set its "When clicked" mode to Submit, with a scope of either "This section" or "Whole form". There's no document-level submit setting anymore; you can place as many buttons as you like (e.g. a per-section "Next" alongside a final "Submit", or a plain "Open link" CTA button that doesn't submit at all).
+
+Clicking a submit-action button validates the fields in its scope and, once they pass, calls `onSubmit` with the entered values — pass this if you want to do something with them (send to your backend, log them, etc.) instead of just seeing the built-in "here's what would be sent" confirmation:
 
 ```tsx
 import { FormBuilder, type SubmitPayload } from "form-page-builder";
 
 function handleSubmit(payload: SubmitPayload) {
+  // payload.buttonId: id of the button field that triggered this — use it to
+  //   branch when a form has more than one submit button (e.g. "save draft" vs "submit")
+  // payload.scope: "form" | "section", matching that button's own scope setting
   // payload.all: every field's raw value across the whole form, keyed by field id
   // payload.sections: the same values, broken down section by section
-  // payload.values: just whatever was submitted (the whole form, or one section if submitMode is "perSection")
+  // payload.values: just whatever was submitted (the whole form, or one section if scope is "section")
   console.log(payload);
 }
 
