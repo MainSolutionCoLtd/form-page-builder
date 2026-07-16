@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ChromeShape } from "../i18n/chrome";
-import type { DocumentFields, LocalizedString, SavedFormMeta, StorageAdapter, ThemeOverrides } from "../types";
+import type { DocumentFields, FormDocument, LocalizedString, SavedFormMeta, StorageAdapter, ThemeOverrides } from "../types";
 import { DRAFT_KEY, INDEX_KEY, formKey } from "../lib/storage/keys";
 import { migrateDocument } from "../lib/migrate";
 import { genFormId } from "../lib/id";
@@ -13,6 +13,7 @@ export interface UsePersistenceArgs {
   language: string;
   chrome: ChromeShape;
   document: DocumentFields;
+  initialDocument?: FormDocument;
   onLoadDocument: (doc: DocumentFields) => void;
   onLoadThemeOverrides: (overrides: ThemeOverrides) => void;
   onTitleChange: (title: LocalizedString) => void;
@@ -33,7 +34,7 @@ export interface SaveAsPrompt {
  * loaded — splitting them would require sharing a ref across hooks.
  */
 export function usePersistence({
-  storage, language, chrome, document, onLoadDocument, onLoadThemeOverrides, onTitleChange, onNewForm, ensureActiveSection,
+  storage, language, chrome, document, initialDocument, onLoadDocument, onLoadThemeOverrides, onTitleChange, onNewForm, ensureActiveSection,
 }: UsePersistenceArgs) {
   const [currentFormId, setCurrentFormId] = useState<string | null>(null);
   const [loadingDraft, setLoadingDraft] = useState(true);
@@ -57,17 +58,27 @@ export function usePersistence({
   useEffect(() => {
     (async () => {
       try {
-        const raw = await storage.get(DRAFT_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          const doc = migrateDocument(parsed);
+        if (initialDocument) {
+          const doc = migrateDocument(initialDocument);
           if (doc) {
             onLoadDocument(doc);
             onLoadThemeOverrides(doc.themeOverrides);
+          } else {
+            ensureActiveSection();
           }
-          if (parsed.currentFormId) setCurrentFormId(parsed.currentFormId);
         } else {
-          ensureActiveSection();
+          const raw = await storage.get(DRAFT_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const doc = migrateDocument(parsed);
+            if (doc) {
+              onLoadDocument(doc);
+              onLoadThemeOverrides(doc.themeOverrides);
+            }
+            if (parsed.currentFormId) setCurrentFormId(parsed.currentFormId);
+          } else {
+            ensureActiveSection();
+          }
         }
       } catch (err) {
         ensureActiveSection();

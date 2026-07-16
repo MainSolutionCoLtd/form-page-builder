@@ -227,6 +227,16 @@ export interface SubmitPayload {
   all: Record<string, unknown>;
 }
 
+// --- imperative ref handle (programmatic integration) ---
+export interface FormBuilderHandle {
+  /** The current document, fully resolved (same shape as the "View JSON" export). */
+  getDocument(): FormDocument;
+  /** Replaces the current document — e.g. a form fetched from your own backend. Routes through the same migration path as opening a saved template, so older/looser JSON shapes are tolerated. */
+  loadDocument(doc: FormDocument): void;
+  /** Convenience for `JSON.stringify(getDocument())`. */
+  exportJson(): string;
+}
+
 // --- props ---
 export interface FormBuilderProps {
   theme?: Partial<Theme>;
@@ -237,4 +247,6 @@ export interface FormBuilderProps {
   themeEditable?: boolean;
   storage?: StorageAdapter;
   onSubmit?: (payload: SubmitPayload) => void;
+  /** Seeds the builder with this document on mount instead of the autosaved draft — e.g. a template fetched from your own backend. */
+  initialDocument?: FormDocument;
 }

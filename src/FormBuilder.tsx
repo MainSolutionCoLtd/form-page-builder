@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import type { CSSProperties } from "react";
 import { Loader2 } from "lucide-react";
-import type { FormBuilderProps } from "./types";
+import type { FormBuilderHandle, FormBuilderProps } from "./types";
 import { DEFAULT_LANGUAGES } from "./i18n/languages";
 import { DEFAULT_STRINGS } from "./i18n/strings";
 import { CHROME } from "./i18n/chrome";
 import { t } from "./lib/bilingual";
 import { localStorageAdapter } from "./lib/storage/localStorageAdapter";
+import { migrateDocument } from "./lib/migrate";
 import { useTheme } from "./hooks/useTheme";
 import { useFormDocument } from "./hooks/useFormDocument";
 import { usePersistence } from "./hooks/usePersistence";
@@ -25,7 +26,7 @@ import { SettingsModal } from "./components/modals/SettingsModal";
 import { css } from "./styles/globalCss";
 import { styles } from "./styles/styles";
 
-export default function FormBuilder({
+const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function FormBuilder({
   theme: themeOverrideProp,
   language: languageOverride,
   languages = DEFAULT_LANGUAGES,
@@ -34,7 +35,8 @@ export default function FormBuilder({
   themeEditable = false,
   storage: storageProp,
   onSubmit,
-}: FormBuilderProps = {}) {
+  initialDocument,
+}, ref) {
   const storage = storageProp ?? localStorageAdapter;
   const { theme, updateThemeColor, updateThemeLayout, resetTheme, replaceThemeOverrides, themeOverrides } = useTheme(themeOverrideProp);
 
@@ -59,6 +61,7 @@ export default function FormBuilder({
       title: doc.title, submitLabel: doc.submitLabel, submitMode: doc.submitMode,
       submitStyle: doc.submitStyle, themeOverrides, sections: doc.sections,
     },
+    initialDocument,
     onLoadDocument: doc.loadDocument,
     onLoadThemeOverrides: replaceThemeOverrides,
     onTitleChange: doc.setTitle,
@@ -79,6 +82,18 @@ export default function FormBuilder({
       setTimeout(() => setCopied(false), 1500);
     }).catch(() => {});
   }
+
+  useImperativeHandle(ref, () => ({
+    getDocument: () => jsonDoc,
+    exportJson: () => jsonString,
+    loadDocument: (raw) => {
+      const migrated = migrateDocument(raw);
+      if (!migrated) return;
+      doc.loadDocument(migrated);
+      replaceThemeOverrides(migrated.themeOverrides);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [jsonDoc, jsonString]);
 
   const activeSectionIdx = doc.sections.findIndex((s) => s.id === doc.activeSection?.id);
   const activeSectionLabel = t(doc.activeSection?.title, language) || `#${activeSectionIdx + 1}`;
@@ -224,4 +239,6 @@ export default function FormBuilder({
       )}
     </div>
   );
-}
+});
+
+export default FormBuilder;

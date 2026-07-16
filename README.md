@@ -50,6 +50,9 @@ If you *do* size a wrapper to exactly `100vh`/`100dvh` and still see the page it
 | `chrome` | partial override of builder-UI strings, keyed by language code | |
 | `storage` | `StorageAdapter` | Pluggable persistence backend for the builder's own draft/Templates library — see below. |
 | `onSubmit` | `(payload: SubmitPayload) => void` | Called when Preview mode's Submit button is clicked and validation passes — see below. |
+| `initialDocument` | `FormDocument` | Seeds the builder with this document on mount instead of the autosaved draft — see "Programmatic integration" below. |
+
+A `ref` on `<FormBuilder />` gives you a `FormBuilderHandle` (`getDocument()` / `loadDocument()` / `exportJson()`) — see "Programmatic integration" below.
 
 ### Persistence: `StorageAdapter`
 
@@ -103,6 +106,35 @@ function handleSubmit(payload: SubmitPayload) {
 }
 
 <FormBuilder onSubmit={handleSubmit} />;
+```
+
+### Programmatic integration
+
+Copying and pasting the "View JSON" output is fine for development, but a production integration usually wants to load and save forms through its own backend in the background instead. Two props/APIs cover that:
+
+- `initialDocument` seeds the builder with a document (e.g. one your backend just fetched) instead of the autosaved draft.
+- A ref exposes `getDocument()`, `loadDocument(doc)`, and `exportJson()` so you can pull the current document out (to save it yourself, on whatever schedule/event you choose) or push a new one in, independent of the `storage` autosave path:
+
+```tsx
+import { useEffect, useRef, useState } from "react";
+import { FormBuilder, type FormBuilderHandle, type FormDocument } from "form-page-builder";
+
+function BuilderPage() {
+  const ref = useRef<FormBuilderHandle>(null);
+  const [initialDocument, setInitialDocument] = useState<FormDocument>();
+
+  useEffect(() => {
+    fetch("/api/forms/123").then((r) => r.json()).then(setInitialDocument);
+  }, []);
+
+  async function saveNow() {
+    if (!ref.current) return;
+    await fetch("/api/forms/123", { method: "PUT", body: ref.current.exportJson() });
+  }
+
+  if (!initialDocument) return null;
+  return <FormBuilder ref={ref} initialDocument={initialDocument} />;
+}
 ```
 
 ## Using in a plain HTML page (no bundler)
