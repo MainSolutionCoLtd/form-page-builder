@@ -55,10 +55,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
     storage,
     language,
     chrome,
-    document: {
-      title: doc.title, submitLabel: doc.submitLabel, submitMode: doc.submitMode,
-      submitStyle: doc.submitStyle, themeOverrides, sections: doc.sections,
-    },
+    document: { title: doc.title, themeOverrides, sections: doc.sections },
     initialDocument,
     onLoadDocument: doc.loadDocument,
     onLoadThemeOverrides: replaceThemeOverrides,
@@ -68,9 +65,9 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   });
 
   const jsonDoc = {
-    version: 4 as const,
-    title: doc.title, submitLabel: doc.submitLabel, submitMode: doc.submitMode, submitStyle: doc.submitStyle, theme, themeOverrides,
-    sections: doc.sections.map((s) => ({ id: s.id, title: s.title, background: s.background, collapsed: s.collapsed, submitStyle: s.submitStyle, submitLabel: s.submitLabel, fields: s.fields })),
+    version: 5 as const,
+    title: doc.title, theme, themeOverrides,
+    sections: doc.sections.map((s) => ({ id: s.id, title: s.title, background: s.background, collapsed: s.collapsed, fields: s.fields })),
   };
   const jsonString = JSON.stringify(jsonDoc, null, 2);
 
@@ -142,25 +139,14 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
             onAddField={doc.addField}
             themeEditable={themeEditable}
             theme={theme}
-            sections={doc.sections}
-            submitStyle={doc.submitStyle}
             updateThemeColor={updateThemeColor}
             updateThemeLayout={updateThemeLayout}
-            onSubmitStyleChange={doc.updateSubmitStyle}
             resetTheme={resetTheme}
-            submitLabel={doc.submitLabel}
-            submitMode={doc.submitMode}
-            language={language}
-            strings={strings}
-            onSubmitLabelChange={doc.updateSubmitLabel}
-            onSubmitModeChange={doc.setSubmitMode}
           />
 
           <Canvas
             sections={doc.sections}
             activeSectionId={doc.activeSectionId}
-            submitMode={doc.submitMode}
-            submitStyle={doc.submitStyle}
             selectedId={doc.selectedId}
             dragOverKey={drag.dragOverKey}
             chrome={chrome}
@@ -173,10 +159,6 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
             onDuplicateSection={doc.duplicateSection}
             onMoveSection={doc.moveSection}
             onDeleteSection={doc.deleteSection}
-            onUpdateSectionSubmitStyle={doc.updateSectionSubmitStyle}
-            onUpdateSectionSubmitLabel={doc.updateSectionSubmitLabel}
-            onClearSectionSubmitStyle={doc.clearSectionSubmitStyle}
-            defaultSubmitLabel={doc.submitLabel}
             onAddSection={doc.addSection}
             onSelectField={(sectionId, fieldId) => { doc.setSelectedId(fieldId); doc.setActiveSectionId(sectionId); }}
             onFieldChange={doc.updateField}
@@ -202,7 +184,6 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
         <PreviewPane
           title={doc.title} sections={doc.sections} onFieldChange={doc.updateField} language={language}
           strings={strings} chrome={chrome} baseMaxWidth={theme.layout.maxWidth}
-          submitLabel={doc.submitLabel} submitMode={doc.submitMode} submitStyle={doc.submitStyle}
           onSubmit={onSubmit}
         />
       )}

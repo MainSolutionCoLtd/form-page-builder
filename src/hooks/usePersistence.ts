@@ -107,7 +107,7 @@ export function usePersistence({
       if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [document.title, document.submitLabel, document.submitMode, document.submitStyle, document.themeOverrides, document.sections, currentFormId]);
+  }, [document.title, document.themeOverrides, document.sections, currentFormId]);
 
   async function saveAs(name: string) {
     if (savedForms.length >= MAX_TEMPLATES) {
