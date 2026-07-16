@@ -1,0 +1,39 @@
+name: Version Packages
+
+on:
+  push:
+    branches: [main]
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # Opens/updates a "Version Packages" PR whenever unreleased changesets
+      # exist on main. Merging that PR bumps package.json + CHANGELOG.md.
+      # Publishing to npm is a separate, manual step (see release.yml) —
+      # this job intentionally has no `publish` command.
+      - name: Create Version PR
+        uses: changesets/action@v1
+        with:
+          version: npm run changeset:version
+          commit: "chore: version packages"
+          title: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
