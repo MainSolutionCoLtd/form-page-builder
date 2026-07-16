@@ -32,6 +32,12 @@ export default function BuilderPage() {
 
 In Next.js App Router, the package's entry already carries a `"use client"` directive, so it can be imported directly from a Server Component tree without you adding the directive yourself.
 
+### Sizing
+
+The widget caps itself at the viewport height (`100vh`, upgrading to `100dvh` on browsers that support it) and scrolls its own Palette/Canvas/Inspector panels internally past that — it never grows taller than the space available. Give its wrapping container an explicit height (e.g. `height: "100dvh"` for a full-height layout on mobile, or any fixed/`%` height) if you want it to fill that space; without one, it just sizes to its content and the page scrolls normally, either way with a single scrollbar.
+
+If you *do* size a wrapper to exactly `100vh`/`100dvh` and still see the page itself scroll by a few extra pixels, that's almost always the browser's default `<body>` margin (commonly `8px`) adding to that full-viewport height — reset it yourself (`body { margin: 0; }`), same as you would for any other full-height layout; this package doesn't touch your page's global styles.
+
 ### Props
 
 | Prop | Type | Description |

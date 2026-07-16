@@ -95,7 +95,7 @@ export default function FormBuilder({
   } as CSSProperties;
 
   return (
-    <div style={rootStyle}>
+    <div className="fb-root" style={rootStyle}>
       <style>{css}</style>
 
       <Toolbar

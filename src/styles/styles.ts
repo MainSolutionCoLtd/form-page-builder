@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 
 export const styles: Record<string, CSSProperties> = {
-  app: { fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", background: "var(--fb-canvas)", borderRadius: 12, overflow: "hidden", border: "1px solid var(--fb-border)", color: "var(--fb-ink)", minHeight: 640, maxHeight: "100vh", display: "flex", flexDirection: "column" },
+  app: { fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", background: "var(--fb-canvas)", borderRadius: 12, overflow: "hidden", border: "1px solid var(--fb-border)", color: "var(--fb-ink)", display: "flex", flexDirection: "column" },
   toolbar: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "var(--fb-space-toolbar) 16px", borderBottom: "1px solid var(--fb-border)", background: "var(--fb-surface)", flexWrap: "wrap", gap: 8, position: "relative" },
   toolbarLeft: { display: "flex", alignItems: "center", gap: 10 },
   logoMark: { width: 26, height: 26, borderRadius: 7, background: "var(--fb-primary)", color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "-0.5px" },
