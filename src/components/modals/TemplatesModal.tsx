@@ -3,7 +3,7 @@ import type { ChromeShape } from "../../i18n/chrome";
 import type { SavedFormMeta } from "../../types";
 import { styles } from "../../styles/styles";
 
-export interface LibraryModalProps {
+export interface TemplatesModalProps {
   chrome: ChromeShape;
   savedForms: SavedFormMeta[];
   currentFormId: string | null;
@@ -12,14 +12,14 @@ export interface LibraryModalProps {
   onClose: () => void;
 }
 
-export function LibraryModal({ chrome, savedForms, currentFormId, onOpen, onDelete, onClose }: LibraryModalProps) {
+export function TemplatesModal({ chrome, savedForms, currentFormId, onOpen, onDelete, onClose }: TemplatesModalProps) {
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div style={styles.modalHeader}><span style={{ fontWeight: 600, fontSize: 14 }}>{chrome.myForms}</span><button style={styles.iconBtn} onClick={onClose}><X size={16} /></button></div>
+        <div style={styles.modalHeader}><span style={{ fontWeight: 600, fontSize: 14 }}>{chrome.templates}</span><button style={styles.iconBtn} onClick={onClose}><X size={16} /></button></div>
         <div style={styles.libraryBody}>
           {savedForms.length === 0 ? (
-            <div style={styles.inspectorEmpty}>{chrome.nothingSaved}</div>
+            <div style={styles.inspectorEmpty}>{chrome.noTemplates}</div>
           ) : (
             savedForms.map((f) => (
               <div key={f.id} style={styles.libraryRow}>

@@ -97,10 +97,20 @@ export interface ImageField extends BaseField {
   link: string;
   shape: "square" | "circle" | "banner";
 }
+export interface ButtonField extends BaseField {
+  type: "button";
+  action: "link" | "submit";
+  buttonStyle: SubmitStyle;
+  /** Used when `action === "link"`. */
+  href: string;
+  target: "_self" | "_blank";
+  /** Used when `action === "submit"`. */
+  submitScope: "section" | "form";
+}
 
 export type FormField =
   | InputField | TextareaField | SelectField | RadioField | CheckboxGroupField
-  | CheckboxField | ToggleField | ParagraphField | ImageField;
+  | CheckboxField | ToggleField | ParagraphField | ImageField | ButtonField;
 
 /**
  * Flat, fully-optional patch type for updateField/updateOption call sites.
@@ -135,6 +145,11 @@ export interface FieldPatch {
   alt?: LocalizedString;
   link?: string;
   shape?: ImageField["shape"];
+  action?: ButtonField["action"];
+  buttonStyle?: SubmitStyle;
+  href?: string;
+  target?: ButtonField["target"];
+  submitScope?: ButtonField["submitScope"];
 }
 
 // --- section / document ---
@@ -147,21 +162,19 @@ export interface Section {
   title: LocalizedString;
   background: string;
   collapsed: boolean;
-  submitStyle: SubmitStyle | null;
   fields: FormField[];
 }
 
 export interface DocumentFields {
   title: LocalizedString;
-  submitLabel: LocalizedString;
-  submitMode: "combined" | "perSection";
-  submitStyle: SubmitStyle;
   themeOverrides: ThemeOverrides;
   sections: Section[];
 }
 /** Shape used only for the "View JSON" export (stamped with a version). */
 export interface FormDocument extends DocumentFields {
-  version: 4;
+  version: 5;
+  /** Fully resolved theme (DEFAULT_THEME merged with `themeOverrides`) — lets a host re-render this document's styling without needing its own copy of the defaults. */
+  theme: Theme;
 }
 /** Shape persisted as the autosaved draft. */
 export interface DraftRecord extends DocumentFields {
@@ -211,6 +224,32 @@ export interface StorageAdapter {
   delete(key: string): Promise<void>;
 }
 
+// --- runtime submission (Preview mode "Submit") ---
+export interface SubmitPayload {
+  /** id of the button field that triggered this submission. */
+  buttonId: string;
+  /** Whether the triggering button's scope was the whole form or just its own section. */
+  scope: "form" | "section";
+  /** Set when `scope === "section"`. */
+  sectionId?: string;
+  /** fieldId -> raw value, scoped to whatever was just submitted (the whole form for "combined", one section for "section"). */
+  values: Record<string, unknown>;
+  /** Section-wise breakdown of the *entire* form, regardless of scope. */
+  sections: { sectionId: string; values: Record<string, unknown> }[];
+  /** Flattened fieldId -> raw value across every section, for convenience. */
+  all: Record<string, unknown>;
+}
+
+// --- imperative ref handle (programmatic integration) ---
+export interface FormBuilderHandle {
+  /** The current document, fully resolved (same shape as the "View JSON" export). */
+  getDocument(): FormDocument;
+  /** Replaces the current document — e.g. a form fetched from your own backend. Routes through the same migration path as opening a saved template, so older/looser JSON shapes are tolerated. */
+  loadDocument(doc: FormDocument): void;
+  /** Convenience for `JSON.stringify(getDocument())`. */
+  exportJson(): string;
+}
+
 // --- props ---
 export interface FormBuilderProps {
   theme?: Partial<Theme>;
@@ -220,4 +259,7 @@ export interface FormBuilderProps {
   chrome?: Record<string, Partial<ChromeShape>>;
   themeEditable?: boolean;
   storage?: StorageAdapter;
+  onSubmit?: (payload: SubmitPayload) => void;
+  /** Seeds the builder with this document on mount instead of the autosaved draft — e.g. a template fetched from your own backend. */
+  initialDocument?: FormDocument;
 }

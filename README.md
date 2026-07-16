@@ -8,7 +8,7 @@
 
 Embeddable, bilingual (EN/JA by default, extensible), drag-and-drop form builder widget for React. Ships a single `<FormBuilder />` component with a Build mode (drag/drop canvas, field inspector) and a Preview mode (responsive, validating runtime form), plus a JSON export of the resulting document.
 
-**This is a builder + viewer, not a data handler.** It builds and previews a JSON *schema* describing a form's fields, sections, and layout blocks (including plain content blocks like paragraphs and images, not just inputs). It never receives or stores real end-user submissions — Preview mode's "Submit" just shows a mock "here's what would be sent to your backend" modal. The only thing this package persists on its own is the *builder's own* draft/library state (via the pluggable `StorageAdapter` below); wiring actual form submissions to a backend is up to the host app.
+**This is a builder + viewer, not a data handler.** It builds and previews a JSON *schema* describing a form's fields, sections, and layout blocks (including plain content blocks like paragraphs and images, not just inputs). Preview mode's "Submit" validates and shows a mock "here's what would be sent to your backend" modal, and — if you pass `onSubmit` — hands you the entered values too; either way, this package never sends or stores them itself. The only thing it persists on its own is the *builder's own* draft/Templates state (via the pluggable `StorageAdapter` below); actually delivering submissions to a backend is up to the host app.
 
 ## Install
 
@@ -32,21 +32,31 @@ export default function BuilderPage() {
 
 In Next.js App Router, the package's entry already carries a `"use client"` directive, so it can be imported directly from a Server Component tree without you adding the directive yourself.
 
+### Sizing
+
+The widget caps itself at the viewport height (`100vh`, upgrading to `100dvh` on browsers that support it) and scrolls its own Palette/Canvas/Inspector panels internally past that — it never grows taller than the space available. Give its wrapping container an explicit height (e.g. `height: "100dvh"` for a full-height layout on mobile, or any fixed/`%` height) if you want it to fill that space; without one, it just sizes to its content and the page scrolls normally, either way with a single scrollbar.
+
+If you *do* size a wrapper to exactly `100vh`/`100dvh` and still see the page itself scroll by a few extra pixels, that's almost always the browser's default `<body>` margin (commonly `8px`) adding to that full-viewport height — reset it yourself (`body { margin: 0; }`), same as you would for any other full-height layout; this package doesn't touch your page's global styles.
+
 ### Props
 
 | Prop | Type | Description |
 |---|---|---|
 | `theme` | `Partial<Theme>` | Override default colors/layout spacing. |
-| `themeEditable` | `boolean` | Show an in-app theme/spacing editor popover in the toolbar. |
+| `themeEditable` | `boolean` | Show the in-app "Design" tab (theme/spacing/submit-button controls) in the left sidebar. |
 | `language` | `string` | Initial builder language (defaults to the first entry in `languages`). |
 | `languages` | `{ code: string; label: string }[]` | Language switcher options (default: EN/JA). |
 | `strings` | partial override of runtime/validation strings, keyed by language code | |
 | `chrome` | partial override of builder-UI strings, keyed by language code | |
-| `storage` | `StorageAdapter` | Pluggable persistence backend for the builder's own draft/library — see below. |
+| `storage` | `StorageAdapter` | Pluggable persistence backend for the builder's own draft/Templates library — see below. |
+| `onSubmit` | `(payload: SubmitPayload) => void` | Called when Preview mode's Submit button is clicked and validation passes — see below. |
+| `initialDocument` | `FormDocument` | Seeds the builder with this document on mount instead of the autosaved draft — see "Programmatic integration" below. |
+
+A `ref` on `<FormBuilder />` gives you a `FormBuilderHandle` (`getDocument()` / `loadDocument()` / `exportJson()`) — see "Programmatic integration" below.
 
 ### Persistence: `StorageAdapter`
 
-By default the component autosaves a draft and a "saved forms" library to `window.localStorage`. To persist the builder's state to your own backend (a Next.js API route, a PHP endpoint, etc.) instead — for example to share drafts across devices — implement and pass a `StorageAdapter`:
+By default the component autosaves a draft, plus a "Templates" library (up to 5 saved forms, shown via the toolbar's Templates button), to `window.localStorage`. Being local-storage-only means neither persists across devices or browsers. To persist the builder's state to your own backend (a Next.js API route, a PHP endpoint, etc.) instead — so drafts and templates are shared across devices, and your backend can populate/manage the template list itself — implement and pass a `StorageAdapter`. Its `get`/`set`/`delete` calls *are* the create/update/delete hooks: whatever your implementation does inside them (write to a database, call your API) runs on every template save/update/delete, so no separate event callbacks are needed.
 
 ```ts
 interface StorageAdapter {
@@ -79,7 +89,93 @@ const apiStorage: StorageAdapter = {
 <FormBuilder storage={apiStorage} />;
 ```
 
-This is separate from — and unrelated to — however you choose to handle real end-user form submissions in your own app; this package doesn't send or receive those.
+This is separate from — and unrelated to — however you choose to handle real end-user form submissions in your own app; this package doesn't send or receive those on its own (see `onSubmit` below if you want Preview mode's Submit button to hand you the entered values).
+
+### Handling submissions: `onSubmit`
+
+A submit action lives on a **Button field** — drag one into a section from the palette (next to Paragraph/Image) and set its "When clicked" mode to Submit, with a scope of either "This section" or "Whole form". There's no document-level submit setting anymore; you can place as many buttons as you like (e.g. a per-section "Next" alongside a final "Submit", or a plain "Open link" CTA button that doesn't submit at all).
+
+Clicking a submit-action button validates the fields in its scope and, once they pass, calls `onSubmit` with the entered values — pass this if you want to do something with them (send to your backend, log them, etc.) instead of just seeing the built-in "here's what would be sent" confirmation:
+
+```tsx
+import { FormBuilder, type SubmitPayload } from "form-page-builder";
+
+function handleSubmit(payload: SubmitPayload) {
+  // payload.buttonId: id of the button field that triggered this — use it to
+  //   branch when a form has more than one submit button (e.g. "save draft" vs "submit")
+  // payload.scope: "form" | "section", matching that button's own scope setting
+  // payload.all: every field's raw value across the whole form, keyed by field id
+  // payload.sections: the same values, broken down section by section
+  // payload.values: just whatever was submitted (the whole form, or one section if scope is "section")
+  console.log(payload);
+}
+
+<FormBuilder onSubmit={handleSubmit} />;
+```
+
+### Programmatic integration
+
+Copying and pasting the "View JSON" output is fine for development, but a production integration usually wants to load and save forms through its own backend in the background instead. Two props/APIs cover that:
+
+- `initialDocument` seeds the builder with a document (e.g. one your backend just fetched) instead of the autosaved draft.
+- A ref exposes `getDocument()`, `loadDocument(doc)`, and `exportJson()` so you can pull the current document out (to save it yourself, on whatever schedule/event you choose) or push a new one in, independent of the `storage` autosave path:
+
+```tsx
+import { useEffect, useRef, useState } from "react";
+import { FormBuilder, type FormBuilderHandle, type FormDocument } from "form-page-builder";
+
+function BuilderPage() {
+  const ref = useRef<FormBuilderHandle>(null);
+  const [initialDocument, setInitialDocument] = useState<FormDocument>();
+
+  useEffect(() => {
+    fetch("/api/forms/123").then((r) => r.json()).then(setInitialDocument);
+  }, []);
+
+  async function saveNow() {
+    if (!ref.current) return;
+    await fetch("/api/forms/123", { method: "PUT", body: ref.current.exportJson() });
+  }
+
+  if (!initialDocument) return null;
+  return <FormBuilder ref={ref} initialDocument={initialDocument} />;
+}
+```
+
+## Using in a plain HTML page (no bundler)
+
+There's intentionally no UMD/IIFE global-script build (see below), but you don't need a bundler to use this package — a browser-native ES module setup works too, via an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) and a CDN like [esm.sh](https://esm.sh/):
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18",
+          "react-dom/client": "https://esm.sh/react-dom@18/client",
+          "form-page-builder": "https://esm.sh/form-page-builder?external=react,react-dom"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import React from "react";
+      import { createRoot } from "react-dom/client";
+      import { FormBuilder } from "form-page-builder";
+
+      createRoot(document.getElementById("root")).render(
+        React.createElement(FormBuilder, {})
+      );
+    </script>
+  </body>
+</html>
+```
+
+The `?external=react,react-dom` query on the `form-page-builder` import tells esm.sh to reuse the same `react`/`react-dom` module the page already imports, instead of bundling its own copy — so there's no duplicate-React problem, and no build step (Vite/Webpack/etc.) required. Since there's no JSX here, components are created with `React.createElement(...)` instead of `<FormBuilder />`; everything else (props, `storage` adapter, etc.) works the same as in the React/Next.js example above.
 
 ## Using this in a PHP app
 

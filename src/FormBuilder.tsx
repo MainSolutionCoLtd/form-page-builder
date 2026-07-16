@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import type { CSSProperties } from "react";
 import { Loader2 } from "lucide-react";
-import type { FormBuilderProps } from "./types";
+import type { FormBuilderHandle, FormBuilderProps } from "./types";
 import { DEFAULT_LANGUAGES } from "./i18n/languages";
 import { DEFAULT_STRINGS } from "./i18n/strings";
 import { CHROME } from "./i18n/chrome";
 import { t } from "./lib/bilingual";
 import { localStorageAdapter } from "./lib/storage/localStorageAdapter";
+import { migrateDocument } from "./lib/migrate";
 import { useTheme } from "./hooks/useTheme";
 import { useFormDocument } from "./hooks/useFormDocument";
 import { usePersistence } from "./hooks/usePersistence";
@@ -19,13 +20,12 @@ import { Canvas } from "./components/Canvas";
 import { Inspector } from "./components/Inspector";
 import { PreviewPane } from "./components/PreviewPane";
 import { JsonModal } from "./components/modals/JsonModal";
-import { LibraryModal } from "./components/modals/LibraryModal";
+import { TemplatesModal } from "./components/modals/TemplatesModal";
 import { SaveAsModal } from "./components/modals/SaveAsModal";
-import { SettingsModal } from "./components/modals/SettingsModal";
 import { css } from "./styles/globalCss";
 import { styles } from "./styles/styles";
 
-export default function FormBuilder({
+const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function FormBuilder({
   theme: themeOverrideProp,
   language: languageOverride,
   languages = DEFAULT_LANGUAGES,
@@ -33,7 +33,9 @@ export default function FormBuilder({
   chrome: chromeOverride,
   themeEditable = false,
   storage: storageProp,
-}: FormBuilderProps = {}) {
+  onSubmit,
+  initialDocument,
+}, ref) {
   const storage = storageProp ?? localStorageAdapter;
   const { theme, updateThemeColor, updateThemeLayout, resetTheme, replaceThemeOverrides, themeOverrides } = useTheme(themeOverrideProp);
 
@@ -46,17 +48,15 @@ export default function FormBuilder({
 
   const [mode, setMode] = useState<"build" | "preview">("build");
   const [showJson, setShowJson] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const persistence = usePersistence({
     storage,
     language,
-    document: {
-      title: doc.title, submitLabel: doc.submitLabel, submitMode: doc.submitMode,
-      submitStyle: doc.submitStyle, themeOverrides, sections: doc.sections,
-    },
+    chrome,
+    document: { title: doc.title, themeOverrides, sections: doc.sections },
+    initialDocument,
     onLoadDocument: doc.loadDocument,
     onLoadThemeOverrides: replaceThemeOverrides,
     onTitleChange: doc.setTitle,
@@ -65,9 +65,9 @@ export default function FormBuilder({
   });
 
   const jsonDoc = {
-    version: 4 as const,
-    title: doc.title, submitLabel: doc.submitLabel, submitMode: doc.submitMode, submitStyle: doc.submitStyle, themeOverrides,
-    sections: doc.sections.map((s) => ({ id: s.id, title: s.title, background: s.background, collapsed: s.collapsed, submitStyle: s.submitStyle, fields: s.fields })),
+    version: 5 as const,
+    title: doc.title, theme, themeOverrides,
+    sections: doc.sections.map((s) => ({ id: s.id, title: s.title, background: s.background, collapsed: s.collapsed, fields: s.fields })),
   };
   const jsonString = JSON.stringify(jsonDoc, null, 2);
 
@@ -77,6 +77,18 @@ export default function FormBuilder({
       setTimeout(() => setCopied(false), 1500);
     }).catch(() => {});
   }
+
+  useImperativeHandle(ref, () => ({
+    getDocument: () => jsonDoc,
+    exportJson: () => jsonString,
+    loadDocument: (raw) => {
+      const migrated = migrateDocument(raw);
+      if (!migrated) return;
+      doc.loadDocument(migrated);
+      replaceThemeOverrides(migrated.themeOverrides);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [jsonDoc, jsonString]);
 
   const activeSectionIdx = doc.sections.findIndex((s) => s.id === doc.activeSection?.id);
   const activeSectionLabel = t(doc.activeSection?.title, language) || `#${activeSectionIdx + 1}`;
@@ -94,7 +106,7 @@ export default function FormBuilder({
   } as CSSProperties;
 
   return (
-    <div style={rootStyle}>
+    <div className="fb-root" style={rootStyle}>
       <style>{css}</style>
 
       <Toolbar
@@ -104,20 +116,14 @@ export default function FormBuilder({
         mode={mode}
         saveState={persistence.saveState}
         chrome={chrome}
-        themeEditable={themeEditable}
-        theme={theme}
         savedFormsCount={persistence.savedForms.length}
         onTitleChange={doc.updateTitle}
         onLanguageChange={setLanguage}
         onModeChange={setMode}
-        onOpenSettings={() => setShowSettings(true)}
         onNewForm={persistence.newForm}
         onOpenLibrary={() => setShowLibrary(true)}
         onSaveExisting={persistence.saveExisting}
         onOpenJson={() => setShowJson(true)}
-        updateThemeColor={updateThemeColor}
-        updateThemeLayout={updateThemeLayout}
-        resetTheme={resetTheme}
       />
 
       {persistence.loadingDraft ? (
@@ -127,13 +133,20 @@ export default function FormBuilder({
         </div>
       ) : mode === "build" ? (
         <div style={styles.workArea}>
-          <Palette activeSectionLabel={activeSectionLabel} chrome={chrome} onAddField={doc.addField} />
+          <Palette
+            activeSectionLabel={activeSectionLabel}
+            chrome={chrome}
+            onAddField={doc.addField}
+            themeEditable={themeEditable}
+            theme={theme}
+            updateThemeColor={updateThemeColor}
+            updateThemeLayout={updateThemeLayout}
+            resetTheme={resetTheme}
+          />
 
           <Canvas
             sections={doc.sections}
             activeSectionId={doc.activeSectionId}
-            submitMode={doc.submitMode}
-            submitStyle={doc.submitStyle}
             selectedId={doc.selectedId}
             dragOverKey={drag.dragOverKey}
             chrome={chrome}
@@ -146,8 +159,6 @@ export default function FormBuilder({
             onDuplicateSection={doc.duplicateSection}
             onMoveSection={doc.moveSection}
             onDeleteSection={doc.deleteSection}
-            onUpdateSectionSubmitStyle={doc.updateSectionSubmitStyle}
-            onClearSectionSubmitStyle={doc.clearSectionSubmitStyle}
             onAddSection={doc.addSection}
             onSelectField={(sectionId, fieldId) => { doc.setSelectedId(fieldId); doc.setActiveSectionId(sectionId); }}
             onFieldChange={doc.updateField}
@@ -173,7 +184,7 @@ export default function FormBuilder({
         <PreviewPane
           title={doc.title} sections={doc.sections} onFieldChange={doc.updateField} language={language}
           strings={strings} chrome={chrome} baseMaxWidth={theme.layout.maxWidth}
-          submitLabel={doc.submitLabel} submitMode={doc.submitMode} submitStyle={doc.submitStyle}
+          onSubmit={onSubmit}
         />
       )}
 
@@ -182,7 +193,7 @@ export default function FormBuilder({
       )}
 
       {showLibrary && (
-        <LibraryModal
+        <TemplatesModal
           chrome={chrome}
           savedForms={persistence.savedForms}
           currentFormId={persistence.currentFormId}
@@ -200,21 +211,8 @@ export default function FormBuilder({
           onClose={persistence.dismissSaveAsPrompt}
         />
       )}
-
-      {showSettings && (
-        <SettingsModal
-          chrome={chrome}
-          strings={strings}
-          submitLabel={doc.submitLabel}
-          language={language}
-          submitMode={doc.submitMode}
-          submitStyle={doc.submitStyle}
-          onSubmitLabelChange={doc.updateSubmitLabel}
-          onSubmitModeChange={doc.setSubmitMode}
-          onSubmitStyleChange={doc.updateSubmitStyle}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
     </div>
   );
-}
+});
+
+export default FormBuilder;

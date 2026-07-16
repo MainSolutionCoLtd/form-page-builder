@@ -15,14 +15,13 @@ export function effectiveWidth(width: WidthOption | undefined, device: string): 
   return width || "1/1";
 }
 
+// Only spacing knobs that actually show up in Preview (page/section/field
+// rhythm) are editable here — canvas/toolbar/panel/ticket padding are
+// builder-only chrome and never appear in the rendered form.
 export const SPACING_FIELDS = [
   { key: "pagePadding", labelKey: "spacingPagePadding" },
-  { key: "canvasPadding", labelKey: "spacingCanvasPadding" },
   { key: "sectionGap", labelKey: "spacingSectionGap" },
   { key: "fieldGap", labelKey: "spacingFieldGap" },
-  { key: "toolbarPadding", labelKey: "spacingToolbarPadding" },
-  { key: "panelPadding", labelKey: "spacingPanelPadding" },
-  { key: "ticketPadding", labelKey: "spacingTicketPadding" },
 ] as const;
 
 export interface DeviceOption {

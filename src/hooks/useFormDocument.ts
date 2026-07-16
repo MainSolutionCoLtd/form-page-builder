@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ChromeShape } from "../i18n/chrome";
-import type { DocumentFields, FieldPatch, FieldType, FormField, LocalizedString, Section, SubmitStyle } from "../types";
+import type { DocumentFields, FieldPatch, FieldType, FormField, LocalizedString, Section } from "../types";
 import { bi, withLang } from "../lib/bilingual";
 import { defaultFieldFor, defaultSection } from "../lib/fieldDefaults";
 import { genSectionId, nextId, resyncIdCounter } from "../lib/id";
@@ -12,9 +12,6 @@ export interface UseFormDocumentArgs {
 
 export function useFormDocument({ language, chrome }: UseFormDocumentArgs) {
   const [title, setTitle] = useState<LocalizedString>(bi("Untitled form", ""));
-  const [submitLabel, setSubmitLabelState] = useState<LocalizedString>(bi());
-  const [submitMode, setSubmitMode] = useState<"combined" | "perSection">("combined");
-  const [submitStyle, setSubmitStyleState] = useState<SubmitStyle>({ color: "", size: "md" });
   const [sections, setSections] = useState<Section[]>([defaultSection()]);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -25,12 +22,6 @@ export function useFormDocument({ language, chrome }: UseFormDocumentArgs) {
 
   function updateTitle(value: string) {
     setTitle((prev) => withLang(prev, language, value));
-  }
-  function updateSubmitLabel(value: string) {
-    setSubmitLabelState((prev) => withLang(prev, language, value));
-  }
-  function updateSubmitStyle(patch: Partial<SubmitStyle>) {
-    setSubmitStyleState((prev) => ({ ...prev, ...patch }));
   }
 
   function addSection() {
@@ -76,12 +67,6 @@ export function useFormDocument({ language, chrome }: UseFormDocumentArgs) {
   }
   function toggleSectionCollapse(sectionId: string) {
     setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, collapsed: !s.collapsed } : s)));
-  }
-  function updateSectionSubmitStyle(sectionId: string, patch: Partial<SubmitStyle>) {
-    setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, submitStyle: { ...(s.submitStyle || submitStyle), ...patch } } : s)));
-  }
-  function clearSectionSubmitStyle(sectionId: string) {
-    setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, submitStyle: null } : s)));
   }
 
   function addField(type: FieldType) {
@@ -162,9 +147,6 @@ export function useFormDocument({ language, chrome }: UseFormDocumentArgs) {
     setSections(doc.sections);
     setActiveSectionId(doc.sections[0]?.id || null);
     setTitle(doc.title);
-    setSubmitLabelState(doc.submitLabel);
-    setSubmitMode(doc.submitMode);
-    setSubmitStyleState(doc.submitStyle);
     setSelectedId(null);
   }
 
@@ -173,20 +155,16 @@ export function useFormDocument({ language, chrome }: UseFormDocumentArgs) {
     setSections([s]);
     setActiveSectionId(s.id);
     setTitle(bi("Untitled form", ""));
-    setSubmitLabelState(bi());
-    setSubmitMode("combined");
-    setSubmitStyleState({ color: "", size: "md" });
     setSelectedId(null);
   }
 
   return {
-    title, submitLabel, submitMode, submitStyle, sections, activeSectionId, selectedId,
+    title, sections, activeSectionId, selectedId,
     allFields, selected, activeSection,
-    setActiveSectionId, setSelectedId, setSubmitMode, setTitle,
-    updateTitle, updateSubmitLabel, updateSubmitStyle,
+    setActiveSectionId, setSelectedId, setTitle,
+    updateTitle,
     addSection, duplicateSection, deleteSection, moveSection,
     updateSectionTitle, updateSectionBackground, toggleSectionCollapse,
-    updateSectionSubmitStyle, clearSectionSubmitStyle,
     addField, updateField, deleteField, duplicateField, moveField, reorderWithinSection,
     updateOption, addOption, removeOption,
     loadDocument, resetToBlank,

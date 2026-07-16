@@ -1,11 +1,11 @@
 import {
   Type, AlignLeft, ChevronDown, Circle, ListChecks, CheckSquare, ToggleLeft,
-  FileText, Image as ImageIcon,
+  FileText, Image as ImageIcon, MousePointerClick,
 } from "lucide-react";
 import type { IconKey, IconComponent } from "./icons";
 
 export type FieldType =
-  | "paragraph" | "image" | "input" | "textarea" | "select"
+  | "paragraph" | "image" | "button" | "input" | "textarea" | "select"
   | "radio" | "checkboxGroup" | "checkbox" | "toggle";
 
 export interface FieldTypeMeta {
@@ -24,6 +24,7 @@ export interface FieldTypeMeta {
 export const FIELD_TYPES: FieldTypeMeta[] = [
   { type: "paragraph", icon: FileText, isContent: true, defaultIcon: "FileText" },
   { type: "image", icon: ImageIcon, isContent: true, isImage: true, defaultIcon: "Type" },
+  { type: "button", icon: MousePointerClick, isContent: true, defaultIcon: "Type" },
   { type: "input", icon: Type, placeholder: true, hasSubtype: true, defaultIcon: "Type" },
   { type: "textarea", icon: AlignLeft, placeholder: true, defaultIcon: "AlignLeft" },
   { type: "select", icon: ChevronDown, options: true, defaultIcon: "ChevronDown" },
@@ -44,7 +45,7 @@ export const INPUT_SUBTYPES = ["text", "email", "phone", "number", "password", "
 export const IMAGE_SHAPES = ["square", "circle", "banner"] as const;
 
 export const FIELD_TYPE_CHROME_KEY: Record<FieldType, string> = {
-  paragraph: "fieldTypeParagraph", image: "fieldTypeImage", input: "fieldTypeInput",
+  paragraph: "fieldTypeParagraph", image: "fieldTypeImage", button: "fieldTypeButton", input: "fieldTypeInput",
   textarea: "fieldTypeTextarea", select: "fieldTypeSelect", radio: "fieldTypeRadio",
   checkboxGroup: "fieldTypeCheckboxGroup", checkbox: "fieldTypeCheckbox", toggle: "fieldTypeToggle",
 };

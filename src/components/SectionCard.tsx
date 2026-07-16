@@ -1,12 +1,10 @@
-import { ChevronDown, ChevronRight, Copy, ArrowUp, ArrowDown, Trash2, RotateCcw } from "lucide-react";
+import { ChevronDown, ChevronRight, Copy, ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import type { ChromeShape } from "../i18n/chrome";
 import type { StringsShape } from "../i18n/strings";
-import type { FieldPatch, Section, SubmitStyle } from "../types";
-import { SECTION_BG_SWATCHES, BUTTON_COLOR_SWATCHES } from "../constants/colors";
-import { SUBMIT_SIZE_OPTIONS } from "../constants/submitStyle";
+import type { FieldPatch, Section } from "../types";
+import { SECTION_BG_SWATCHES } from "../constants/colors";
 import { styles } from "../styles/styles";
 import { t } from "../lib/bilingual";
-import { Segmented } from "./Segmented";
 import { FieldTicket } from "./FieldTicket";
 
 export interface SectionCardProps {
@@ -14,8 +12,6 @@ export interface SectionCardProps {
   sIdx: number;
   sectionsLength: number;
   isActive: boolean;
-  submitMode: "combined" | "perSection";
-  submitStyle: SubmitStyle;
   selectedId: string | null;
   dragOverKey: string | null;
   chrome: ChromeShape;
@@ -28,8 +24,6 @@ export interface SectionCardProps {
   onDuplicateSection: () => void;
   onMoveSection: (dir: 1 | -1) => void;
   onDeleteSection: () => void;
-  onUpdateSectionSubmitStyle: (patch: Partial<SubmitStyle>) => void;
-  onClearSectionSubmitStyle: () => void;
   onSelectField: (fieldId: string) => void;
   onFieldChange: (fieldId: string, patch: FieldPatch) => void;
   onMoveField: (fieldId: string, dir: 1 | -1) => void;
@@ -40,9 +34,8 @@ export interface SectionCardProps {
 }
 
 export function SectionCard({
-  section, sIdx, sectionsLength, isActive, submitMode, submitStyle, selectedId, dragOverKey, chrome, strings, language,
+  section, sIdx, sectionsLength, isActive, selectedId, dragOverKey, chrome, strings, language,
   onActivate, onToggleCollapse, onUpdateTitle, onUpdateBackground, onDuplicateSection, onMoveSection, onDeleteSection,
-  onUpdateSectionSubmitStyle, onClearSectionSubmitStyle,
   onSelectField, onFieldChange, onMoveField, onDuplicateField, onDeleteField,
   getDropZoneHandlers, getDragHandleProps,
 }: SectionCardProps) {
@@ -79,19 +72,6 @@ export function SectionCard({
           <button style={{ ...styles.iconBtn, ...styles.iconBtnDanger }} title={chrome.deleteSection} disabled={sectionsLength <= 1} onClick={onDeleteSection}><Trash2 size={13} /></button>
         </div>
       </div>
-
-      {!section.collapsed && submitMode === "perSection" && (
-        <div style={styles.submitStyleRow} onClick={(e) => e.stopPropagation()}>
-          <span style={styles.miniLabel}>{chrome.submitStyle}</span>
-          <div style={styles.swatchRow}>
-            {BUTTON_COLOR_SWATCHES.map((c) => (
-              <button key={c || "inherit"} type="button" title={c || chrome.none} style={{ ...styles.swatchBtn, background: c || "var(--fb-primary)", ...((section.submitStyle?.color || "") === c ? styles.swatchBtnActive : {}) }} onClick={() => onUpdateSectionSubmitStyle({ color: c })} />
-            ))}
-          </div>
-          <Segmented options={SUBMIT_SIZE_OPTIONS} value={section.submitStyle?.size || submitStyle.size} onChange={(v) => onUpdateSectionSubmitStyle({ size: v })} />
-          {section.submitStyle && (<button type="button" style={styles.resetLinkBtn} onClick={onClearSectionSubmitStyle}><RotateCcw size={11} /> {chrome.reset}</button>)}
-        </div>
-      )}
 
       {!section.collapsed && (
         section.fields.length === 0 ? (

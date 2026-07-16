@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 
 export const styles: Record<string, CSSProperties> = {
-  app: { fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", background: "var(--fb-canvas)", borderRadius: 12, overflow: "hidden", border: "1px solid var(--fb-border)", color: "var(--fb-ink)", minHeight: 640, maxHeight: "100vh", display: "flex", flexDirection: "column" },
+  app: { fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", background: "var(--fb-canvas)", borderRadius: 12, overflow: "hidden", border: "1px solid var(--fb-border)", color: "var(--fb-ink)", display: "flex", flexDirection: "column" },
   toolbar: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "var(--fb-space-toolbar) 16px", borderBottom: "1px solid var(--fb-border)", background: "var(--fb-surface)", flexWrap: "wrap", gap: 8, position: "relative" },
   toolbarLeft: { display: "flex", alignItems: "center", gap: 10 },
   logoMark: { width: 26, height: 26, borderRadius: 7, background: "var(--fb-primary)", color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "-0.5px" },
@@ -34,8 +34,6 @@ export const styles: Record<string, CSSProperties> = {
   sectionTitleInput: { border: "none", outline: "none", background: "transparent", fontSize: 14, fontWeight: 700, color: "var(--fb-ink)", padding: "2px 0", minWidth: 120, flex: 1 },
   sectionHeaderActions: { display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginLeft: "auto" },
   sectionEmpty: { fontSize: 12.5, color: "var(--fb-muted)", padding: "18px 4px", textAlign: "center", border: "1px dashed var(--fb-border)", borderRadius: 8 },
-  submitStyleRow: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", background: "#F7F8FA", border: "1px solid #F0F1F4", borderRadius: 8, padding: "6px 10px", marginBottom: 12 },
-  miniLabel: { fontSize: 11, fontWeight: 600, color: "var(--fb-muted)" },
   resetLinkBtn: { display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--fb-muted)", background: "transparent", border: "none", padding: "2px 4px" },
   addSectionBtn: { display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%", padding: "10px", borderRadius: 10, border: "1px dashed #C7C9D6", background: "transparent", color: "var(--fb-primary)", fontSize: 13, fontWeight: 600 },
   swatchRow: { display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" },
@@ -54,6 +52,10 @@ export const styles: Record<string, CSSProperties> = {
   requiredBadge: { fontSize: 10, fontWeight: 700, color: "#B4522F", background: "var(--fb-danger-soft)", padding: "2px 6px", borderRadius: 5, letterSpacing: "0.02em", marginLeft: "auto" },
   chipRow: { display: "flex", gap: 5, marginBottom: 7, flexWrap: "wrap" },
   miniBadge: { fontSize: 10, fontWeight: 600, color: "var(--fb-primary)", background: "var(--fb-primary-soft)", padding: "2px 6px", borderRadius: 5, letterSpacing: "0.02em" },
+  langToggleTrack: { position: "relative", display: "flex", gap: 3, background: "#F0F1F4", padding: 3, borderRadius: 20 },
+  langToggleThumb: { position: "absolute", top: 3, left: 3, bottom: 3, background: "var(--fb-primary)", borderRadius: 17, transition: "transform 0.18s ease" },
+  langToggleBtn: { position: "relative", zIndex: 1, padding: "5px 12px", borderRadius: 17, border: "none", background: "transparent", color: "#6B6E79", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap" },
+  langToggleBtnActive: { position: "relative", zIndex: 1, padding: "5px 12px", borderRadius: 17, border: "none", background: "transparent", color: "#fff", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap" },
   segmented: { display: "flex", gap: 3, background: "#F0F1F4", padding: 3, borderRadius: 8, marginBottom: 4 },
   segmentedBtn: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "6px 8px", borderRadius: 6, border: "none", background: "transparent", color: "#6B6E79", fontSize: 12.5, fontWeight: 500 },
   segmentedBtnActive: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "6px 8px", borderRadius: 6, border: "none", background: "#fff", color: "var(--fb-ink)", fontSize: 12.5, fontWeight: 600, boxShadow: "0 1px 2px rgba(0,0,0,0.08)" },
@@ -104,7 +106,6 @@ export const styles: Record<string, CSSProperties> = {
   realInput: { width: "100%", border: "1px solid var(--fb-border)", borderRadius: 8, padding: "9px 11px", fontSize: 13.5, outline: "none", color: "var(--fb-ink)", boxSizing: "border-box" },
   realInputError: { borderColor: "var(--fb-danger)" },
   submitBtn: { marginTop: 8, color: "#fff", border: "none", borderRadius: 8, fontWeight: 600, width: "100%" },
-  layoutPanel: { position: "absolute", top: "calc(100% + 6px)", right: 0, width: 260, background: "#fff", border: "1px solid var(--fb-border)", borderRadius: 10, boxShadow: "0 12px 32px rgba(0,0,0,0.18)", padding: 14, zIndex: 60, maxHeight: "70vh", overflowY: "auto" },
   layoutPanelHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 },
   spacingRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "4px 0" },
   spacingLabel: { fontSize: 12, color: "#4A4D57" },

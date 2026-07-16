@@ -2,13 +2,14 @@ import type { ChangeEvent, ElementType } from "react";
 import { CircleAlert } from "lucide-react";
 import type { ChromeShape } from "../../i18n/chrome";
 import type { StringsShape } from "../../i18n/strings";
-import type { FieldPatch, FormField, ImageField, ParagraphField } from "../../types";
+import type { ButtonField, FieldPatch, FormField, ImageField, ParagraphField } from "../../types";
 import { FONT_SIZE_OPTIONS, TAG_TO_ELEMENT } from "../../constants/typography";
 import { getMeta } from "../../constants/fieldTypes";
 import { ICON_LIBRARY, type IconComponent } from "../../constants/icons";
 import { t } from "../../lib/bilingual";
 import { styles } from "../../styles/styles";
 import { ImageBlock } from "./ImageBlock";
+import { ButtonBlock } from "./ButtonBlock";
 
 export interface FieldBlockProps {
   field: FormField;
@@ -18,10 +19,12 @@ export interface FieldBlockProps {
   chrome?: ChromeShape;
   error?: string | null;
   isBuild?: boolean;
+  onButtonAction?: (field: ButtonField) => void;
 }
 
-export function FieldBlock({ field, lang, onFieldChange, strings, chrome, error, isBuild }: FieldBlockProps) {
+export function FieldBlock({ field, lang, onFieldChange, strings, chrome, error, isBuild, onButtonAction }: FieldBlockProps) {
   if (field.type === "image") return <ImageBlock field={field} lang={lang} />;
+  if (field.type === "button") return <ButtonBlock field={field} lang={lang} onAction={onButtonAction} />;
 
   if (field.type === "paragraph") {
     const fontPx = FONT_SIZE_OPTIONS.find((f) => f.value === field.fontSize)?.px || 14;
@@ -56,7 +59,7 @@ export function FieldBlock({ field, lang, onFieldChange, strings, chrome, error,
   );
 }
 
-type InteractiveField = Exclude<FormField, ImageField | ParagraphField>;
+type InteractiveField = Exclude<FormField, ImageField | ParagraphField | ButtonField>;
 
 function renderInteractive(
   field: InteractiveField,
