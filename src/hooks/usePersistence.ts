@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from "react";
+import type { ChromeShape } from "../i18n/chrome";
 import type { DocumentFields, LocalizedString, SavedFormMeta, StorageAdapter, ThemeOverrides } from "../types";
 import { DRAFT_KEY, INDEX_KEY, formKey } from "../lib/storage/keys";
 import { migrateDocument } from "../lib/migrate";
 import { genFormId } from "../lib/id";
 import { bi, t } from "../lib/bilingual";
 
+export const MAX_TEMPLATES = 5;
+
 export interface UsePersistenceArgs {
   storage: StorageAdapter;
   language: string;
+  chrome: ChromeShape;
   document: DocumentFields;
   onLoadDocument: (doc: DocumentFields) => void;
   onLoadThemeOverrides: (overrides: ThemeOverrides) => void;
@@ -29,7 +33,7 @@ export interface SaveAsPrompt {
  * loaded — splitting them would require sharing a ref across hooks.
  */
 export function usePersistence({
-  storage, language, document, onLoadDocument, onLoadThemeOverrides, onTitleChange, onNewForm, ensureActiveSection,
+  storage, language, chrome, document, onLoadDocument, onLoadThemeOverrides, onTitleChange, onNewForm, ensureActiveSection,
 }: UsePersistenceArgs) {
   const [currentFormId, setCurrentFormId] = useState<string | null>(null);
   const [loadingDraft, setLoadingDraft] = useState(true);
@@ -95,6 +99,10 @@ export function usePersistence({
   }, [document.title, document.submitLabel, document.submitMode, document.submitStyle, document.themeOverrides, document.sections, currentFormId]);
 
   async function saveAs(name: string) {
+    if (savedForms.length >= MAX_TEMPLATES) {
+      alert(chrome.templatesLimitReached);
+      return;
+    }
     const id = genFormId();
     const now = Date.now();
     try {

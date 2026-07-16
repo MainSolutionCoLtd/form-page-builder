@@ -58,8 +58,8 @@ export function Toolbar({
         )}
         <button style={styles.iconBtn} title={chrome.settings} onClick={onOpenSettings}><Settings size={14} /></button>
         <button style={styles.ghostBtn} onClick={onNewForm} title={chrome.startNewForm}><FilePlus2 size={14} /> {chrome.newForm}</button>
-        <button style={styles.ghostBtn} onClick={onOpenLibrary} title={chrome.openSavedForm}>
-          <FolderOpen size={14} /> {chrome.myForms}
+        <button style={styles.ghostBtn} onClick={onOpenLibrary} title={chrome.openTemplatesTitle}>
+          <FolderOpen size={14} /> {chrome.templates}
           {savedFormsCount > 0 && <span style={styles.countBadge}>{savedFormsCount}</span>}
         </button>
         <button style={styles.primaryBtn} onClick={onSaveExisting} title={chrome.saveToLibraryTitle}><Save size={14} /> {chrome.save}</button>

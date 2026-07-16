@@ -46,7 +46,7 @@ In Next.js App Router, the package's entry already carries a `"use client"` dire
 
 ### Persistence: `StorageAdapter`
 
-By default the component autosaves a draft and a "saved forms" library to `window.localStorage`. To persist the builder's state to your own backend (a Next.js API route, a PHP endpoint, etc.) instead — for example to share drafts across devices — implement and pass a `StorageAdapter`:
+By default the component autosaves a draft, plus a "Templates" library (up to 5 saved forms, shown via the toolbar's Templates button), to `window.localStorage`. Being local-storage-only means neither persists across devices or browsers. To persist the builder's state to your own backend (a Next.js API route, a PHP endpoint, etc.) instead — so drafts and templates are shared across devices, and your backend can populate/manage the template list itself — implement and pass a `StorageAdapter`. Its `get`/`set`/`delete` calls *are* the create/update/delete hooks: whatever your implementation does inside them (write to a database, call your API) runs on every template save/update/delete, so no separate event callbacks are needed.
 
 ```ts
 interface StorageAdapter {

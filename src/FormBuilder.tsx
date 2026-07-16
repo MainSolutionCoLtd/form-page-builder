@@ -19,7 +19,7 @@ import { Canvas } from "./components/Canvas";
 import { Inspector } from "./components/Inspector";
 import { PreviewPane } from "./components/PreviewPane";
 import { JsonModal } from "./components/modals/JsonModal";
-import { LibraryModal } from "./components/modals/LibraryModal";
+import { TemplatesModal } from "./components/modals/TemplatesModal";
 import { SaveAsModal } from "./components/modals/SaveAsModal";
 import { SettingsModal } from "./components/modals/SettingsModal";
 import { css } from "./styles/globalCss";
@@ -53,6 +53,7 @@ export default function FormBuilder({
   const persistence = usePersistence({
     storage,
     language,
+    chrome,
     document: {
       title: doc.title, submitLabel: doc.submitLabel, submitMode: doc.submitMode,
       submitStyle: doc.submitStyle, themeOverrides, sections: doc.sections,
@@ -182,7 +183,7 @@ export default function FormBuilder({
       )}
 
       {showLibrary && (
-        <LibraryModal
+        <TemplatesModal
           chrome={chrome}
           savedForms={persistence.savedForms}
           currentFormId={persistence.currentFormId}
