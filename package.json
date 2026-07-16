@@ -1,6 +1,6 @@
 {
   "name": "form-page-builder",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Embeddable bilingual drag-and-drop form/content builder for React and Next.js — builds and previews a JSON form schema (fields, sections, layout blocks); does not handle or store submitted data itself.",
   "license": "MIT",
   "author": "MainSolutionCoLtd",
