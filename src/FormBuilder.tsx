@@ -67,7 +67,7 @@ export default function FormBuilder({
 
   const jsonDoc = {
     version: 4 as const,
-    title: doc.title, submitLabel: doc.submitLabel, submitMode: doc.submitMode, submitStyle: doc.submitStyle, themeOverrides,
+    title: doc.title, submitLabel: doc.submitLabel, submitMode: doc.submitMode, submitStyle: doc.submitStyle, theme, themeOverrides,
     sections: doc.sections.map((s) => ({ id: s.id, title: s.title, background: s.background, collapsed: s.collapsed, submitStyle: s.submitStyle, fields: s.fields })),
   };
   const jsonString = JSON.stringify(jsonDoc, null, 2);

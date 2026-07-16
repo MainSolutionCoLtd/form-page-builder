@@ -162,6 +162,8 @@ export interface DocumentFields {
 /** Shape used only for the "View JSON" export (stamped with a version). */
 export interface FormDocument extends DocumentFields {
   version: 4;
+  /** Fully resolved theme (DEFAULT_THEME merged with `themeOverrides`) — lets a host re-render this document's styling without needing its own copy of the defaults. */
+  theme: Theme;
 }
 /** Shape persisted as the autosaved draft. */
 export interface DraftRecord extends DocumentFields {
