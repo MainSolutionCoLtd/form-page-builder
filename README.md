@@ -81,6 +81,41 @@ const apiStorage: StorageAdapter = {
 
 This is separate from — and unrelated to — however you choose to handle real end-user form submissions in your own app; this package doesn't send or receive those.
 
+## Using in a plain HTML page (no bundler)
+
+There's intentionally no UMD/IIFE global-script build (see below), but you don't need a bundler to use this package — a browser-native ES module setup works too, via an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) and a CDN like [esm.sh](https://esm.sh/):
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18",
+          "react-dom/client": "https://esm.sh/react-dom@18/client",
+          "form-page-builder": "https://esm.sh/form-page-builder?external=react,react-dom"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import React from "react";
+      import { createRoot } from "react-dom/client";
+      import { FormBuilder } from "form-page-builder";
+
+      createRoot(document.getElementById("root")).render(
+        React.createElement(FormBuilder, {})
+      );
+    </script>
+  </body>
+</html>
+```
+
+The `?external=react,react-dom` query on the `form-page-builder` import tells esm.sh to reuse the same `react`/`react-dom` module the page already imports, instead of bundling its own copy — so there's no duplicate-React problem, and no build step (Vite/Webpack/etc.) required. Since there's no JSX here, components are created with `React.createElement(...)` instead of `<FormBuilder />`; everything else (props, `storage` adapter, etc.) works the same as in the React/Next.js example above.
+
 ## Using this in a PHP app
 
 There's no build target for raw PHP output — a React component tree still needs a JS bundler (Vite, Laravel Mix, Webpack Encore, `@wordpress/scripts`, etc.) to resolve `react`/`react-dom`/`lucide-react` and mount into a DOM node. If your PHP app already runs one of those pipelines (e.g. a Laravel + Vite or WordPress block setup), install this package the same way you would in Next.js, mount `<FormBuilder />` into a container element, and pass a `storage` adapter that calls your PHP API endpoints. There is intentionally no UMD/IIFE global-script build, since bundling React itself would risk duplicate React instances on pages that already load their own.
