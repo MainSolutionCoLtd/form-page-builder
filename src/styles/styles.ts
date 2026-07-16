@@ -104,7 +104,6 @@ export const styles: Record<string, CSSProperties> = {
   realInput: { width: "100%", border: "1px solid var(--fb-border)", borderRadius: 8, padding: "9px 11px", fontSize: 13.5, outline: "none", color: "var(--fb-ink)", boxSizing: "border-box" },
   realInputError: { borderColor: "var(--fb-danger)" },
   submitBtn: { marginTop: 8, color: "#fff", border: "none", borderRadius: 8, fontWeight: 600, width: "100%" },
-  layoutPanel: { position: "absolute", top: "calc(100% + 6px)", right: 0, width: 260, background: "#fff", border: "1px solid var(--fb-border)", borderRadius: 10, boxShadow: "0 12px 32px rgba(0,0,0,0.18)", padding: 14, zIndex: 60, maxHeight: "70vh", overflowY: "auto" },
   layoutPanelHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 },
   spacingRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "4px 0" },
   spacingLabel: { fontSize: 12, color: "#4A4D57" },

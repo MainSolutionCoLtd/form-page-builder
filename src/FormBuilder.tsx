@@ -105,8 +105,6 @@ export default function FormBuilder({
         mode={mode}
         saveState={persistence.saveState}
         chrome={chrome}
-        themeEditable={themeEditable}
-        theme={theme}
         savedFormsCount={persistence.savedForms.length}
         onTitleChange={doc.updateTitle}
         onLanguageChange={setLanguage}
@@ -116,9 +114,6 @@ export default function FormBuilder({
         onOpenLibrary={() => setShowLibrary(true)}
         onSaveExisting={persistence.saveExisting}
         onOpenJson={() => setShowJson(true)}
-        updateThemeColor={updateThemeColor}
-        updateThemeLayout={updateThemeLayout}
-        resetTheme={resetTheme}
       />
 
       {persistence.loadingDraft ? (
@@ -128,7 +123,18 @@ export default function FormBuilder({
         </div>
       ) : mode === "build" ? (
         <div style={styles.workArea}>
-          <Palette activeSectionLabel={activeSectionLabel} chrome={chrome} onAddField={doc.addField} />
+          <Palette
+            activeSectionLabel={activeSectionLabel}
+            chrome={chrome}
+            onAddField={doc.addField}
+            themeEditable={themeEditable}
+            theme={theme}
+            submitStyle={doc.submitStyle}
+            updateThemeColor={updateThemeColor}
+            updateThemeLayout={updateThemeLayout}
+            onSubmitStyleChange={doc.updateSubmitStyle}
+            resetTheme={resetTheme}
+          />
 
           <Canvas
             sections={doc.sections}
@@ -209,10 +215,8 @@ export default function FormBuilder({
           submitLabel={doc.submitLabel}
           language={language}
           submitMode={doc.submitMode}
-          submitStyle={doc.submitStyle}
           onSubmitLabelChange={doc.updateSubmitLabel}
           onSubmitModeChange={doc.setSubmitMode}
-          onSubmitStyleChange={doc.updateSubmitStyle}
           onClose={() => setShowSettings(false)}
         />
       )}

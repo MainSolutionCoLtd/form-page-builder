@@ -1,10 +1,9 @@
 import { Loader2, AlertCircle, Languages, Pencil, Eye, Settings, FilePlus2, FolderOpen, Save, Code2 } from "lucide-react";
 import type { ChromeShape } from "../i18n/chrome";
-import type { LanguageOption, LocalizedString, Theme } from "../types";
+import type { LanguageOption, LocalizedString } from "../types";
 import { t } from "../lib/bilingual";
 import { styles } from "../styles/styles";
 import { Segmented } from "./Segmented";
-import { LayoutPopover } from "./LayoutPopover";
 
 export interface ToolbarProps {
   title: LocalizedString;
@@ -13,8 +12,6 @@ export interface ToolbarProps {
   mode: "build" | "preview";
   saveState: "idle" | "saving" | "saved" | "error";
   chrome: ChromeShape;
-  themeEditable: boolean;
-  theme: Theme;
   savedFormsCount: number;
   onTitleChange: (value: string) => void;
   onLanguageChange: (code: string) => void;
@@ -24,15 +21,11 @@ export interface ToolbarProps {
   onOpenLibrary: () => void;
   onSaveExisting: () => void;
   onOpenJson: () => void;
-  updateThemeColor: (key: keyof Omit<Theme, "layout">, value: string) => void;
-  updateThemeLayout: (key: keyof Theme["layout"], value: number) => void;
-  resetTheme: () => void;
 }
 
 export function Toolbar({
-  title, language, languages, mode, saveState, chrome, themeEditable, theme, savedFormsCount,
+  title, language, languages, mode, saveState, chrome, savedFormsCount,
   onTitleChange, onLanguageChange, onModeChange, onOpenSettings, onNewForm, onOpenLibrary, onSaveExisting, onOpenJson,
-  updateThemeColor, updateThemeLayout, resetTheme,
 }: ToolbarProps) {
   return (
     <div style={styles.toolbar}>
@@ -53,9 +46,6 @@ export function Toolbar({
         <button style={mode === "build" ? styles.tabBtnActive : styles.tabBtn} onClick={() => onModeChange("build")}><Pencil size={14} /> {chrome.build}</button>
         <button style={mode === "preview" ? styles.tabBtnActive : styles.tabBtn} onClick={() => onModeChange("preview")}><Eye size={14} /> {chrome.preview}</button>
         <div style={styles.toolbarDivider} />
-        {themeEditable && (
-          <LayoutPopover chrome={chrome} theme={theme} updateThemeColor={updateThemeColor} updateThemeLayout={updateThemeLayout} resetTheme={resetTheme} />
-        )}
         <button style={styles.iconBtn} title={chrome.settings} onClick={onOpenSettings}><Settings size={14} /></button>
         <button style={styles.ghostBtn} onClick={onNewForm} title={chrome.startNewForm}><FilePlus2 size={14} /> {chrome.newForm}</button>
         <button style={styles.ghostBtn} onClick={onOpenLibrary} title={chrome.openTemplatesTitle}>

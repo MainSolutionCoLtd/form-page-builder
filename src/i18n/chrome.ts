@@ -1,6 +1,7 @@
 export const CHROME = {
   en: {
     contentBlocks: "Content", formFields: "Form Fields", addingTo: "Adding to",
+    paletteTabBlocks: "Blocks", paletteTabDesign: "Design",
     properties: "Properties", selectFieldHint: "Select a field to edit its properties.",
     label: "Label", hideLabel: "Hide label", inputType: "Input type", content: "Content",
     headingStyle: "Heading style", typography: "Typography", style: "Style", align: "Align",
@@ -51,6 +52,7 @@ export const CHROME = {
   },
   ja: {
     contentBlocks: "コンテンツ", formFields: "フォーム項目", addingTo: "追加先",
+    paletteTabBlocks: "ブロック", paletteTabDesign: "デザイン",
     properties: "プロパティ", selectFieldHint: "編集するフィールドを選択してください。",
     label: "ラベル", hideLabel: "ラベルを非表示", inputType: "入力タイプ", content: "内容",
     headingStyle: "見出しスタイル", typography: "文字スタイル", style: "スタイル", align: "配置",
