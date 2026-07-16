@@ -21,3 +21,21 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - run: npm run build:demo
+
+  changeset:
+    runs-on: ubuntu-latest
+    # The version-bump PR removes changesets by design, and dependency bumps
+    # from Dependabot don't need a product changeset — skip both.
+    if: github.head_ref != 'changeset-release/main' && github.actor != 'dependabot[bot]'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npx changeset status --since=origin/main
