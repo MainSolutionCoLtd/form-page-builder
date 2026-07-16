@@ -4,7 +4,8 @@ import type { FieldPatch, FormField, LocalizedString, Option } from "../types";
 import { getMeta, INPUT_SUBTYPES, INPUT_SUBTYPE_CHROME_KEY, IMAGE_SHAPE_CHROME_KEY } from "../constants/fieldTypes";
 import { IMAGE_SHAPES } from "../constants/fieldTypes";
 import { PARAGRAPH_TAG_OPTIONS, TAG_CHROME_KEY, TAG_PRESETS, FONT_SIZE_OPTIONS, TEXT_ALIGN_OPTIONS } from "../constants/typography";
-import { COLOR_SWATCHES } from "../constants/colors";
+import { COLOR_SWATCHES, BUTTON_COLOR_SWATCHES } from "../constants/colors";
+import { SUBMIT_SIZE_OPTIONS } from "../constants/submitStyle";
 import { WIDTH_OPTIONS } from "../constants/layout";
 import { ICON_LIBRARY } from "../constants/icons";
 import { t, withLang } from "../lib/bilingual";
@@ -51,14 +52,16 @@ function InspectorBody({ selected, language, chrome, onUpdateField, onDeleteFiel
 
   return (
     <div style={styles.inspectorBody}>
-      {!meta.isContent && (
+      {(!meta.isContent || selected.type === "button") && (
         <>
-          <label style={styles.propLabel}>{chrome.label}</label>
+          <label style={styles.propLabel}>{selected.type === "button" ? chrome.buttonText : chrome.label}</label>
           <input style={styles.propInput} value={t(selected.label, language)} onChange={(e) => onUpdateField({ label: withLang(selected.label, language, e.target.value) })} />
-          <label style={styles.toggleRow}>
-            <input type="checkbox" checked={!!selected.hideLabel} onChange={(e) => onUpdateField({ hideLabel: e.target.checked })} style={{ width: 15, height: 15, accentColor: "var(--fb-primary)" }} />
-            <span style={{ fontSize: 13, color: "#4A4D57" }}>{chrome.hideLabel}</span>
-          </label>
+          {!meta.isContent && (
+            <label style={styles.toggleRow}>
+              <input type="checkbox" checked={!!selected.hideLabel} onChange={(e) => onUpdateField({ hideLabel: e.target.checked })} style={{ width: 15, height: 15, accentColor: "var(--fb-primary)" }} />
+              <span style={{ fontSize: 13, color: "#4A4D57" }}>{chrome.hideLabel}</span>
+            </label>
+          )}
         </>
       )}
 
@@ -109,6 +112,37 @@ function InspectorBody({ selected, language, chrome, onUpdateField, onDeleteFiel
           <label style={styles.propLabel}>{chrome.shape}</label>
           <Segmented options={IMAGE_SHAPES.map((v) => ({ value: v, label: chrome[IMAGE_SHAPE_CHROME_KEY[v] as keyof ChromeShape] as string }))} value={selected.shape || "square"} onChange={(v) => onUpdateField({ shape: v })} />
           <p style={styles.helperText}>Fills the field's own width (set below under Layout) and scales height automatically — always responsive, never overflows.</p>
+        </>
+      )}
+
+      {selected.type === "button" && (
+        <>
+          <div style={styles.inspectorDivider} />
+          <div style={styles.panelHeading}>{chrome.buttonActionTitle}</div>
+          <label style={styles.propLabel}>{chrome.buttonAction}</label>
+          <Segmented options={[{ value: "link", label: chrome.actionLink }, { value: "submit", label: chrome.actionSubmit }]} value={selected.action || "submit"} onChange={(v) => onUpdateField({ action: v as FieldPatch["action"] })} />
+
+          {selected.action === "link" ? (
+            <>
+              <label style={styles.propLabel}>{chrome.linkOptional}</label>
+              <input style={styles.propInput} placeholder="https://..." value={selected.href || ""} onChange={(e) => onUpdateField({ href: e.target.value })} />
+              <label style={styles.propLabel}>{chrome.openIn}</label>
+              <Segmented options={[{ value: "_self", label: chrome.sameTab }, { value: "_blank", label: chrome.newTab }]} value={selected.target || "_self"} onChange={(v) => onUpdateField({ target: v as FieldPatch["target"] })} />
+            </>
+          ) : (
+            <>
+              <label style={styles.propLabel}>{chrome.submitScope}</label>
+              <Segmented options={[{ value: "section", label: chrome.thisSection }, { value: "form", label: chrome.wholeForm }]} value={selected.submitScope || "form"} onChange={(v) => onUpdateField({ submitScope: v as FieldPatch["submitScope"] })} />
+            </>
+          )}
+
+          <label style={styles.propLabel}>{chrome.color}</label>
+          <div style={styles.swatchRow}>
+            {BUTTON_COLOR_SWATCHES.map((c) => (<button key={c || "default"} type="button" title={c || chrome.none} style={{ ...styles.swatchBtn, background: c || "var(--fb-primary)", ...((selected.buttonStyle?.color || "") === c ? styles.swatchBtnActive : {}) }} onClick={() => onUpdateField({ buttonStyle: { ...selected.buttonStyle, color: c } })} />))}
+            <input type="color" value={selected.buttonStyle?.color || "#5B5FEF"} onChange={(e) => onUpdateField({ buttonStyle: { ...selected.buttonStyle, color: e.target.value } })} style={styles.colorPickerInput} />
+          </div>
+          <label style={styles.propLabel}>{chrome.buttonSize}</label>
+          <Segmented options={SUBMIT_SIZE_OPTIONS} value={selected.buttonStyle?.size || "md"} onChange={(v) => onUpdateField({ buttonStyle: { ...selected.buttonStyle, size: v } })} />
         </>
       )}
 
