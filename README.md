@@ -177,10 +177,6 @@ There's intentionally no UMD/IIFE global-script build (see below), but you don't
 
 The `?external=react,react-dom` query on the `form-page-builder` import tells esm.sh to reuse the same `react`/`react-dom` module the page already imports, instead of bundling its own copy — so there's no duplicate-React problem, and no build step (Vite/Webpack/etc.) required. Since there's no JSX here, components are created with `React.createElement(...)` instead of `<FormBuilder />`; everything else (props, `storage` adapter, etc.) works the same as in the React/Next.js example above.
 
-## Using this in a PHP app
-
-There's no build target for raw PHP output — a React component tree still needs a JS bundler (Vite, Laravel Mix, Webpack Encore, `@wordpress/scripts`, etc.) to resolve `react`/`react-dom`/`lucide-react` and mount into a DOM node. If your PHP app already runs one of those pipelines (e.g. a Laravel + Vite or WordPress block setup), install this package the same way you would in Next.js, mount `<FormBuilder />` into a container element, and pass a `storage` adapter that calls your PHP API endpoints. There is intentionally no UMD/IIFE global-script build, since bundling React itself would risk duplicate React instances on pages that already load their own.
-
 ## Local development
 
 ```bash
@@ -198,6 +194,6 @@ Versioning and the changelog are managed by [Changesets](https://github.com/chan
 1. On your PR, describe the change for consumers: `npx changeset` (pick patch/minor/major, write a summary, commit the generated file in `.changeset/`).
 2. Once merged to `main`, a bot opens/updates a **"Version Packages"** PR that bumps `package.json` and writes `CHANGELOG.md` from the accumulated changesets ([.github/workflows/version.yml](.github/workflows/version.yml)).
 3. Merge that PR when you're ready to ship.
-4. Cut a [GitHub Release](https://github.com/MainSolutionCoLtd/form-page-builder/releases/new) tagged `vX.Y.Z` matching the new version — this triggers [.github/workflows/release.yml](.github/workflows/release.yml), which builds and runs `npm publish` (requires the `NPM_TOKEN` repo secret).
+4. Cut a [GitHub Release](https://github.com/MainSolutionCoLtd/form-page-builder/releases/new) tagged `vX.Y.Z` matching the new version — this triggers [.github/workflows/release.yml](.github/workflows/release.yml), which builds and runs `npm publish --provenance` via npm's Trusted Publishing (OIDC), so no `NPM_TOKEN` secret is needed.
 
 Pushes to `main` also rebuild and redeploy the [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) via [.github/workflows/pages.yml](.github/workflows/pages.yml).
