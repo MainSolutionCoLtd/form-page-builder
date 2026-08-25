@@ -1,5 +1,21 @@
 # form-page-builder
 
+## 2.0.0
+
+### Major Changes
+
+- [#7](https://github.com/MainSolutionCoLtd/form-page-builder/pull/7) [`b91b5ac`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/b91b5ac3659060076d3c26916239de293d327d24) Thanks [@sabalpoudel](https://github.com/sabalpoudel)! - Add a `features` prop for independently toggling every UI surface on/off — form-title editing, the Templates library, "New Form", autosave, JSON view, Build/Preview mode, the language switcher, the global Design tab, per-field styling (paragraph typography, button color), and allowlists for which content blocks and field types can be added. Everything defaults to on (full-featured, matching current behavior) except `design`, which defaults to off exactly as `themeEditable` did.
+
+  **Breaking:** the `themeEditable` prop is removed — use `features={{ design: true }}` instead.
+
+### Minor Changes
+
+- [#7](https://github.com/MainSolutionCoLtd/form-page-builder/pull/7) [`67e25d5`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/67e25d5956862c1c954d1b4b0339d198b875c065) Thanks [@sabalpoudel](https://github.com/sabalpoudel)! - Add full dark-theme support: every color in the widget (modals, toggles, badges, native inputs — not just the canvas/toolbar) now reads from the `theme` prop via CSS custom properties, instead of a couple dozen of them being hardcoded to light-theme hex values. Adds two new exports, `DARK_THEME` and `DEFAULT_THEME`, as ready-made `Theme` objects — pass `theme={DARK_THEME}` for a dark `<FormBuilder />`, or spread/tweak either one for a custom palette.
+
+### Patch Changes
+
+- [#7](https://github.com/MainSolutionCoLtd/form-page-builder/pull/7) [`b52f24e`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/b52f24e5344e610ce848f2f126f35610cc114117) Thanks [@sabalpoudel](https://github.com/sabalpoudel)! - Fix the Build-mode layout (fixed-width Palette + Inspector columns) clipping the Inspector off-screen on narrow viewports instead of scrolling. Below ~720px wide, Canvas is now the full-width primary view and Palette/Inspector become full-bleed drawers toggled by a small "Blocks"/"Properties" bar, instead of the previous fixed-width columns overflowing hidden — tapping a block adds it and returns to Canvas, and tapping a field in Canvas opens its Properties automatically. Also fixes the JSON/Templates/Save-as-template/Submitted modals overflowing narrow viewports by capping them at `max-width` instead of a fixed pixel width.
+
 ## 1.0.0
 
 ### Major Changes
