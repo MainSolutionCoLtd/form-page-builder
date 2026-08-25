@@ -281,6 +281,8 @@ export interface FormBuilderFeatures {
   sections?: boolean;
   /** Drag-to-reorder fields within a section. Default true. */
   dragReorder?: boolean;
+  /** Laptop/Tablet/Mobile width switcher above the Preview canvas. Default true. */
+  deviceToggle?: boolean;
   /** Caps the number of input-type fields (not content blocks) addable across the whole document. Default undefined (unlimited). */
   maxFields?: number;
 }

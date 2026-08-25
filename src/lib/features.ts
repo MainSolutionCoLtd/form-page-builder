@@ -14,6 +14,7 @@ export interface ResolvedFeatures {
   fieldTypes: boolean | Set<InputFieldType>;
   sections: boolean;
   dragReorder: boolean;
+  deviceToggle: boolean;
   maxFields?: number;
 }
 
@@ -31,6 +32,7 @@ export const DEFAULT_FEATURES: ResolvedFeatures = {
   fieldTypes: true,
   sections: true,
   dragReorder: true,
+  deviceToggle: true,
 };
 
 export function resolveFeatures(features?: FormBuilderFeatures): ResolvedFeatures {

@@ -230,7 +230,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
       ) : (
         <PreviewPane
           title={doc.title} sections={doc.sections} onFieldChange={doc.updateField} language={language}
-          strings={strings} chrome={chrome} baseMaxWidth={theme.layout.maxWidth}
+          strings={strings} chrome={chrome} baseMaxWidth={theme.layout.maxWidth} features={features}
           onSubmit={onSubmit}
         />
       )}

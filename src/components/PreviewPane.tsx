@@ -3,6 +3,7 @@ import { PartyPopper, X, CircleAlert } from "lucide-react";
 import type { ChromeShape } from "../i18n/chrome";
 import type { StringsShape } from "../i18n/strings";
 import type { ButtonField, FieldPatch, LocalizedString, Section, SubmitPayload } from "../types";
+import type { ResolvedFeatures } from "../lib/features";
 import { buildDeviceOptions, effectiveWidth, WIDTH_PERCENT, ALIGN_MAP } from "../constants/layout";
 import { getMeta } from "../constants/fieldTypes";
 import { validateField } from "../lib/validate";
@@ -21,6 +22,7 @@ export interface PreviewPaneProps {
   strings: StringsShape;
   chrome: ChromeShape;
   baseMaxWidth: number;
+  features: ResolvedFeatures;
   onSubmit?: (payload: SubmitPayload) => void;
 }
 
@@ -29,7 +31,7 @@ interface SubmittedRow {
   value: string;
 }
 
-export function PreviewPane({ title, sections, onFieldChange, language, strings, chrome, baseMaxWidth, onSubmit }: PreviewPaneProps) {
+export function PreviewPane({ title, sections, onFieldChange, language, strings, chrome, baseMaxWidth, features, onSubmit }: PreviewPaneProps) {
   const [device, setDevice] = useState<"laptop" | "tablet" | "mobile">("laptop");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState<SubmittedRow[] | null>(null);
@@ -93,7 +95,9 @@ export function PreviewPane({ title, sections, onFieldChange, language, strings,
   return (
     <div style={styles.previewWrap}>
       <div style={{ width: "100%", maxWidth, display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={styles.previewToolbar}><Segmented options={deviceOptions} value={device} onChange={setDevice} /></div>
+        {features.deviceToggle && (
+          <div style={styles.previewToolbar}><Segmented options={deviceOptions} value={device} onChange={setDevice} /></div>
+        )}
         <div style={{ ...styles.previewCard, maxWidth, width: "100%" }}>
           <h2 style={styles.previewTitle}>{t(title, language)}</h2>
           {allFields.length === 0 && <p style={{ color: "var(--fb-muted)", fontSize: 14 }}>{strings.addFieldsHint}</p>}

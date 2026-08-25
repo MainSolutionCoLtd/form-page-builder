@@ -97,6 +97,33 @@ describe("onModeChange prop", () => {
   });
 });
 
+describe("features.deviceToggle", () => {
+  it("shows the Laptop/Tablet/Mobile switcher above Preview by default", async () => {
+    render(<FormBuilder storage={createMemoryStorage()} initialDocument={doc} initialMode="preview" />);
+    await screen.findByDisplayValue("Contact");
+
+    expect(screen.getByRole("button", { name: "Laptop" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tablet" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Mobile" })).toBeInTheDocument();
+  });
+
+  it("hides the switcher when features.deviceToggle is false, staying at the Laptop width", async () => {
+    render(
+      <FormBuilder
+        storage={createMemoryStorage()}
+        initialDocument={doc}
+        initialMode="preview"
+        features={{ deviceToggle: false }}
+      />,
+    );
+    await screen.findByDisplayValue("Contact");
+
+    expect(screen.queryByRole("button", { name: "Laptop" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tablet" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Mobile" })).not.toBeInTheDocument();
+  });
+});
+
 describe("Preview mode submit flow", () => {
   it("blocks submit and shows a validation error when a required field is empty", async () => {
     const { user, onSubmit } = await renderInPreview();
