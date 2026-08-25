@@ -70,6 +70,7 @@ Above ~720px wide, Build mode is the usual three-column Palette/Canvas/Inspector
 | `storage` | `StorageAdapter` | Pluggable persistence backend for the builder's own draft/Templates library — see below. |
 | `onSubmit` | `(payload: SubmitPayload) => void` | Called when Preview mode's Submit button is clicked and validation passes — see below. |
 | `initialDocument` | `FormDocument` | Seeds the builder with this document on mount instead of the autosaved draft — see "Programmatic integration" below. |
+| `initialMode` | `"build" \| "preview"` | Which mode the widget mounts into (default `"build"`). Pair with `features.previewMode: false` to lock a consumer to just one mode with no tabs — e.g. a fill-only embed that never shows the Build canvas. |
 
 A `ref` on `<FormBuilder />` gives you a `FormBuilderHandle` (`getDocument()` / `loadDocument()` / `exportJson()`) — see "Programmatic integration" below.
 
@@ -106,7 +107,7 @@ Every optional UI surface can be switched on or off independently through one `f
 | `newForm` | `boolean` | `true` | The "New Form" reset button. |
 | `autosave` | `boolean` | `true` | Autosaving the draft to `storage`. The initial draft *load* always happens regardless — this only gates the write path. |
 | `jsonView` | `boolean` | `true` | The "View JSON" button and modal. |
-| `previewMode` | `boolean` | `true` | The Build/Preview tabs. When `false`, the builder stays in Build mode and the tabs are hidden. |
+| `previewMode` | `boolean` | `true` | The Build/Preview tabs. When `false`, the tabs are hidden and the builder stays in whichever mode it started in (`initialMode`, Build by default). |
 | `languageSwitcher` | `boolean` | `true` | The language-switcher pill in the toolbar. |
 | `design` | `boolean` | `false` | The global "Design" tab (colors/spacing), i.e. the old `themeEditable` prop. |
 | `blockStyling` | `boolean` | `true` | Per-field styling controls: paragraph heading/font/color, button color — independent of `design`. |
@@ -114,6 +115,7 @@ Every optional UI surface can be switched on or off independently through one `f
 | `fieldTypes` | `boolean \| ("input" \| "textarea" \| "select" \| "radio" \| "checkboxGroup" \| "checkbox" \| "toggle")[]` | `true` | Which form field types can be *added* from the palette. `true` = all, `false` = none, or an allowlist. |
 | `sections` | `boolean` | `true` | Add/duplicate/move/delete-section controls and the section background picker. |
 | `dragReorder` | `boolean` | `true` | Drag-to-reorder fields within a section. |
+| `maxFields` | `number` | `undefined` (unlimited) | Caps the total number of input-type fields (not content blocks) addable across the whole document. Once reached, the Form Fields palette buttons disable until a field is removed. |
 
 Disabling `contentBlocks`/`fieldTypes` for a given type only hides it from the palette going forward — if a document loaded via `initialDocument` (or a saved template) already contains fields of a now-disabled type, they still render and remain editable in Build mode; nothing is stripped or hidden.
 
