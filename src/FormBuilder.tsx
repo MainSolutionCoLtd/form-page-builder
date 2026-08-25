@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import type { CSSProperties } from "react";
 import { Loader2, Menu, SlidersHorizontal } from "lucide-react";
 import type { FormBuilderHandle, FormBuilderProps } from "./types";
@@ -39,6 +39,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   onSubmit,
   initialDocument,
   initialMode,
+  onModeChange,
 }, ref) {
   const features = resolveFeatures(featuresProp);
   const storage = storageProp ?? localStorageAdapter;
@@ -51,7 +52,10 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const doc = useFormDocument({ language, chrome });
   const drag = useDragReorder(doc.reorderWithinSection);
 
-  const [mode, setMode] = useState<"build" | "preview">(initialMode ?? "build");
+  const [mode, setModeState] = useState<"build" | "preview">(initialMode ?? "build");
+  // Wraps setMode so both the mount value and every toggle reach the host via onModeChange.
+  const setMode = (next: "build" | "preview") => { setModeState(next); onModeChange?.(next); };
+  useEffect(() => { onModeChange?.(mode); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [showJson, setShowJson] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [copied, setCopied] = useState(false);

@@ -300,4 +300,6 @@ export interface FormBuilderProps {
   initialDocument?: FormDocument;
   /** Which mode the widget mounts into. Default "build". Pair with `features.previewMode: false` to lock a consumer to just one mode with no tabs. */
   initialMode?: "build" | "preview";
+  /** Fires on mount and on every Build/Preview toggle — lets a host mirror the current mode without its own tab UI. */
+  onModeChange?: (mode: "build" | "preview") => void;
 }

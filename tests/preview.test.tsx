@@ -70,6 +70,33 @@ describe("initialMode prop", () => {
   });
 });
 
+describe("onModeChange prop", () => {
+  it("fires once on mount with the resolved initial mode", async () => {
+    const onModeChange = vi.fn();
+    render(
+      <FormBuilder storage={createMemoryStorage()} initialDocument={doc} initialMode="preview" onModeChange={onModeChange} />,
+    );
+    await screen.findByDisplayValue("Contact");
+
+    expect(onModeChange).toHaveBeenCalledTimes(1);
+    expect(onModeChange).toHaveBeenCalledWith("preview");
+  });
+
+  it("fires again with the new mode on every Build/Preview toggle", async () => {
+    const user = userEvent.setup();
+    const onModeChange = vi.fn();
+    render(<FormBuilder storage={createMemoryStorage()} initialDocument={doc} onModeChange={onModeChange} />);
+    await screen.findByDisplayValue("Contact");
+    onModeChange.mockClear();
+
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+    expect(onModeChange).toHaveBeenLastCalledWith("preview");
+
+    await user.click(screen.getByRole("button", { name: "Build" }));
+    expect(onModeChange).toHaveBeenLastCalledWith("build");
+  });
+});
+
 describe("Preview mode submit flow", () => {
   it("blocks submit and shows a validation error when a required field is empty", async () => {
     const { user, onSubmit } = await renderInPreview();
