@@ -70,7 +70,8 @@ Above ~720px wide, Build mode is the usual three-column Palette/Canvas/Inspector
 | `storage` | `StorageAdapter` | Pluggable persistence backend for the builder's own draft/Templates library — see below. |
 | `onSubmit` | `(payload: SubmitPayload) => void` | Called when Preview mode's Submit button is clicked and validation passes — see below. |
 | `initialDocument` | `FormDocument` | Seeds the builder with this document on mount instead of the autosaved draft — see "Programmatic integration" below. |
-| `initialMode` | `"build" \| "preview"` | Which mode the widget mounts into (default `"build"`). Pair with `features.previewMode: false` to lock a consumer to just one mode with no tabs — e.g. a fill-only embed that never shows the Build canvas. |
+| `initialMode` | `"build" \| "preview"` | Which mode the widget mounts into (default `"build"`). Pair with `features.previewMode: false` to lock a consumer to just one mode with no tabs — e.g. a fill-only embed that never shows the Build canvas. Or leave `previewMode` on and pick `initialMode` per document (e.g. `"preview"` once a document already has saved data) so the widget opens on the right mode while still letting the built-in tabs switch it. |
+| `onModeChange` | `(mode: "build" \| "preview") => void` | Fires on mount and on every Build/Preview toggle. Lets a host mirror the current mode (e.g. to show its own Save button only in Build mode) without building a separate tab UI around the widget. |
 
 A `ref` on `<FormBuilder />` gives you a `FormBuilderHandle` (`getDocument()` / `loadDocument()` / `exportJson()`) — see "Programmatic integration" below.
 
