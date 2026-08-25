@@ -2,6 +2,7 @@ import { Layers } from "lucide-react";
 import type { ChromeShape } from "../i18n/chrome";
 import type { StringsShape } from "../i18n/strings";
 import type { FieldPatch, Section } from "../types";
+import type { ResolvedFeatures } from "../lib/features";
 import { styles } from "../styles/styles";
 import { SectionCard } from "./SectionCard";
 
@@ -13,6 +14,7 @@ export interface CanvasProps {
   chrome: ChromeShape;
   strings: StringsShape;
   language: string;
+  features: ResolvedFeatures;
   onActivateSection: (sectionId: string) => void;
   onToggleSectionCollapse: (sectionId: string) => void;
   onUpdateSectionTitle: (sectionId: string, value: string) => void;
@@ -31,7 +33,7 @@ export interface CanvasProps {
 }
 
 export function Canvas({
-  sections, activeSectionId, selectedId, dragOverKey, chrome, strings, language,
+  sections, activeSectionId, selectedId, dragOverKey, chrome, strings, language, features,
   onActivateSection, onToggleSectionCollapse, onUpdateSectionTitle, onUpdateSectionBackground,
   onDuplicateSection, onMoveSection, onDeleteSection,
   onAddSection, onSelectField, onFieldChange, onMoveField, onDuplicateField, onDeleteField,
@@ -51,6 +53,7 @@ export function Canvas({
           chrome={chrome}
           strings={strings}
           language={language}
+          features={features}
           onActivate={() => onActivateSection(section.id)}
           onToggleCollapse={() => onToggleSectionCollapse(section.id)}
           onUpdateTitle={(value) => onUpdateSectionTitle(section.id, value)}
@@ -67,7 +70,9 @@ export function Canvas({
           getDragHandleProps={getDragHandleProps}
         />
       ))}
-      <button style={styles.addSectionBtn} onClick={onAddSection}><Layers size={14} /> {chrome.addSection}</button>
+      {features.sections && (
+        <button style={styles.addSectionBtn} onClick={onAddSection}><Layers size={14} /> {chrome.addSection}</button>
+      )}
     </div>
   );
 }

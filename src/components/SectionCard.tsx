@@ -2,6 +2,7 @@ import { ChevronDown, ChevronRight, Copy, ArrowUp, ArrowDown, Trash2 } from "luc
 import type { ChromeShape } from "../i18n/chrome";
 import type { StringsShape } from "../i18n/strings";
 import type { FieldPatch, Section } from "../types";
+import type { ResolvedFeatures } from "../lib/features";
 import { SECTION_BG_SWATCHES } from "../constants/colors";
 import { styles } from "../styles/styles";
 import { t } from "../lib/bilingual";
@@ -17,6 +18,7 @@ export interface SectionCardProps {
   chrome: ChromeShape;
   strings: StringsShape;
   language: string;
+  features: ResolvedFeatures;
   onActivate: () => void;
   onToggleCollapse: () => void;
   onUpdateTitle: (value: string) => void;
@@ -34,7 +36,7 @@ export interface SectionCardProps {
 }
 
 export function SectionCard({
-  section, sIdx, sectionsLength, isActive, selectedId, dragOverKey, chrome, strings, language,
+  section, sIdx, sectionsLength, isActive, selectedId, dragOverKey, chrome, strings, language, features,
   onActivate, onToggleCollapse, onUpdateTitle, onUpdateBackground, onDuplicateSection, onMoveSection, onDeleteSection,
   onSelectField, onFieldChange, onMoveField, onDuplicateField, onDeleteField,
   getDropZoneHandlers, getDragHandleProps,
@@ -58,7 +60,7 @@ export function SectionCard({
         />
         {section.collapsed && <span style={styles.miniBadge}>{chrome.fieldsCount(section.fields.length)}</span>}
         <div style={styles.sectionHeaderActions} onClick={(e) => e.stopPropagation()}>
-          {!section.collapsed && (
+          {features.sections && !section.collapsed && (
             <div style={styles.swatchRow}>
               {SECTION_BG_SWATCHES.map((c) => (
                 <button key={c || "none"} type="button" title={c || chrome.none} style={{ ...styles.swatchBtn, background: c || "var(--fb-canvas)", ...(section.background === c ? styles.swatchBtnActive : {}) }} onClick={() => onUpdateBackground(c)} />
@@ -66,10 +68,14 @@ export function SectionCard({
               <input type="color" title={chrome.customColor} value={/^#/.test(section.background) ? section.background : "#ffffff"} onChange={(e) => onUpdateBackground(e.target.value)} style={styles.colorPickerInput} />
             </div>
           )}
-          <button style={styles.iconBtn} title={chrome.duplicate} onClick={onDuplicateSection}><Copy size={13} /></button>
-          <button style={styles.iconBtn} title={chrome.moveUp} disabled={sIdx === 0} onClick={() => onMoveSection(-1)}><ArrowUp size={13} /></button>
-          <button style={styles.iconBtn} title={chrome.moveDown} disabled={sIdx === sectionsLength - 1} onClick={() => onMoveSection(1)}><ArrowDown size={13} /></button>
-          <button style={{ ...styles.iconBtn, ...styles.iconBtnDanger }} title={chrome.deleteSection} disabled={sectionsLength <= 1} onClick={onDeleteSection}><Trash2 size={13} /></button>
+          {features.sections && (
+            <>
+              <button style={styles.iconBtn} title={chrome.duplicate} onClick={onDuplicateSection}><Copy size={13} /></button>
+              <button style={styles.iconBtn} title={chrome.moveUp} disabled={sIdx === 0} onClick={() => onMoveSection(-1)}><ArrowUp size={13} /></button>
+              <button style={styles.iconBtn} title={chrome.moveDown} disabled={sIdx === sectionsLength - 1} onClick={() => onMoveSection(1)}><ArrowDown size={13} /></button>
+              <button style={{ ...styles.iconBtn, ...styles.iconBtnDanger }} title={chrome.deleteSection} disabled={sectionsLength <= 1} onClick={onDeleteSection}><Trash2 size={13} /></button>
+            </>
+          )}
         </div>
       </div>
 
@@ -89,6 +95,7 @@ export function SectionCard({
                 chrome={chrome}
                 strings={strings}
                 language={language}
+                dragEnabled={features.dragReorder}
                 onSelect={() => onSelectField(field.id)}
                 onFieldChange={onFieldChange}
                 onMoveField={onMoveField}

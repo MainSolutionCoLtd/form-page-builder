@@ -1,6 +1,7 @@
 import { Bold, Italic, X, Plus, Trash2 } from "lucide-react";
 import type { ChromeShape } from "../i18n/chrome";
 import type { FieldPatch, FormField, LocalizedString, Option } from "../types";
+import type { ResolvedFeatures } from "../lib/features";
 import { getMeta, INPUT_SUBTYPES, INPUT_SUBTYPE_CHROME_KEY, IMAGE_SHAPE_CHROME_KEY } from "../constants/fieldTypes";
 import { IMAGE_SHAPES } from "../constants/fieldTypes";
 import { PARAGRAPH_TAG_OPTIONS, TAG_CHROME_KEY, TAG_PRESETS, FONT_SIZE_OPTIONS, TEXT_ALIGN_OPTIONS } from "../constants/typography";
@@ -17,6 +18,7 @@ export interface InspectorProps {
   selected: FormField | null;
   language: string;
   chrome: ChromeShape;
+  features: ResolvedFeatures;
   onUpdateField: (patch: FieldPatch) => void;
   onDeleteField: () => void;
   onUpdateOption: (optIdx: number, patch: Partial<Option>) => void;
@@ -24,7 +26,7 @@ export interface InspectorProps {
   onRemoveOption: (optIdx: number) => void;
 }
 
-export function Inspector({ selected, language, chrome, onUpdateField, onDeleteField, onUpdateOption, onAddOption, onRemoveOption }: InspectorProps) {
+export function Inspector({ selected, language, chrome, features, onUpdateField, onDeleteField, onUpdateOption, onAddOption, onRemoveOption }: InspectorProps) {
   return (
     <div style={styles.inspector}>
       <div style={styles.panelHeading}>{chrome.properties}</div>
@@ -35,6 +37,7 @@ export function Inspector({ selected, language, chrome, onUpdateField, onDeleteF
           selected={selected}
           language={language}
           chrome={chrome}
+          features={features}
           onUpdateField={onUpdateField}
           onDeleteField={onDeleteField}
           onUpdateOption={onUpdateOption}
@@ -46,7 +49,7 @@ export function Inspector({ selected, language, chrome, onUpdateField, onDeleteF
   );
 }
 
-function InspectorBody({ selected, language, chrome, onUpdateField, onDeleteField, onUpdateOption, onAddOption, onRemoveOption }: Omit<InspectorProps, "selected"> & { selected: FormField }) {
+function InspectorBody({ selected, language, chrome, features, onUpdateField, onDeleteField, onUpdateOption, onAddOption, onRemoveOption }: Omit<InspectorProps, "selected"> & { selected: FormField }) {
   const meta = getMeta(selected.type);
   const f = selected as any;
 
@@ -79,24 +82,28 @@ function InspectorBody({ selected, language, chrome, onUpdateField, onDeleteFiel
           <label style={styles.propLabel}>{chrome.content}</label>
           <textarea style={{ ...styles.propInput, minHeight: 70, resize: "vertical" }} value={t(selected.content, language)} onChange={(e) => onUpdateField({ content: withLang(selected.content, language, e.target.value) })} />
 
-          <div style={styles.inspectorDivider} />
-          <div style={styles.panelHeading}>{chrome.typography}</div>
-          <label style={styles.propLabel}>{chrome.headingStyle}</label>
-          <Segmented options={PARAGRAPH_TAG_OPTIONS.map((v) => ({ value: v, label: TAG_CHROME_KEY[v] ? (chrome[TAG_CHROME_KEY[v] as keyof ChromeShape] as string) : v.toUpperCase() }))} value={selected.tag || "p"} onChange={(v) => onUpdateField({ tag: v, ...TAG_PRESETS[v] })} />
-          <label style={styles.propLabel}>{chrome.width}</label>
-          <Segmented options={FONT_SIZE_OPTIONS} value={selected.fontSize || "md"} onChange={(v) => onUpdateField({ fontSize: v })} />
-          <label style={styles.propLabel}>{chrome.style}</label>
-          <div style={styles.styleToggleRow}>
-            <button type="button" style={selected.fontWeight === "bold" ? styles.styleToggleActive : styles.styleToggle} onClick={() => onUpdateField({ fontWeight: selected.fontWeight === "bold" ? "normal" : "bold" })}><Bold size={14} /></button>
-            <button type="button" style={selected.fontStyle === "italic" ? styles.styleToggleActive : styles.styleToggle} onClick={() => onUpdateField({ fontStyle: selected.fontStyle === "italic" ? "normal" : "italic" })}><Italic size={14} /></button>
-          </div>
-          <label style={styles.propLabel}>{chrome.align}</label>
-          <Segmented options={TEXT_ALIGN_OPTIONS} value={selected.textAlign || "left"} onChange={(v) => onUpdateField({ textAlign: v })} />
-          <label style={styles.propLabel}>{chrome.color}</label>
-          <div style={styles.swatchRow}>
-            {COLOR_SWATCHES.map((c) => (<button key={c || "default"} type="button" title={c || chrome.none} style={{ ...styles.swatchBtn, background: c || "var(--fb-ink)", ...(selected.color === c ? styles.swatchBtnActive : {}) }} onClick={() => onUpdateField({ color: c })} />))}
-            <input type="color" value={selected.color || "#1B1E24"} onChange={(e) => onUpdateField({ color: e.target.value })} style={styles.colorPickerInput} />
-          </div>
+          {features.blockStyling && (
+            <>
+              <div style={styles.inspectorDivider} />
+              <div style={styles.panelHeading}>{chrome.typography}</div>
+              <label style={styles.propLabel}>{chrome.headingStyle}</label>
+              <Segmented options={PARAGRAPH_TAG_OPTIONS.map((v) => ({ value: v, label: TAG_CHROME_KEY[v] ? (chrome[TAG_CHROME_KEY[v] as keyof ChromeShape] as string) : v.toUpperCase() }))} value={selected.tag || "p"} onChange={(v) => onUpdateField({ tag: v, ...TAG_PRESETS[v] })} />
+              <label style={styles.propLabel}>{chrome.width}</label>
+              <Segmented options={FONT_SIZE_OPTIONS} value={selected.fontSize || "md"} onChange={(v) => onUpdateField({ fontSize: v })} />
+              <label style={styles.propLabel}>{chrome.style}</label>
+              <div style={styles.styleToggleRow}>
+                <button type="button" style={selected.fontWeight === "bold" ? styles.styleToggleActive : styles.styleToggle} onClick={() => onUpdateField({ fontWeight: selected.fontWeight === "bold" ? "normal" : "bold" })}><Bold size={14} /></button>
+                <button type="button" style={selected.fontStyle === "italic" ? styles.styleToggleActive : styles.styleToggle} onClick={() => onUpdateField({ fontStyle: selected.fontStyle === "italic" ? "normal" : "italic" })}><Italic size={14} /></button>
+              </div>
+              <label style={styles.propLabel}>{chrome.align}</label>
+              <Segmented options={TEXT_ALIGN_OPTIONS} value={selected.textAlign || "left"} onChange={(v) => onUpdateField({ textAlign: v })} />
+              <label style={styles.propLabel}>{chrome.color}</label>
+              <div style={styles.swatchRow}>
+                {COLOR_SWATCHES.map((c) => (<button key={c || "default"} type="button" title={c || chrome.none} style={{ ...styles.swatchBtn, background: c || "var(--fb-ink)", ...(selected.color === c ? styles.swatchBtnActive : {}) }} onClick={() => onUpdateField({ color: c })} />))}
+                <input type="color" value={selected.color || "#1B1E24"} onChange={(e) => onUpdateField({ color: e.target.value })} style={styles.colorPickerInput} />
+              </div>
+            </>
+          )}
         </>
       )}
 
@@ -136,13 +143,17 @@ function InspectorBody({ selected, language, chrome, onUpdateField, onDeleteFiel
             </>
           )}
 
-          <label style={styles.propLabel}>{chrome.color}</label>
-          <div style={styles.swatchRow}>
-            {BUTTON_COLOR_SWATCHES.map((c) => (<button key={c || "default"} type="button" title={c || chrome.none} style={{ ...styles.swatchBtn, background: c || "var(--fb-primary)", ...((selected.buttonStyle?.color || "") === c ? styles.swatchBtnActive : {}) }} onClick={() => onUpdateField({ buttonStyle: { ...selected.buttonStyle, color: c } })} />))}
-            <input type="color" value={selected.buttonStyle?.color || "#5B5FEF"} onChange={(e) => onUpdateField({ buttonStyle: { ...selected.buttonStyle, color: e.target.value } })} style={styles.colorPickerInput} />
-          </div>
-          <label style={styles.propLabel}>{chrome.buttonSize}</label>
-          <Segmented options={SUBMIT_SIZE_OPTIONS} value={selected.buttonStyle?.size || "md"} onChange={(v) => onUpdateField({ buttonStyle: { ...selected.buttonStyle, size: v } })} />
+          {features.blockStyling && (
+            <>
+              <label style={styles.propLabel}>{chrome.color}</label>
+              <div style={styles.swatchRow}>
+                {BUTTON_COLOR_SWATCHES.map((c) => (<button key={c || "default"} type="button" title={c || chrome.none} style={{ ...styles.swatchBtn, background: c || "var(--fb-primary)", ...((selected.buttonStyle?.color || "") === c ? styles.swatchBtnActive : {}) }} onClick={() => onUpdateField({ buttonStyle: { ...selected.buttonStyle, color: c } })} />))}
+                <input type="color" value={selected.buttonStyle?.color || "#5B5FEF"} onChange={(e) => onUpdateField({ buttonStyle: { ...selected.buttonStyle, color: e.target.value } })} style={styles.colorPickerInput} />
+              </div>
+              <label style={styles.propLabel}>{chrome.buttonSize}</label>
+              <Segmented options={SUBMIT_SIZE_OPTIONS} value={selected.buttonStyle?.size || "md"} onChange={(v) => onUpdateField({ buttonStyle: { ...selected.buttonStyle, size: v } })} />
+            </>
+          )}
         </>
       )}
 

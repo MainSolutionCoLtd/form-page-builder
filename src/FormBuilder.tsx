@@ -10,6 +10,7 @@ import { CHROME } from "./i18n/chrome";
 import { t } from "./lib/bilingual";
 import { localStorageAdapter } from "./lib/storage/localStorageAdapter";
 import { migrateDocument } from "./lib/migrate";
+import { resolveFeatures } from "./lib/features";
 import { useTheme } from "./hooks/useTheme";
 import { useFormDocument } from "./hooks/useFormDocument";
 import { usePersistence } from "./hooks/usePersistence";
@@ -31,11 +32,12 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   languages = DEFAULT_LANGUAGES,
   strings: stringsOverride,
   chrome: chromeOverride,
-  themeEditable = false,
+  features: featuresProp,
   storage: storageProp,
   onSubmit,
   initialDocument,
 }, ref) {
+  const features = resolveFeatures(featuresProp);
   const storage = storageProp ?? localStorageAdapter;
   const { theme, updateThemeColor, updateThemeLayout, resetTheme, replaceThemeOverrides, themeOverrides } = useTheme(themeOverrideProp);
 
@@ -53,6 +55,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
 
   const persistence = usePersistence({
     storage,
+    autosave: features.autosave,
     language,
     chrome,
     document: { title: doc.title, themeOverrides, sections: doc.sections },
@@ -116,6 +119,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
         mode={mode}
         saveState={persistence.saveState}
         chrome={chrome}
+        features={features}
         savedFormsCount={persistence.savedForms.length}
         onTitleChange={doc.updateTitle}
         onLanguageChange={setLanguage}
@@ -137,7 +141,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
             activeSectionLabel={activeSectionLabel}
             chrome={chrome}
             onAddField={doc.addField}
-            themeEditable={themeEditable}
+            features={features}
             theme={theme}
             updateThemeColor={updateThemeColor}
             updateThemeLayout={updateThemeLayout}
@@ -152,6 +156,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
             chrome={chrome}
             strings={strings}
             language={language}
+            features={features}
             onActivateSection={doc.setActiveSectionId}
             onToggleSectionCollapse={doc.toggleSectionCollapse}
             onUpdateSectionTitle={doc.updateSectionTitle}
@@ -173,6 +178,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
             selected={doc.selected}
             language={language}
             chrome={chrome}
+            features={features}
             onUpdateField={(patch) => doc.selected && doc.updateField(doc.selected.id, patch)}
             onDeleteField={() => doc.selected && doc.deleteField(doc.selected.id)}
             onUpdateOption={(optIdx, patch) => doc.selected && doc.updateOption(doc.selected.id, optIdx, patch)}

@@ -16,6 +16,7 @@ export interface FieldTicketProps {
   chrome: ChromeShape;
   strings: StringsShape;
   language: string;
+  dragEnabled: boolean;
   onSelect: () => void;
   onFieldChange: (fieldId: string, patch: FieldPatch) => void;
   onMoveField: (fieldId: string, dir: 1 | -1) => void;
@@ -26,7 +27,7 @@ export interface FieldTicketProps {
 }
 
 export function FieldTicket({
-  field, idx, isSelected, isDragOver, chrome, strings, language,
+  field, idx, isSelected, isDragOver, chrome, strings, language, dragEnabled,
   onSelect, onFieldChange, onMoveField, onDuplicateField, onDeleteField,
   dropZoneHandlers, dragHandleProps,
 }: FieldTicketProps) {
@@ -51,7 +52,7 @@ export function FieldTicket({
       <div style={styles.ticketPerforation} />
       <div style={styles.ticketBody}>
         <div style={styles.ticketTop}>
-          <span {...dragHandleProps} style={{ cursor: "grab", display: "flex" }}><GripVertical size={14} color="#C4C6D0" /></span>
+          {dragEnabled && <span {...dragHandleProps} style={{ cursor: "grab", display: "flex" }}><GripVertical size={14} color="#C4C6D0" /></span>}
           <Icon size={13} color="var(--fb-primary)" />
           <span style={styles.typeBadge}>
             {(chrome as Record<string, unknown>)[FIELD_TYPE_CHROME_KEY[field.type]] as string || field.type}
