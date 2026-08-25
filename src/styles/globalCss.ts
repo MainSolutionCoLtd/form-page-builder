@@ -12,12 +12,28 @@ export const css = `
   .fb-root { max-height: 100vh; max-height: 100dvh; }
 
   /* Below this width the fixed 200px Palette + 270px Inspector columns
-     don't leave room for a usable Canvas, so stack all three instead of
-     letting .fb-root's overflow:hidden clip Inspector off-screen. */
+     don't leave room for a usable Canvas, so instead of stacking all
+     three in flow (which buries Canvas under a tall Palette), Palette
+     and Inspector become full-bleed drawers over Canvas, toggled by
+     .fb-mobile-bar's two buttons and tracked by .fb-work-area's
+     data-mobile-panel attribute — Canvas itself is always visible. */
+  .fb-mobile-bar { display: none; align-items: center; gap: 6px; padding: 6px 10px; border-bottom: 1px solid var(--fb-border); background: var(--fb-surface); flex-shrink: 0; }
+  .fb-mobile-btn { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 7px; border: 1px solid var(--fb-border); background: var(--fb-surface); color: var(--fb-muted); font-size: 12.5px; font-weight: 600; }
+  .fb-mobile-btn[aria-pressed="true"] { border-color: var(--fb-primary); background: var(--fb-primary-soft); color: var(--fb-primary); }
   @media (max-width: 720px) {
-    .fb-work-area { flex-direction: column !important; overflow-y: auto; }
-    .fb-palette { width: 100% !important; max-height: 45vh; border-right: none !important; border-bottom: 1px solid var(--fb-border); }
+    .fb-mobile-bar { display: flex; }
+    .fb-work-area { flex-direction: column !important; min-height: 0; }
+    .fb-canvas-area { position: relative; overflow: hidden; }
     .fb-canvas { width: 100%; }
-    .fb-inspector { width: 100% !important; border-left: none !important; border-top: 1px solid var(--fb-border); }
+    .fb-palette, .fb-inspector {
+      position: absolute; inset: 0; z-index: 6;
+      width: 100% !important; max-height: none !important;
+      border: none !important;
+      transition: transform 0.18s ease;
+    }
+    .fb-palette { transform: translateX(-100%); }
+    .fb-inspector { transform: translateX(100%); }
+    .fb-work-area[data-mobile-panel="palette"] .fb-palette,
+    .fb-work-area[data-mobile-panel="inspector"] .fb-inspector { transform: translateX(0); }
   }
 `;
