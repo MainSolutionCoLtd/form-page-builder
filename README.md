@@ -70,6 +70,8 @@ Above ~720px wide, Build mode is the usual three-column Palette/Canvas/Inspector
 | `storage` | `StorageAdapter` | Pluggable persistence backend for the builder's own draft/Templates library — see below. |
 | `onSubmit` | `(payload: SubmitPayload) => void` | Called when Preview mode's Submit button is clicked and validation passes — see below. |
 | `initialDocument` | `FormDocument` | Seeds the builder with this document on mount instead of the autosaved draft — see "Programmatic integration" below. |
+| `initialMode` | `"build" \| "preview"` | Which mode the widget mounts into (default `"build"`). Pair with `features.previewMode: false` to lock a consumer to just one mode with no tabs — e.g. a fill-only embed that never shows the Build canvas. Or leave `previewMode` on and pick `initialMode` per document (e.g. `"preview"` once a document already has saved data) so the widget opens on the right mode while still letting the built-in tabs switch it. |
+| `onModeChange` | `(mode: "build" \| "preview") => void` | Fires on mount and on every Build/Preview toggle. Lets a host mirror the current mode (e.g. to show its own Save button only in Build mode) without building a separate tab UI around the widget. |
 
 A `ref` on `<FormBuilder />` gives you a `FormBuilderHandle` (`getDocument()` / `loadDocument()` / `exportJson()`) — see "Programmatic integration" below.
 
@@ -106,7 +108,7 @@ Every optional UI surface can be switched on or off independently through one `f
 | `newForm` | `boolean` | `true` | The "New Form" reset button. |
 | `autosave` | `boolean` | `true` | Autosaving the draft to `storage`. The initial draft *load* always happens regardless — this only gates the write path. |
 | `jsonView` | `boolean` | `true` | The "View JSON" button and modal. |
-| `previewMode` | `boolean` | `true` | The Build/Preview tabs. When `false`, the builder stays in Build mode and the tabs are hidden. |
+| `previewMode` | `boolean` | `true` | The Build/Preview tabs. When `false`, the tabs are hidden and the builder stays in whichever mode it started in (`initialMode`, Build by default). |
 | `languageSwitcher` | `boolean` | `true` | The language-switcher pill in the toolbar. |
 | `design` | `boolean` | `false` | The global "Design" tab (colors/spacing), i.e. the old `themeEditable` prop. |
 | `blockStyling` | `boolean` | `true` | Per-field styling controls: paragraph heading/font/color, button color — independent of `design`. |
@@ -114,6 +116,8 @@ Every optional UI surface can be switched on or off independently through one `f
 | `fieldTypes` | `boolean \| ("input" \| "textarea" \| "select" \| "radio" \| "checkboxGroup" \| "checkbox" \| "toggle")[]` | `true` | Which form field types can be *added* from the palette. `true` = all, `false` = none, or an allowlist. |
 | `sections` | `boolean` | `true` | Add/duplicate/move/delete-section controls and the section background picker. |
 | `dragReorder` | `boolean` | `true` | Drag-to-reorder fields within a section. |
+| `deviceToggle` | `boolean` | `true` | The Laptop/Tablet/Mobile width switcher above the Preview canvas. When `false`, Preview always renders at the Laptop (full) width. |
+| `maxFields` | `number` | `undefined` (unlimited) | Caps the total number of input-type fields (not content blocks) addable across the whole document. Once reached, the Form Fields palette buttons disable until a field is removed. |
 
 Disabling `contentBlocks`/`fieldTypes` for a given type only hides it from the palette going forward — if a document loaded via `initialDocument` (or a saved template) already contains fields of a now-disabled type, they still render and remain editable in Build mode; nothing is stripped or hidden.
 

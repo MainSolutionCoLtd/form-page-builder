@@ -281,6 +281,10 @@ export interface FormBuilderFeatures {
   sections?: boolean;
   /** Drag-to-reorder fields within a section. Default true. */
   dragReorder?: boolean;
+  /** Laptop/Tablet/Mobile width switcher above the Preview canvas. Default true. */
+  deviceToggle?: boolean;
+  /** Caps the number of input-type fields (not content blocks) addable across the whole document. Default undefined (unlimited). */
+  maxFields?: number;
 }
 
 // --- props ---
@@ -296,4 +300,8 @@ export interface FormBuilderProps {
   onSubmit?: (payload: SubmitPayload) => void;
   /** Seeds the builder with this document on mount instead of the autosaved draft — e.g. a template fetched from your own backend. */
   initialDocument?: FormDocument;
+  /** Which mode the widget mounts into. Default "build". Pair with `features.previewMode: false` to lock a consumer to just one mode with no tabs. */
+  initialMode?: "build" | "preview";
+  /** Fires on mount and on every Build/Preview toggle — lets a host mirror the current mode without its own tab UI. */
+  onModeChange?: (mode: "build" | "preview") => void;
 }

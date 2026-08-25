@@ -1,8 +1,7 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
+  # Required status check runs on the PR; re-running on push to main is redundant.
   pull_request:
     branches: [main]
 
