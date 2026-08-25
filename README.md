@@ -8,6 +8,21 @@
 
 Embeddable, bilingual (EN/JA by default, extensible), drag-and-drop form builder widget for React. Ships a single `<FormBuilder />` component with a Build mode (drag/drop canvas, field inspector) and a Preview mode (responsive, validating runtime form), plus a JSON export of the resulting document.
 
+## Examples
+
+The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gallery of six `<FormBuilder />` configurations, each showing a different realistic way to compose `features`/`theme`/`storage`/`initialDocument`/`language` — jump straight to one:
+
+| Example | What it shows |
+|---|---|
+| [Full-featured](https://mainsolutioncoltd.github.io/form-page-builder/#full-featured) | No props beyond `features={{ design: true }}` — the default, everything on. |
+| [Minimal (forms-only embed)](https://mainsolutioncoltd.github.io/form-page-builder/#minimal) | Every optional surface off, a 3-type field allowlist — stripped down for embedding inside a larger app's own chrome. |
+| [Branded, theme locked](https://mainsolutioncoltd.github.io/form-page-builder/#branded) | A fixed `theme` plus `features.design`/`blockStyling` off — colors are locked to the brand, no styling UI exposed. |
+| [Survey builder](https://mainsolutioncoltd.github.io/form-page-builder/#survey) | `fieldTypes`/`contentBlocks` allowlists plus `onSubmit` — a single-shape survey embed that hands you the answers. |
+| [Locked-structure form](https://mainsolutioncoltd.github.io/form-page-builder/#locked-structure) | `initialDocument` seeds a fixed field set; structural toggles are off so only styling/labels stay editable. |
+| [Localized (French)](https://mainsolutioncoltd.github.io/form-page-builder/#localized) | `language`/`languages`/`strings`/`chrome` — a language beyond the built-in EN/JA, partially translated. |
+
+The source for all six lives in [dev/main.tsx](./dev/main.tsx) — `npm run dev` runs the same gallery locally against `src/` directly, and is the fastest way to try a `features`/`theme` combination before wiring it into your app.
+
 **This is a builder + viewer, not a data handler.** It builds and previews a JSON *schema* describing a form's fields, sections, and layout blocks (including plain content blocks like paragraphs and images, not just inputs). Preview mode's "Submit" validates and shows a mock "here's what would be sent to your backend" modal, and — if you pass `onSubmit` — hands you the entered values too; either way, this package never sends or stores them itself. The only thing it persists on its own is the *builder's own* draft/Templates state (via the pluggable `StorageAdapter` below); actually delivering submissions to a backend is up to the host app.
 
 ## Install
