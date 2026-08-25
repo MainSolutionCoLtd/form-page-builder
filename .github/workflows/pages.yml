@@ -3,6 +3,12 @@ name: Deploy demo to GitHub Pages
 on:
   push:
     branches: [main]
+    # Skip docs/changeset-only pushes that can't affect the demo.
+    paths-ignore:
+      - ".changeset/**"
+      - "CHANGELOG.md"
+      - "README.md"
+      - "**/*.md"
   workflow_dispatch:
 
 permissions:
@@ -17,6 +23,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Also skip version-bump merges (package.json always changes, so paths-ignore misses them).
+    if: "${{ !contains(github.event.head_commit.message, 'chore: version packages') }}"
     steps:
       - uses: actions/checkout@v4
 
