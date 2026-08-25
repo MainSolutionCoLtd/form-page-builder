@@ -116,6 +116,7 @@ Every optional UI surface can be switched on or off independently through one `f
 | `fieldTypes` | `boolean \| ("input" \| "textarea" \| "select" \| "radio" \| "checkboxGroup" \| "checkbox" \| "toggle")[]` | `true` | Which form field types can be *added* from the palette. `true` = all, `false` = none, or an allowlist. |
 | `sections` | `boolean` | `true` | Add/duplicate/move/delete-section controls and the section background picker. |
 | `dragReorder` | `boolean` | `true` | Drag-to-reorder fields within a section. |
+| `deviceToggle` | `boolean` | `true` | The Laptop/Tablet/Mobile width switcher above the Preview canvas. When `false`, Preview always renders at the Laptop (full) width. |
 | `maxFields` | `number` | `undefined` (unlimited) | Caps the total number of input-type fields (not content blocks) addable across the whole document. Once reached, the Form Fields palette buttons disable until a field is removed. |
 
 Disabling `contentBlocks`/`fieldTypes` for a given type only hides it from the palette going forward — if a document loaded via `initialDocument` (or a saved template) already contains fields of a now-disabled type, they still render and remain editable in Build mode; nothing is stripped or hidden.
