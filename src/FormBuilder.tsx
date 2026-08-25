@@ -138,7 +138,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
           <span style={{ marginTop: 8, fontSize: 13, color: "var(--fb-muted)" }}>{chrome.loadingDraft}</span>
         </div>
       ) : mode === "build" ? (
-        <div style={styles.workArea}>
+        <div className="fb-work-area" style={styles.workArea}>
           <Palette
             activeSectionLabel={activeSectionLabel}
             chrome={chrome}

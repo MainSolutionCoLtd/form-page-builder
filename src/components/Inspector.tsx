@@ -28,7 +28,7 @@ export interface InspectorProps {
 
 export function Inspector({ selected, language, chrome, features, onUpdateField, onDeleteField, onUpdateOption, onAddOption, onRemoveOption }: InspectorProps) {
   return (
-    <div style={styles.inspector}>
+    <div className="fb-inspector" style={styles.inspector}>
       <div style={styles.panelHeading}>{chrome.properties}</div>
       {!selected ? (
         <div style={styles.inspectorEmpty}>{chrome.selectFieldHint}</div>

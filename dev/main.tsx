@@ -197,7 +197,7 @@ function Example({
           </span>
         )}
       </div>
-      <p style={{ marginTop: 4, marginBottom: 16, maxWidth: 760, color: "var(--demo-muted)", fontSize: 14, lineHeight: 1.5 }}>
+      <p style={{ marginTop: 4, marginBottom: 16, maxWidth: 760, color: "var(--demo-muted)", fontSize: 14, lineHeight: 1.5, overflowWrap: "break-word" }}>
         {description}
       </p>
       {children}
@@ -303,7 +303,7 @@ function DemoApp() {
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 16px 0" }}>
         <h1 style={{ marginBottom: 4 }}>{s.title}</h1>
-        <p style={{ marginTop: 0, color: "var(--demo-muted)", maxWidth: 760 }}>{s.intro}</p>
+        <p style={{ marginTop: 0, color: "var(--demo-muted)", maxWidth: 760, overflowWrap: "break-word" }}>{s.intro}</p>
 
         <Example id="full-featured" title={s.examples.full.title} description={s.examples.full.description}>
           <FormBuilder features={{ design: true }} theme={theme} storage={namespacedStorage("full")} />

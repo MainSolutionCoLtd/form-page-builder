@@ -40,7 +40,7 @@ export function Canvas({
   getDropZoneHandlers, getDragHandleProps,
 }: CanvasProps) {
   return (
-    <div style={styles.canvas}>
+    <div className="fb-canvas" style={styles.canvas}>
       {sections.map((section, sIdx) => (
         <SectionCard
           key={section.id}

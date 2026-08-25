@@ -15,7 +15,7 @@ export function SaveAsModal({ chrome, suggestedName, onSave, onClose }: SaveAsMo
 
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
-      <div style={{ ...styles.modal, width: 380 }} onClick={(e) => e.stopPropagation()}>
+      <div style={{ ...styles.modal, maxWidth: 380 }} onClick={(e) => e.stopPropagation()}>
         <div style={styles.modalHeader}><span style={{ fontWeight: 600, fontSize: 14 }}>{chrome.saveForm}</span><button style={styles.iconBtn} onClick={onClose}><X size={16} /></button></div>
         <div style={{ padding: 16 }}>
           <label style={styles.propLabel}>{chrome.formName}</label>

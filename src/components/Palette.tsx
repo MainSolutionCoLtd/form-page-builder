@@ -29,7 +29,7 @@ export function Palette({
   const formTypes = FORM_TYPES.filter((f) => isFieldTypeEnabled(features, f.type as InputFieldType));
 
   return (
-    <div style={styles.palette}>
+    <div className="fb-palette" style={styles.palette}>
       {features.design && (
         <div style={{ marginBottom: 14 }}>
           <Segmented

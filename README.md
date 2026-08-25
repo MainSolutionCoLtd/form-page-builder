@@ -53,6 +53,10 @@ The widget caps itself at the viewport height (`100vh`, upgrading to `100dvh` on
 
 If you *do* size a wrapper to exactly `100vh`/`100dvh` and still see the page itself scroll by a few extra pixels, that's almost always the browser's default `<body>` margin (commonly `8px`) adding to that full-viewport height — reset it yourself (`body { margin: 0; }`), same as you would for any other full-height layout; this package doesn't touch your page's global styles.
 
+### Responsive layout
+
+Above ~720px wide, Build mode is the usual three-column Palette/Canvas/Inspector layout. Below that, the three columns stack vertically (Palette on top with its own short internal scroll, then Canvas, then Inspector) and the whole work area scrolls as one — no horizontal scrolling, and nothing gets clipped by the widget's own `overflow: hidden`. This is CSS-only (a media query in the stylesheet the widget injects), so it responds to the container's width, not a JS-measured breakpoint — useful if you're embedding it in a narrow sidebar on an otherwise-wide page. Modals size themselves as `width: 100%` up to a `max-width` (with padding around the overlay) instead of a fixed pixel width, so they never overflow a narrow viewport either.
+
 ### Props
 
 | Prop | Type | Description |
@@ -258,9 +262,12 @@ The `?external=react,react-dom` query on the `form-page-builder` import tells es
 npm install
 npm run dev        # Vite dev harness at http://localhost:5173, imports FormBuilder from src/
 npm run typecheck
+npm run test        # vitest run -- see tests/
 npm run build       # tsup -> dist/ (ESM + CJS + .d.ts), the published package
 npm run build:demo  # vite build -> pages-dist/, the GitHub Pages demo site
 ```
+
+Tests use [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com/react) against jsdom, covering rendering, the `features` prop's gating of each UI surface, the `FormBuilderHandle` ref API, autosave/`initialDocument`, and the Preview-mode validation + `onSubmit` flow. `npm run test:watch` re-runs on change.
 
 ## Releasing
 
