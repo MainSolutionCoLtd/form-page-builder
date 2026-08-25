@@ -42,8 +42,8 @@ If you *do* size a wrapper to exactly `100vh`/`100dvh` and still see the page it
 
 | Prop | Type | Description |
 |---|---|---|
-| `theme` | `Partial<Theme>` | Override default colors/layout spacing. |
-| `themeEditable` | `boolean` | Show the in-app "Design" tab (theme/spacing/submit-button controls) in the left sidebar. |
+| `theme` | `Partial<Theme>` | Override default colors/layout spacing — see "Features vs. theming" below. |
+| `features` | `FormBuilderFeatures` | Independently toggle UI surfaces on/off — full-featured by default. See "Features" below. |
 | `language` | `string` | Initial builder language (defaults to the first entry in `languages`). |
 | `languages` | `{ code: string; label: string }[]` | Language switcher options (default: EN/JA). |
 | `strings` | partial override of runtime/validation strings, keyed by language code | |
@@ -53,6 +53,54 @@ If you *do* size a wrapper to exactly `100vh`/`100dvh` and still see the page it
 | `initialDocument` | `FormDocument` | Seeds the builder with this document on mount instead of the autosaved draft — see "Programmatic integration" below. |
 
 A `ref` on `<FormBuilder />` gives you a `FormBuilderHandle` (`getDocument()` / `loadDocument()` / `exportJson()`) — see "Programmatic integration" below.
+
+### Features: `features`
+
+Every optional UI surface can be switched on or off independently through one `features` prop, kept deliberately separate from `theme`/`ThemeOverrides` (which control *how* things look, not *whether* they appear). Everything defaults to `true` (`design` defaults to `false`, matching the pre-`features` default), so the default `<FormBuilder />` is unchanged and fully featured; pass only the keys you want to restrict.
+
+```tsx
+// A forms-only embed: no title editing, no templates/JSON/preview chrome,
+// no theming UI, and only two field types available to add.
+<FormBuilder
+  features={{
+    naming: false,
+    templates: false,
+    newForm: false,
+    autosave: false,
+    jsonView: false,
+    previewMode: false,
+    languageSwitcher: false,
+    design: false,
+    blockStyling: false,
+    contentBlocks: false,
+    fieldTypes: ["input", "select"],
+    sections: false,
+    dragReorder: false,
+  }}
+/>
+```
+
+| Key | Type | Default | Controls |
+|---|---|---|---|
+| `naming` | `boolean` | `true` | The editable form-title input in the toolbar. |
+| `templates` | `boolean` | `true` | The Templates library (browse/open/delete) and the "Save" button. |
+| `newForm` | `boolean` | `true` | The "New Form" reset button. |
+| `autosave` | `boolean` | `true` | Autosaving the draft to `storage`. The initial draft *load* always happens regardless — this only gates the write path. |
+| `jsonView` | `boolean` | `true` | The "View JSON" button and modal. |
+| `previewMode` | `boolean` | `true` | The Build/Preview tabs. When `false`, the builder stays in Build mode and the tabs are hidden. |
+| `languageSwitcher` | `boolean` | `true` | The language-switcher pill in the toolbar. |
+| `design` | `boolean` | `false` | The global "Design" tab (colors/spacing), i.e. the old `themeEditable` prop. |
+| `blockStyling` | `boolean` | `true` | Per-field styling controls: paragraph heading/font/color, button color — independent of `design`. |
+| `contentBlocks` | `boolean \| ("paragraph" \| "image" \| "button")[]` | `true` | Which content blocks can be *added* from the palette. `true` = all, `false` = none, or an allowlist. |
+| `fieldTypes` | `boolean \| ("input" \| "textarea" \| "select" \| "radio" \| "checkboxGroup" \| "checkbox" \| "toggle")[]` | `true` | Which form field types can be *added* from the palette. `true` = all, `false` = none, or an allowlist. |
+| `sections` | `boolean` | `true` | Add/duplicate/move/delete-section controls and the section background picker. |
+| `dragReorder` | `boolean` | `true` | Drag-to-reorder fields within a section. |
+
+Disabling `contentBlocks`/`fieldTypes` for a given type only hides it from the palette going forward — if a document loaded via `initialDocument` (or a saved template) already contains fields of a now-disabled type, they still render and remain editable in Build mode; nothing is stripped or hidden.
+
+### Features vs. theming
+
+`features` and `theme` are separate, composable concerns: `features.design` decides whether the Design tab's color/spacing *controls* are shown at all, while `theme` (and the Design tab, when shown) decide what those colors/spacing values *are*. You can, for instance, pass a fixed `theme` with `features.design` and `features.blockStyling` both `false` to lock a form to your brand's colors with zero styling UI exposed to the builder's user.
 
 ### Persistence: `StorageAdapter`
 
