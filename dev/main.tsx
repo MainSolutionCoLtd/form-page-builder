@@ -95,6 +95,11 @@ const DEMO_STRINGS = {
     intro:
       "The same <FormBuilder /> component, configured a few different ways via its features, theme, storage, initialDocument, and language/strings/chrome props — see the README for the full prop reference.",
     dark: "Dark", light: "Light",
+    lockedThemeBadge: "Fixed theme — ignores the toggle above",
+    footer: {
+      text: "form-page-builder is open source under the MIT license.",
+      github: "GitHub", npm: "npm", liveDemo: "Live demo",
+    },
     examples: {
       full: {
         title: "Full-featured (default)",
@@ -133,6 +138,11 @@ const DEMO_STRINGS = {
     intro:
       "同じ <FormBuilder /> コンポーネントを、features・theme・storage・initialDocument・language/strings/chrome の各propで様々な形に設定した例です — propの全リファレンスはREADMEを参照してください。",
     dark: "ダーク", light: "ライト",
+    lockedThemeBadge: "テーマ固定 — 上の切り替えの影響を受けません",
+    footer: {
+      text: "form-page-builder はMITライセンスのオープンソースです。",
+      github: "GitHub", npm: "npm", liveDemo: "ライブデモ",
+    },
     examples: {
       full: {
         title: "フル機能（デフォルト）",
@@ -168,15 +178,52 @@ const DEMO_STRINGS = {
   },
 } as const;
 
-function Example({ id, title, description, children }: { id: string; title: string; description: string; children: ReactNode }) {
+function Example({
+  id, title, description, badge, children,
+}: { id: string; title: string; description: string; badge?: string; children: ReactNode }) {
   return (
-    <section id={id} style={{ marginTop: 56, scrollMarginTop: 16 }}>
-      <h2 style={{ marginBottom: 4, fontSize: 20 }}>{title}</h2>
-      <p style={{ marginTop: 0, marginBottom: 16, maxWidth: 760, color: "var(--demo-muted)", fontSize: 14, lineHeight: 1.5 }}>
+    <section id={id} style={{ marginTop: 56, scrollMarginTop: 76 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <h2 style={{ margin: 0, fontSize: 20 }}>{title}</h2>
+        {badge && (
+          <span
+            style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: 0.2, textTransform: "uppercase",
+              padding: "3px 8px", borderRadius: 999,
+              border: "1px solid var(--demo-border)", color: "var(--demo-muted)",
+            }}
+          >
+            {badge}
+          </span>
+        )}
+      </div>
+      <p style={{ marginTop: 4, marginBottom: 16, maxWidth: 760, color: "var(--demo-muted)", fontSize: 14, lineHeight: 1.5 }}>
         {description}
       </p>
       {children}
     </section>
+  );
+}
+
+function LinkButton({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      style={{
+        padding: "6px 12px",
+        borderRadius: 8,
+        border: "1px solid var(--demo-border)",
+        color: "var(--demo-ink)",
+        fontSize: 13,
+        fontWeight: 600,
+        textDecoration: "none",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {children}
+    </a>
   );
 }
 
@@ -219,20 +266,44 @@ function DemoApp() {
         minHeight: "100vh",
       } as React.CSSProperties}
     >
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 16px" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-          <div>
-            <h1 style={{ marginBottom: 4 }}>{s.title}</h1>
-            <p style={{ marginTop: 0, color: "var(--demo-muted)", maxWidth: 760 }}>{s.intro}</p>
-          </div>
-          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+      <header
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 20,
+          background: "var(--demo-bg)",
+          borderBottom: "1px solid var(--demo-border)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1100,
+            margin: "0 auto",
+            padding: "12px 16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <strong style={{ fontSize: 15 }}>form-page-builder</strong>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <LinkButton href="https://github.com/MainSolutionCoLtd/form-page-builder">GitHub ↗</LinkButton>
+            <LinkButton href="https://www.npmjs.com/package/form-page-builder">npm ↗</LinkButton>
+            <span style={{ width: 1, alignSelf: "stretch", background: "var(--demo-border)", margin: "0 2px" }} />
             <ToggleButton active={uiLang === "en"} onClick={() => setUiLang("en")}>EN</ToggleButton>
             <ToggleButton active={uiLang === "ja"} onClick={() => setUiLang("ja")}>日本語</ToggleButton>
-            <span style={{ width: 1, background: "var(--demo-border)", margin: "0 4px" }} />
+            <span style={{ width: 1, alignSelf: "stretch", background: "var(--demo-border)", margin: "0 2px" }} />
             <ToggleButton active={!dark} onClick={() => setDark(false)}>{s.light}</ToggleButton>
             <ToggleButton active={dark} onClick={() => setDark(true)}>{s.dark}</ToggleButton>
           </div>
         </div>
+      </header>
+
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 16px 0" }}>
+        <h1 style={{ marginBottom: 4 }}>{s.title}</h1>
+        <p style={{ marginTop: 0, color: "var(--demo-muted)", maxWidth: 760 }}>{s.intro}</p>
 
         <Example id="full-featured" title={s.examples.full.title} description={s.examples.full.description}>
           <FormBuilder features={{ design: true }} theme={theme} storage={namespacedStorage("full")} />
@@ -259,8 +330,15 @@ function DemoApp() {
           />
         </Example>
 
-        <Example id="branded" title={s.examples.branded.title} description={s.examples.branded.description}>
-          <FormBuilder theme={brandTheme} features={{ design: false, blockStyling: false }} storage={namespacedStorage("branded")} />
+        <Example
+          id="branded"
+          title={s.examples.branded.title}
+          description={s.examples.branded.description}
+          badge={s.lockedThemeBadge}
+        >
+          <div style={{ outline: "2px dashed var(--demo-border)", outlineOffset: 6, borderRadius: 12 }}>
+            <FormBuilder theme={brandTheme} features={{ design: false, blockStyling: false }} storage={namespacedStorage("branded")} />
+          </div>
         </Example>
 
         <Example id="survey" title={s.examples.survey.title} description={s.examples.survey.description}>
@@ -321,6 +399,28 @@ function DemoApp() {
           />
         </Example>
       </div>
+
+      <footer style={{ marginTop: 64, borderTop: "1px solid var(--demo-border)" }}>
+        <div
+          style={{
+            maxWidth: 1100,
+            margin: "0 auto",
+            padding: "20px 16px 40px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <span style={{ fontSize: 13, color: "var(--demo-muted)" }}>{s.footer.text}</span>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <LinkButton href="https://github.com/MainSolutionCoLtd/form-page-builder">{s.footer.github} ↗</LinkButton>
+            <LinkButton href="https://www.npmjs.com/package/form-page-builder">{s.footer.npm} ↗</LinkButton>
+            <LinkButton href="https://mainsolutioncoltd.github.io/form-page-builder/">{s.footer.liveDemo} ↗</LinkButton>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
