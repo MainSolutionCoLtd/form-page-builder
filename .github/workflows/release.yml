@@ -9,6 +9,7 @@ on:
 permissions:
   contents: read
   id-token: write # for npm provenance
+  packages: write # for the GitHub Packages mirror publish
 
 jobs:
   publish:
@@ -29,3 +30,17 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - run: npm publish --provenance --access public
+
+      # GitHub Packages requires a scoped name, unlike the public npm
+      # package above, so rename in-place (not committed) for this
+      # second, mirror-only publish that makes the release show up in
+      # the repo's Packages sidebar.
+      - run: npm pkg set name="@MainSolutionCoLtd/form-page-builder"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://npm.pkg.github.com
+          scope: "@MainSolutionCoLtd"
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
