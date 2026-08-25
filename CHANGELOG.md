@@ -1,5 +1,18 @@
 # form-page-builder
 
+## 2.1.0
+
+### Minor Changes
+
+- [#9](https://github.com/MainSolutionCoLtd/form-page-builder/pull/9) [`60ec700`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/60ec700d017ecfb4708771a8240de3f2115bf7d3) Thanks [@sabalpoudel](https://github.com/sabalpoudel)! - Add `onModeChange` prop, firing on mount and on every Build/Preview toggle — lets a host mirror the widget's current mode (e.g. to show its own Save button only in Build mode) without building a separate tab UI around it.
+
+- [#9](https://github.com/MainSolutionCoLtd/form-page-builder/pull/9) [`3c320dd`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/3c320dd673668093827e898fd6911d9fb255a812) Thanks [@sabalpoudel](https://github.com/sabalpoudel)! - Add `initialMode` prop and `features.maxFields`.
+
+  - `initialMode?: "build" | "preview"` sets which mode the widget mounts into (default `"build"`). Pair with `features.previewMode: false` to lock a consumer to a single mode with no tabs — including a fill-only embed that starts in Preview and never shows the Build canvas, which wasn't previously possible.
+  - `features.maxFields?: number` caps the number of input-type fields (not content blocks) addable across the whole document. Once reached, the Form Fields palette buttons disable until a field is removed.
+
+- [#9](https://github.com/MainSolutionCoLtd/form-page-builder/pull/9) [`8cc01a7`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/8cc01a7d698c3058ca2fe87f7ba1f424f2957e55) Thanks [@sabalpoudel](https://github.com/sabalpoudel)! - Add `features.deviceToggle` — hides the Laptop/Tablet/Mobile width switcher above the Preview canvas for embeds that don't need it, while it stays available (and defaults to on) for consumers that do. Preview renders at the Laptop (full) width when hidden.
+
 ## 2.0.0
 
 ### Major Changes
