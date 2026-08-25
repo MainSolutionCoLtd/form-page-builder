@@ -306,7 +306,7 @@ function DemoApp() {
         <p style={{ marginTop: 0, color: "var(--demo-muted)", maxWidth: 760, overflowWrap: "break-word" }}>{s.intro}</p>
 
         <Example id="full-featured" title={s.examples.full.title} description={s.examples.full.description}>
-          <FormBuilder features={{ design: true }} theme={theme} storage={namespacedStorage("full")} />
+          <FormBuilder features={{ design: true }} theme={theme} storage={namespacedStorage("full-v2")} />
         </Example>
 
         <Example id="minimal" title={s.examples.minimal.title} description={s.examples.minimal.description}>
@@ -349,13 +349,14 @@ function DemoApp() {
               newForm: false,
               jsonView: false,
               design: false,
+              autosave: false,
               contentBlocks: ["button"],
               fieldTypes: ["input", "textarea", "select", "radio", "checkboxGroup"],
               sections: false,
               dragReorder: false,
             }}
             onSubmit={(payload: SubmitPayload) => console.log("[survey] submitted", payload)}
-            storage={namespacedStorage("survey")}
+            storage={namespacedStorage("survey-v2")}
           />
         </Example>
 
