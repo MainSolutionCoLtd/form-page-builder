@@ -10,6 +10,7 @@ export const MAX_TEMPLATES = 5;
 
 export interface UsePersistenceArgs {
   storage: StorageAdapter;
+  autosave: boolean;
   language: string;
   chrome: ChromeShape;
   document: DocumentFields;
@@ -34,7 +35,7 @@ export interface SaveAsPrompt {
  * loaded — splitting them would require sharing a ref across hooks.
  */
 export function usePersistence({
-  storage, language, chrome, document, initialDocument, onLoadDocument, onLoadThemeOverrides, onTitleChange, onNewForm, ensureActiveSection,
+  storage, autosave, language, chrome, document, initialDocument, onLoadDocument, onLoadThemeOverrides, onTitleChange, onNewForm, ensureActiveSection,
 }: UsePersistenceArgs) {
   const [currentFormId, setCurrentFormId] = useState<string | null>(null);
   const [loadingDraft, setLoadingDraft] = useState(true);
@@ -92,7 +93,7 @@ export function usePersistence({
   }, []);
 
   useEffect(() => {
-    if (!hasLoadedOnce.current) return;
+    if (!hasLoadedOnce.current || !autosave) return;
     setSaveState("saving");
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
     autosaveTimer.current = setTimeout(async () => {

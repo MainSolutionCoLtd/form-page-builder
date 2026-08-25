@@ -47,7 +47,7 @@ export function FieldBlock({ field, lang, onFieldChange, strings, chrome, error,
       <div style={{ display: "flex", flexDirection: isInline ? "row" : "column", alignItems: isInline ? "center" : "stretch", gap: isInline ? 10 : 6 }}>
         {showLabel && (
           <label style={{ ...styles.previewLabel, marginBottom: isInline ? 0 : 6, flexShrink: 0, width: isInline ? 120 : "auto", display: "flex", alignItems: "center", gap: 6 }}>
-            {IconComp && <IconComp size={14} color="#6B6E79" />}
+            {IconComp && <IconComp size={14} color="var(--fb-muted)" />}
             {labelText || (isBuild ? <span style={{ fontStyle: "italic", color: "var(--fb-muted)" }}>{chrome?.untitledField || "Untitled field"}</span> : "")}
             {field.required && <span style={{ color: "var(--fb-danger)" }}> *</span>}
           </label>
@@ -107,9 +107,9 @@ function renderInteractive(
       );
     }
     case "checkbox":
-      return (<label style={styles.previewRadio}><input type="checkbox" checked={!!value} onChange={(e) => set(e.target.checked)} style={{ accentColor: "var(--fb-primary)" }} />{IconComp && <IconComp size={14} color="#6B6E79" />}{t(field.label, lang)}{field.required && <span style={{ color: "var(--fb-danger)" }}> *</span>}</label>);
+      return (<label style={styles.previewRadio}><input type="checkbox" checked={!!value} onChange={(e) => set(e.target.checked)} style={{ accentColor: "var(--fb-primary)" }} />{IconComp && <IconComp size={14} color="var(--fb-muted)" />}{t(field.label, lang)}{field.required && <span style={{ color: "var(--fb-danger)" }}> *</span>}</label>);
     case "toggle":
-      return (<label style={styles.previewRadio}><input type="checkbox" checked={!!value} onChange={(e) => set(e.target.checked)} style={{ accentColor: "var(--fb-primary)" }} />{IconComp && <IconComp size={14} color="#6B6E79" />}{t(field.label, lang)}</label>);
+      return (<label style={styles.previewRadio}><input type="checkbox" checked={!!value} onChange={(e) => set(e.target.checked)} style={{ accentColor: "var(--fb-primary)" }} />{IconComp && <IconComp size={14} color="var(--fb-muted)" />}{t(field.label, lang)}</label>);
     default:
       return <input type="text" {...common} />;
   }

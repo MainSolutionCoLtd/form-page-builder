@@ -6,6 +6,9 @@ import type { LanguageOption } from "./i18n/languages";
 
 export type { FieldType, IconKey, ChromeShape, StringsShape, LanguageOption };
 
+export type ContentBlockType = "paragraph" | "image" | "button";
+export type InputFieldType = "input" | "textarea" | "select" | "radio" | "checkboxGroup" | "checkbox" | "toggle";
+
 // --- i18n / bilingual content ---
 export interface LocalizedString {
   en: string;
@@ -250,6 +253,36 @@ export interface FormBuilderHandle {
   exportJson(): string;
 }
 
+// --- features (independently-toggleable UI surfaces, kept separate from theme/style props) ---
+export interface FormBuilderFeatures {
+  /** Editable form title input in the Toolbar. Default true. */
+  naming?: boolean;
+  /** Templates library (browse/open/delete) + "Save" button. Default true. */
+  templates?: boolean;
+  /** "New Form" reset button. Default true. */
+  newForm?: boolean;
+  /** Autosave the draft to `storage`. The initial draft load always happens; this only gates the write path. Default true. */
+  autosave?: boolean;
+  /** "View JSON" button + modal. Default true. */
+  jsonView?: boolean;
+  /** Build/Preview mode tabs. When false, the builder stays in Build mode and the tabs are hidden. Default true. */
+  previewMode?: boolean;
+  /** Language switcher in the Toolbar. Default true. */
+  languageSwitcher?: boolean;
+  /** Global "Design" tab (colors/spacing) in the sidebar. Replaces the old `themeEditable` prop. Default false. */
+  design?: boolean;
+  /** Per-field styling controls: paragraph heading/font/color, button color. Independent of `design`. Default true. */
+  blockStyling?: boolean;
+  /** Which content blocks (paragraph/image/button) can be added from the palette. `true` = all, `false` = none, or an allowlist array. Default true. */
+  contentBlocks?: boolean | ContentBlockType[];
+  /** Which form field types can be added from the palette. `true` = all, `false` = none, or an allowlist array. Default true. */
+  fieldTypes?: boolean | InputFieldType[];
+  /** Add/duplicate/move/delete section controls + section background picker. Default true. */
+  sections?: boolean;
+  /** Drag-to-reorder fields within a section. Default true. */
+  dragReorder?: boolean;
+}
+
 // --- props ---
 export interface FormBuilderProps {
   theme?: Partial<Theme>;
@@ -257,7 +290,8 @@ export interface FormBuilderProps {
   languages?: LanguageOption[];
   strings?: Record<string, Partial<StringsShape>>;
   chrome?: Record<string, Partial<ChromeShape>>;
-  themeEditable?: boolean;
+  /** Independently toggle UI surfaces on/off — full-featured by default. See `FormBuilderFeatures`. */
+  features?: FormBuilderFeatures;
   storage?: StorageAdapter;
   onSubmit?: (payload: SubmitPayload) => void;
   /** Seeds the builder with this document on mount instead of the autosaved draft — e.g. a template fetched from your own backend. */

@@ -8,6 +8,21 @@
 
 Embeddable, bilingual (EN/JA by default, extensible), drag-and-drop form builder widget for React. Ships a single `<FormBuilder />` component with a Build mode (drag/drop canvas, field inspector) and a Preview mode (responsive, validating runtime form), plus a JSON export of the resulting document.
 
+## Examples
+
+The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gallery of six `<FormBuilder />` configurations, each showing a different realistic way to compose `features`/`theme`/`storage`/`initialDocument`/`language` — jump straight to one. Its sticky header (its headings/captions, not the widget's own EN/JA switcher) has an EN/日本語 toggle, a Light/Dark toggle that swaps every example except "Branded" (badged "Fixed theme", since its whole point is a locked theme) between `DEFAULT_THEME` and `DARK_THEME`, and links back to this repo and the npm package.
+
+| Example | What it shows |
+|---|---|
+| [Full-featured](https://mainsolutioncoltd.github.io/form-page-builder/#full-featured) | No props beyond `features={{ design: true }}` — the default, everything on. |
+| [Minimal (forms-only embed)](https://mainsolutioncoltd.github.io/form-page-builder/#minimal) | Every optional surface off, a 3-type field allowlist — stripped down for embedding inside a larger app's own chrome. |
+| [Branded, theme locked](https://mainsolutioncoltd.github.io/form-page-builder/#branded) | A fixed `theme` plus `features.design`/`blockStyling` off — colors are locked to the brand, no styling UI exposed. |
+| [Survey builder](https://mainsolutioncoltd.github.io/form-page-builder/#survey) | `fieldTypes`/`contentBlocks` allowlists plus `onSubmit` — a single-shape survey embed that hands you the answers. |
+| [Locked-structure form](https://mainsolutioncoltd.github.io/form-page-builder/#locked-structure) | `initialDocument` seeds a fixed field set; structural toggles are off so only styling/labels stay editable. |
+| [Localized (French)](https://mainsolutioncoltd.github.io/form-page-builder/#localized) | `language`/`languages`/`strings`/`chrome` — a language beyond the built-in EN/JA, partially translated. |
+
+The source for all six lives in [dev/main.tsx](./dev/main.tsx) — `npm run dev` runs the same gallery locally against `src/` directly, and is the fastest way to try a `features`/`theme` combination before wiring it into your app.
+
 **This is a builder + viewer, not a data handler.** It builds and previews a JSON *schema* describing a form's fields, sections, and layout blocks (including plain content blocks like paragraphs and images, not just inputs). Preview mode's "Submit" validates and shows a mock "here's what would be sent to your backend" modal, and — if you pass `onSubmit` — hands you the entered values too; either way, this package never sends or stores them itself. The only thing it persists on its own is the *builder's own* draft/Templates state (via the pluggable `StorageAdapter` below); actually delivering submissions to a backend is up to the host app.
 
 ## Install
@@ -38,12 +53,16 @@ The widget caps itself at the viewport height (`100vh`, upgrading to `100dvh` on
 
 If you *do* size a wrapper to exactly `100vh`/`100dvh` and still see the page itself scroll by a few extra pixels, that's almost always the browser's default `<body>` margin (commonly `8px`) adding to that full-viewport height — reset it yourself (`body { margin: 0; }`), same as you would for any other full-height layout; this package doesn't touch your page's global styles.
 
+### Responsive layout
+
+Above ~720px wide, Build mode is the usual three-column Palette/Canvas/Inspector layout. Below that, Canvas becomes the full-width primary view, and Palette/Inspector become full-bleed drawers that slide over it instead of permanently eating vertical space — a small "Blocks"/"Properties" bar (reusing the same chrome labels as the desktop tabs, no separate i18n) toggles between them. Tapping a block type in the drawer adds it and returns straight to Canvas; tapping a field in Canvas opens the Properties drawer on it automatically. Nothing gets clipped by the widget's own `overflow: hidden`, and there's no horizontal scrolling. This is CSS-only (a media query in the stylesheet the widget injects) with a small bit of state driving which drawer is open, so it responds to the container's width, not a JS-measured breakpoint — useful if you're embedding it in a narrow sidebar on an otherwise-wide page. Modals size themselves as `width: 100%` up to a `max-width` (with padding around the overlay) instead of a fixed pixel width, so they never overflow a narrow viewport either.
+
 ### Props
 
 | Prop | Type | Description |
 |---|---|---|
-| `theme` | `Partial<Theme>` | Override default colors/layout spacing. |
-| `themeEditable` | `boolean` | Show the in-app "Design" tab (theme/spacing/submit-button controls) in the left sidebar. |
+| `theme` | `Partial<Theme>` | Override default colors/layout spacing — see "Features vs. theming" below. |
+| `features` | `FormBuilderFeatures` | Independently toggle UI surfaces on/off — full-featured by default. See "Features" below. |
 | `language` | `string` | Initial builder language (defaults to the first entry in `languages`). |
 | `languages` | `{ code: string; label: string }[]` | Language switcher options (default: EN/JA). |
 | `strings` | partial override of runtime/validation strings, keyed by language code | |
@@ -53,6 +72,66 @@ If you *do* size a wrapper to exactly `100vh`/`100dvh` and still see the page it
 | `initialDocument` | `FormDocument` | Seeds the builder with this document on mount instead of the autosaved draft — see "Programmatic integration" below. |
 
 A `ref` on `<FormBuilder />` gives you a `FormBuilderHandle` (`getDocument()` / `loadDocument()` / `exportJson()`) — see "Programmatic integration" below.
+
+### Features: `features`
+
+Every optional UI surface can be switched on or off independently through one `features` prop, kept deliberately separate from `theme`/`ThemeOverrides` (which control *how* things look, not *whether* they appear). Everything defaults to `true` (`design` defaults to `false`, matching the pre-`features` default), so the default `<FormBuilder />` is unchanged and fully featured; pass only the keys you want to restrict.
+
+```tsx
+// A forms-only embed: no title editing, no templates/JSON/preview chrome,
+// no theming UI, and only two field types available to add.
+<FormBuilder
+  features={{
+    naming: false,
+    templates: false,
+    newForm: false,
+    autosave: false,
+    jsonView: false,
+    previewMode: false,
+    languageSwitcher: false,
+    design: false,
+    blockStyling: false,
+    contentBlocks: false,
+    fieldTypes: ["input", "select"],
+    sections: false,
+    dragReorder: false,
+  }}
+/>
+```
+
+| Key | Type | Default | Controls |
+|---|---|---|---|
+| `naming` | `boolean` | `true` | The editable form-title input in the toolbar. |
+| `templates` | `boolean` | `true` | The Templates library (browse/open/delete) and the "Save" button. |
+| `newForm` | `boolean` | `true` | The "New Form" reset button. |
+| `autosave` | `boolean` | `true` | Autosaving the draft to `storage`. The initial draft *load* always happens regardless — this only gates the write path. |
+| `jsonView` | `boolean` | `true` | The "View JSON" button and modal. |
+| `previewMode` | `boolean` | `true` | The Build/Preview tabs. When `false`, the builder stays in Build mode and the tabs are hidden. |
+| `languageSwitcher` | `boolean` | `true` | The language-switcher pill in the toolbar. |
+| `design` | `boolean` | `false` | The global "Design" tab (colors/spacing), i.e. the old `themeEditable` prop. |
+| `blockStyling` | `boolean` | `true` | Per-field styling controls: paragraph heading/font/color, button color — independent of `design`. |
+| `contentBlocks` | `boolean \| ("paragraph" \| "image" \| "button")[]` | `true` | Which content blocks can be *added* from the palette. `true` = all, `false` = none, or an allowlist. |
+| `fieldTypes` | `boolean \| ("input" \| "textarea" \| "select" \| "radio" \| "checkboxGroup" \| "checkbox" \| "toggle")[]` | `true` | Which form field types can be *added* from the palette. `true` = all, `false` = none, or an allowlist. |
+| `sections` | `boolean` | `true` | Add/duplicate/move/delete-section controls and the section background picker. |
+| `dragReorder` | `boolean` | `true` | Drag-to-reorder fields within a section. |
+
+Disabling `contentBlocks`/`fieldTypes` for a given type only hides it from the palette going forward — if a document loaded via `initialDocument` (or a saved template) already contains fields of a now-disabled type, they still render and remain editable in Build mode; nothing is stripped or hidden.
+
+### Features vs. theming
+
+`features` and `theme` are separate, composable concerns: `features.design` decides whether the Design tab's color/spacing *controls* are shown at all, while `theme` (and the Design tab, when shown) decide what those colors/spacing values *are*. You can, for instance, pass a fixed `theme` with `features.design` and `features.blockStyling` both `false` to lock a form to your brand's colors with zero styling UI exposed to the builder's user.
+
+### Dark theme
+
+Every color in the widget — including modals, toggles, and badges, not just the canvas/toolbar — is driven by the `theme` prop via CSS custom properties, so dark mode is just a different set of color values, no separate "dark mode" flag needed:
+
+```tsx
+import { FormBuilder, DARK_THEME } from "form-page-builder";
+
+<FormBuilder theme={DARK_THEME} />;
+```
+
+`DARK_THEME` (and `DEFAULT_THEME`, the light palette used when `theme` is omitted) are both exported as plain `Theme` objects, so you can spread and tweak either one (`{ ...DARK_THEME, primary: "#22c55e" }`) or swap between them at runtime for a user-facing light/dark toggle — see the "Localized (French)"-adjacent light/Dark switch in the [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) for a working example.
 
 ### Persistence: `StorageAdapter`
 
@@ -183,9 +262,12 @@ The `?external=react,react-dom` query on the `form-page-builder` import tells es
 npm install
 npm run dev        # Vite dev harness at http://localhost:5173, imports FormBuilder from src/
 npm run typecheck
+npm run test        # vitest run -- see tests/
 npm run build       # tsup -> dist/ (ESM + CJS + .d.ts), the published package
 npm run build:demo  # vite build -> pages-dist/, the GitHub Pages demo site
 ```
+
+Tests use [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com/react) against jsdom, covering rendering, the `features` prop's gating of each UI surface, the `FormBuilderHandle` ref API, autosave/`initialDocument`, and the Preview-mode validation + `onSubmit` flow. `npm run test:watch` re-runs on change.
 
 ## Releasing
 

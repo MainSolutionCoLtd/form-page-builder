@@ -22,7 +22,7 @@ export function DefaultValueEditor({ field, meta, lang, chrome, onChange }: Defa
         <label style={styles.propLabel}>{chrome.defaultValue}</label>
         <button style={styles.toggleRow} onClick={() => onChange({ defaultValue: !f.defaultValue })}>
           <span style={{ ...styles.toggleTrack, background: f.defaultValue ? "var(--fb-primary)" : "var(--fb-border)" }}><span style={{ ...styles.toggleThumb, transform: f.defaultValue ? "translateX(16px)" : "translateX(0)" }} /></span>
-          <span style={{ fontSize: 13, color: "#4A4D57" }}>{f.defaultValue ? chrome.checked : chrome.unchecked}</span>
+          <span style={{ fontSize: 13, color: "var(--fb-ink)" }}>{f.defaultValue ? chrome.checked : chrome.unchecked}</span>
         </button>
       </>
     );

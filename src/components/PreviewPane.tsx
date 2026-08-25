@@ -124,7 +124,7 @@ export function PreviewPane({ title, sections, onFieldChange, language, strings,
 
       {submitted && (
         <div style={styles.modalOverlay} onClick={() => setSubmitted(null)}>
-          <div style={{ ...styles.modal, width: 420 }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ ...styles.modal, maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <span style={{ fontWeight: 600, fontSize: 14, display: "flex", alignItems: "center", gap: 7 }}><PartyPopper size={15} color="var(--fb-primary)" /> {strings.submittedTitle}</span>
               <button style={styles.iconBtn} onClick={() => setSubmitted(null)}><X size={16} /></button>

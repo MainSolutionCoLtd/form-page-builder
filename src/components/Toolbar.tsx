@@ -1,6 +1,7 @@
 import { Loader2, AlertCircle, Pencil, Eye, FilePlus2, FolderOpen, Save, Code2 } from "lucide-react";
 import type { ChromeShape } from "../i18n/chrome";
 import type { LanguageOption, LocalizedString } from "../types";
+import type { ResolvedFeatures } from "../lib/features";
 import { t } from "../lib/bilingual";
 import { styles } from "../styles/styles";
 import { LanguageToggle } from "./LanguageToggle";
@@ -12,6 +13,7 @@ export interface ToolbarProps {
   mode: "build" | "preview";
   saveState: "idle" | "saving" | "saved" | "error";
   chrome: ChromeShape;
+  features: ResolvedFeatures;
   savedFormsCount: number;
   onTitleChange: (value: string) => void;
   onLanguageChange: (code: string) => void;
@@ -23,14 +25,18 @@ export interface ToolbarProps {
 }
 
 export function Toolbar({
-  title, language, languages, mode, saveState, chrome, savedFormsCount,
+  title, language, languages, mode, saveState, chrome, features, savedFormsCount,
   onTitleChange, onLanguageChange, onModeChange, onNewForm, onOpenLibrary, onSaveExisting, onOpenJson,
 }: ToolbarProps) {
   return (
     <div style={styles.toolbar}>
       <div style={styles.toolbarLeft}>
         <div style={styles.logoMark}>FB</div>
-        <input value={t(title, language)} onChange={(e) => onTitleChange(e.target.value)} style={styles.titleInput} aria-label="Form title" />
+        {features.naming ? (
+          <input value={t(title, language)} onChange={(e) => onTitleChange(e.target.value)} style={styles.titleInput} aria-label="Form title" />
+        ) : (
+          <span style={styles.titleInput}>{t(title, language)}</span>
+        )}
       </div>
       <div style={styles.toolbarRight}>
         <span style={styles.saveStatus}>
@@ -38,19 +44,35 @@ export function Toolbar({
           {saveState === "saved" && chrome.saved}
           {saveState === "error" && (<span style={{ color: "var(--fb-danger)", display: "flex", alignItems: "center", gap: 4 }}><AlertCircle size={12} /> {chrome.saveFailed}</span>)}
         </span>
-        <div style={styles.toolbarDivider} />
-        <LanguageToggle languages={languages} value={language} onChange={onLanguageChange} />
-        <div style={styles.toolbarDivider} />
-        <button style={mode === "build" ? styles.tabBtnActive : styles.tabBtn} onClick={() => onModeChange("build")}><Pencil size={14} /> {chrome.build}</button>
-        <button style={mode === "preview" ? styles.tabBtnActive : styles.tabBtn} onClick={() => onModeChange("preview")}><Eye size={14} /> {chrome.preview}</button>
-        <div style={styles.toolbarDivider} />
-        <button style={styles.ghostBtn} onClick={onNewForm} title={chrome.startNewForm}><FilePlus2 size={14} /> {chrome.newForm}</button>
-        <button style={styles.ghostBtn} onClick={onOpenLibrary} title={chrome.openTemplatesTitle}>
-          <FolderOpen size={14} /> {chrome.templates}
-          {savedFormsCount > 0 && <span style={styles.countBadge}>{savedFormsCount}</span>}
-        </button>
-        <button style={styles.primaryBtn} onClick={onSaveExisting} title={chrome.saveToLibraryTitle}><Save size={14} /> {chrome.save}</button>
-        <button style={styles.ghostBtn} onClick={onOpenJson}><Code2 size={14} /> {chrome.viewJson}</button>
+        {features.languageSwitcher && (
+          <>
+            <div style={styles.toolbarDivider} />
+            <LanguageToggle languages={languages} value={language} onChange={onLanguageChange} />
+          </>
+        )}
+        {features.previewMode && (
+          <>
+            <div style={styles.toolbarDivider} />
+            <button style={mode === "build" ? styles.tabBtnActive : styles.tabBtn} onClick={() => onModeChange("build")}><Pencil size={14} /> {chrome.build}</button>
+            <button style={mode === "preview" ? styles.tabBtnActive : styles.tabBtn} onClick={() => onModeChange("preview")}><Eye size={14} /> {chrome.preview}</button>
+          </>
+        )}
+        {(features.newForm || features.templates) && <div style={styles.toolbarDivider} />}
+        {features.newForm && (
+          <button style={styles.ghostBtn} onClick={onNewForm} title={chrome.startNewForm}><FilePlus2 size={14} /> {chrome.newForm}</button>
+        )}
+        {features.templates && (
+          <>
+            <button style={styles.ghostBtn} onClick={onOpenLibrary} title={chrome.openTemplatesTitle}>
+              <FolderOpen size={14} /> {chrome.templates}
+              {savedFormsCount > 0 && <span style={styles.countBadge}>{savedFormsCount}</span>}
+            </button>
+            <button style={styles.primaryBtn} onClick={onSaveExisting} title={chrome.saveToLibraryTitle}><Save size={14} /> {chrome.save}</button>
+          </>
+        )}
+        {features.jsonView && (
+          <button style={styles.ghostBtn} onClick={onOpenJson}><Code2 size={14} /> {chrome.viewJson}</button>
+        )}
       </div>
     </div>
   );

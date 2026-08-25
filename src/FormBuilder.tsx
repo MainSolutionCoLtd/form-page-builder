@@ -2,14 +2,16 @@
 
 import { forwardRef, useImperativeHandle, useState } from "react";
 import type { CSSProperties } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Menu, SlidersHorizontal } from "lucide-react";
 import type { FormBuilderHandle, FormBuilderProps } from "./types";
 import { DEFAULT_LANGUAGES } from "./i18n/languages";
 import { DEFAULT_STRINGS } from "./i18n/strings";
 import { CHROME } from "./i18n/chrome";
 import { t } from "./lib/bilingual";
+import { mixHex } from "./lib/color";
 import { localStorageAdapter } from "./lib/storage/localStorageAdapter";
 import { migrateDocument } from "./lib/migrate";
+import { resolveFeatures } from "./lib/features";
 import { useTheme } from "./hooks/useTheme";
 import { useFormDocument } from "./hooks/useFormDocument";
 import { usePersistence } from "./hooks/usePersistence";
@@ -31,11 +33,12 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   languages = DEFAULT_LANGUAGES,
   strings: stringsOverride,
   chrome: chromeOverride,
-  themeEditable = false,
+  features: featuresProp,
   storage: storageProp,
   onSubmit,
   initialDocument,
 }, ref) {
+  const features = resolveFeatures(featuresProp);
   const storage = storageProp ?? localStorageAdapter;
   const { theme, updateThemeColor, updateThemeLayout, resetTheme, replaceThemeOverrides, themeOverrides } = useTheme(themeOverrideProp);
 
@@ -50,9 +53,14 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const [showJson, setShowJson] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Only meaningful below the 720px breakpoint (see globalCss) where Palette
+  // and Inspector become full-bleed drawers over Canvas instead of columns;
+  // harmless to keep updating above it since the CSS there ignores it.
+  const [mobilePanel, setMobilePanel] = useState<"none" | "palette" | "inspector">("none");
 
   const persistence = usePersistence({
     storage,
+    autosave: features.autosave,
     language,
     chrome,
     document: { title: doc.title, themeOverrides, sections: doc.sections },
@@ -99,6 +107,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
     "--fb-danger": theme.danger, "--fb-danger-soft": theme.dangerSoft,
     "--fb-ink": theme.ink, "--fb-muted": theme.muted, "--fb-border": theme.border,
     "--fb-surface": theme.surface, "--fb-canvas": theme.canvas, "--fb-page-bg": theme.pageBackground,
+    "--fb-surface-2": mixHex(theme.surface, theme.ink, 0.06),
     "--fb-space-page": `${theme.layout.pagePadding}px`, "--fb-space-canvas": `${theme.layout.canvasPadding}px`,
     "--fb-space-section": `${theme.layout.sectionGap}px`, "--fb-space-field": `${theme.layout.fieldGap}px`,
     "--fb-space-toolbar": `${theme.layout.toolbarPadding}px`, "--fb-space-panel": `${theme.layout.panelPadding}px`,
@@ -116,6 +125,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
         mode={mode}
         saveState={persistence.saveState}
         chrome={chrome}
+        features={features}
         savedFormsCount={persistence.savedForms.length}
         onTitleChange={doc.updateTitle}
         onLanguageChange={setLanguage}
@@ -132,53 +142,80 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
           <span style={{ marginTop: 8, fontSize: 13, color: "var(--fb-muted)" }}>{chrome.loadingDraft}</span>
         </div>
       ) : mode === "build" ? (
-        <div style={styles.workArea}>
-          <Palette
-            activeSectionLabel={activeSectionLabel}
-            chrome={chrome}
-            onAddField={doc.addField}
-            themeEditable={themeEditable}
-            theme={theme}
-            updateThemeColor={updateThemeColor}
-            updateThemeLayout={updateThemeLayout}
-            resetTheme={resetTheme}
-          />
+        <div className="fb-work-area" style={styles.workArea} data-mobile-panel={mobilePanel}>
+          <div className="fb-mobile-bar">
+            <button
+              type="button"
+              className="fb-mobile-btn"
+              aria-pressed={mobilePanel === "palette"}
+              onClick={() => setMobilePanel((p) => (p === "palette" ? "none" : "palette"))}
+            >
+              <Menu size={14} /> {chrome.paletteTabBlocks}
+            </button>
+            <button
+              type="button"
+              className="fb-mobile-btn"
+              aria-pressed={mobilePanel === "inspector"}
+              onClick={() => setMobilePanel((p) => (p === "inspector" ? "none" : "inspector"))}
+            >
+              <SlidersHorizontal size={14} /> {chrome.properties}
+            </button>
+          </div>
 
-          <Canvas
-            sections={doc.sections}
-            activeSectionId={doc.activeSectionId}
-            selectedId={doc.selectedId}
-            dragOverKey={drag.dragOverKey}
-            chrome={chrome}
-            strings={strings}
-            language={language}
-            onActivateSection={doc.setActiveSectionId}
-            onToggleSectionCollapse={doc.toggleSectionCollapse}
-            onUpdateSectionTitle={doc.updateSectionTitle}
-            onUpdateSectionBackground={doc.updateSectionBackground}
-            onDuplicateSection={doc.duplicateSection}
-            onMoveSection={doc.moveSection}
-            onDeleteSection={doc.deleteSection}
-            onAddSection={doc.addSection}
-            onSelectField={(sectionId, fieldId) => { doc.setSelectedId(fieldId); doc.setActiveSectionId(sectionId); }}
-            onFieldChange={doc.updateField}
-            onMoveField={doc.moveField}
-            onDuplicateField={doc.duplicateField}
-            onDeleteField={doc.deleteField}
-            getDropZoneHandlers={drag.getDropZoneHandlers}
-            getDragHandleProps={drag.getDragHandleProps}
-          />
+          <div className="fb-canvas-area" style={styles.workArea}>
+            {mobilePanel !== "none" && (
+              <div className="fb-mobile-backdrop" onClick={() => setMobilePanel("none")} />
+            )}
 
-          <Inspector
-            selected={doc.selected}
-            language={language}
-            chrome={chrome}
-            onUpdateField={(patch) => doc.selected && doc.updateField(doc.selected.id, patch)}
-            onDeleteField={() => doc.selected && doc.deleteField(doc.selected.id)}
-            onUpdateOption={(optIdx, patch) => doc.selected && doc.updateOption(doc.selected.id, optIdx, patch)}
-            onAddOption={() => doc.selected && doc.addOption(doc.selected.id)}
-            onRemoveOption={(optIdx) => doc.selected && doc.removeOption(doc.selected.id, optIdx)}
-          />
+            <Palette
+              activeSectionLabel={activeSectionLabel}
+              chrome={chrome}
+              onAddField={(type) => { doc.addField(type); setMobilePanel("none"); }}
+              features={features}
+              theme={theme}
+              updateThemeColor={updateThemeColor}
+              updateThemeLayout={updateThemeLayout}
+              resetTheme={resetTheme}
+            />
+
+            <Canvas
+              sections={doc.sections}
+              activeSectionId={doc.activeSectionId}
+              selectedId={doc.selectedId}
+              dragOverKey={drag.dragOverKey}
+              chrome={chrome}
+              strings={strings}
+              language={language}
+              features={features}
+              onActivateSection={doc.setActiveSectionId}
+              onToggleSectionCollapse={doc.toggleSectionCollapse}
+              onUpdateSectionTitle={doc.updateSectionTitle}
+              onUpdateSectionBackground={doc.updateSectionBackground}
+              onDuplicateSection={doc.duplicateSection}
+              onMoveSection={doc.moveSection}
+              onDeleteSection={doc.deleteSection}
+              onAddSection={doc.addSection}
+              onSelectField={(sectionId, fieldId) => { doc.setSelectedId(fieldId); doc.setActiveSectionId(sectionId); setMobilePanel("inspector"); }}
+              onFieldChange={doc.updateField}
+              onMoveField={doc.moveField}
+              onDuplicateField={doc.duplicateField}
+              onDeleteField={doc.deleteField}
+              getDropZoneHandlers={drag.getDropZoneHandlers}
+              getDragHandleProps={drag.getDragHandleProps}
+            />
+
+            <Inspector
+              selected={doc.selected}
+              language={language}
+              chrome={chrome}
+              features={features}
+              onUpdateField={(patch) => doc.selected && doc.updateField(doc.selected.id, patch)}
+              onDeleteField={() => doc.selected && doc.deleteField(doc.selected.id)}
+              onUpdateOption={(optIdx, patch) => doc.selected && doc.updateOption(doc.selected.id, optIdx, patch)}
+              onAddOption={() => doc.selected && doc.addOption(doc.selected.id)}
+              onRemoveOption={(optIdx) => doc.selected && doc.removeOption(doc.selected.id, optIdx)}
+            />
+          </div>
         </div>
       ) : (
         <PreviewPane
