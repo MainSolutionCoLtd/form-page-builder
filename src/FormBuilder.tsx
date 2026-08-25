@@ -163,6 +163,10 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
           </div>
 
           <div className="fb-canvas-area" style={styles.workArea}>
+            {mobilePanel !== "none" && (
+              <div className="fb-mobile-backdrop" onClick={() => setMobilePanel("none")} />
+            )}
+
             <Palette
               activeSectionLabel={activeSectionLabel}
               chrome={chrome}
