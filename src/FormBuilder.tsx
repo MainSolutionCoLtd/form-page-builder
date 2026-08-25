@@ -4,6 +4,7 @@ import { forwardRef, useImperativeHandle, useState } from "react";
 import type { CSSProperties } from "react";
 import { Loader2, Menu, SlidersHorizontal } from "lucide-react";
 import type { FormBuilderHandle, FormBuilderProps } from "./types";
+import { getMeta } from "./constants/fieldTypes";
 import { DEFAULT_LANGUAGES } from "./i18n/languages";
 import { DEFAULT_STRINGS } from "./i18n/strings";
 import { CHROME } from "./i18n/chrome";
@@ -37,6 +38,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   storage: storageProp,
   onSubmit,
   initialDocument,
+  initialMode,
 }, ref) {
   const features = resolveFeatures(featuresProp);
   const storage = storageProp ?? localStorageAdapter;
@@ -49,7 +51,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const doc = useFormDocument({ language, chrome });
   const drag = useDragReorder(doc.reorderWithinSection);
 
-  const [mode, setMode] = useState<"build" | "preview">("build");
+  const [mode, setMode] = useState<"build" | "preview">(initialMode ?? "build");
   const [showJson, setShowJson] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -97,6 +99,9 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [jsonDoc, jsonString]);
+
+  // Only input-type fields count toward `features.maxFields` — content blocks (paragraph/image/button) are free.
+  const fieldCount = doc.sections.reduce((n, s) => n + s.fields.filter((f) => !getMeta(f.type).isContent).length, 0);
 
   const activeSectionIdx = doc.sections.findIndex((s) => s.id === doc.activeSection?.id);
   const activeSectionLabel = t(doc.activeSection?.title, language) || `#${activeSectionIdx + 1}`;
@@ -172,6 +177,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
               chrome={chrome}
               onAddField={(type) => { doc.addField(type); setMobilePanel("none"); }}
               features={features}
+              fieldCount={fieldCount}
               theme={theme}
               updateThemeColor={updateThemeColor}
               updateThemeLayout={updateThemeLayout}

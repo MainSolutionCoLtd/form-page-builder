@@ -44,6 +44,32 @@ async function renderInPreview(onSubmit = vi.fn()) {
   return { user, onSubmit };
 }
 
+describe("initialMode prop", () => {
+  it("mounts straight into Preview when initialMode is \"preview\", with no Build canvas", async () => {
+    render(<FormBuilder storage={createMemoryStorage()} initialDocument={doc} initialMode="preview" />);
+    await screen.findByDisplayValue("Contact");
+
+    expect(screen.getByRole("textbox", { name: "" })).toBeInTheDocument();
+    expect(screen.queryByText("Form Fields")).not.toBeInTheDocument();
+  });
+
+  it("locks to Preview-only, no tabs, when combined with features.previewMode: false", async () => {
+    render(
+      <FormBuilder
+        storage={createMemoryStorage()}
+        initialDocument={doc}
+        initialMode="preview"
+        features={{ previewMode: false }}
+      />,
+    );
+    await screen.findByDisplayValue("Contact");
+
+    expect(screen.queryByRole("button", { name: "Build" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Preview" })).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "" })).toBeInTheDocument();
+  });
+});
+
 describe("Preview mode submit flow", () => {
   it("blocks submit and shows a validation error when a required field is empty", async () => {
     const { user, onSubmit } = await renderInPreview();

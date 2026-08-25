@@ -14,6 +14,7 @@ export interface ResolvedFeatures {
   fieldTypes: boolean | Set<InputFieldType>;
   sections: boolean;
   dragReorder: boolean;
+  maxFields?: number;
 }
 
 export const DEFAULT_FEATURES: ResolvedFeatures = {

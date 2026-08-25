@@ -18,15 +18,19 @@ export interface PaletteProps {
   updateThemeColor: (key: keyof Omit<Theme, "layout">, value: string) => void;
   updateThemeLayout: (key: keyof Theme["layout"], value: number) => void;
   resetTheme: () => void;
+  /** Current count of placed input-type fields, for gating against `features.maxFields`. */
+  fieldCount: number;
 }
 
 export function Palette({
   activeSectionLabel, chrome, onAddField, features, theme,
-  updateThemeColor, updateThemeLayout, resetTheme,
+  updateThemeColor, updateThemeLayout, resetTheme, fieldCount,
 }: PaletteProps) {
   const [tab, setTab] = useState<"blocks" | "design">("blocks");
   const contentTypes = CONTENT_TYPES.filter((f) => isContentBlockEnabled(features, f.type as ContentBlockType));
   const formTypes = FORM_TYPES.filter((f) => isFieldTypeEnabled(features, f.type as InputFieldType));
+  // Content blocks are never capped — only input-type fields count toward maxFields.
+  const atFieldCap = typeof features.maxFields === "number" && fieldCount >= features.maxFields;
 
   return (
     <div className="fb-palette" style={styles.palette}>
@@ -73,7 +77,8 @@ export function Palette({
               <div style={styles.paletteList}>
                 {formTypes.map((f) => {
                   const Icon = f.icon;
-                  return (<button key={f.type} style={styles.paletteItem} onClick={() => onAddField(f.type)}><Icon size={16} color="var(--fb-primary)" /><span>{chrome[FIELD_TYPE_CHROME_KEY[f.type] as keyof ChromeShape] as string}</span><Plus size={13} color="var(--fb-muted)" style={{ marginLeft: "auto" }} /></button>);
+                  const itemStyle = atFieldCap ? { ...styles.paletteItem, opacity: 0.45, cursor: "not-allowed" } : styles.paletteItem;
+                  return (<button key={f.type} type="button" disabled={atFieldCap} style={itemStyle} onClick={() => onAddField(f.type)}><Icon size={16} color="var(--fb-primary)" /><span>{chrome[FIELD_TYPE_CHROME_KEY[f.type] as keyof ChromeShape] as string}</span><Plus size={13} color="var(--fb-muted)" style={{ marginLeft: "auto" }} /></button>);
                 })}
               </div>
             </>

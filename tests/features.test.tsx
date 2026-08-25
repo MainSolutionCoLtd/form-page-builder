@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import FormBuilder from "../src/FormBuilder";
 import { createMemoryStorage } from "./testUtils";
 
@@ -68,5 +69,27 @@ describe("features prop", () => {
     render(<FormBuilder storage={createMemoryStorage()} features={{ sections: false }} />);
     await screen.findByLabelText("Form title");
     expect(screen.queryByRole("button", { name: /add section/i })).not.toBeInTheDocument();
+  });
+
+  it("disables the Form Fields palette once features.maxFields is reached, and re-enables after a delete", async () => {
+    const user = userEvent.setup();
+    render(<FormBuilder storage={createMemoryStorage()} features={{ maxFields: 1, contentBlocks: false }} />);
+    await screen.findByLabelText("Form title");
+
+    const inputButton = screen.getByRole("button", { name: "Input" });
+    await user.click(inputButton);
+    expect(inputButton).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Delete field" }));
+    expect(screen.getByRole("button", { name: "Input" })).toBeEnabled();
+  });
+
+  it("does not count content blocks toward features.maxFields", async () => {
+    const user = userEvent.setup();
+    render(<FormBuilder storage={createMemoryStorage()} features={{ maxFields: 1 }} />);
+    await screen.findByLabelText("Form title");
+
+    await user.click(screen.getByRole("button", { name: "Button" }));
+    expect(screen.getByRole("button", { name: "Input" })).toBeEnabled();
   });
 });
