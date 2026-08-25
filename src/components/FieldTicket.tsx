@@ -52,7 +52,7 @@ export function FieldTicket({
       <div style={styles.ticketPerforation} />
       <div style={styles.ticketBody}>
         <div style={styles.ticketTop}>
-          {dragEnabled && <span {...dragHandleProps} style={{ cursor: "grab", display: "flex" }}><GripVertical size={14} color="#C4C6D0" /></span>}
+          {dragEnabled && <span {...dragHandleProps} style={{ cursor: "grab", display: "flex" }}><GripVertical size={14} color="var(--fb-muted)" /></span>}
           <Icon size={13} color="var(--fb-primary)" />
           <span style={styles.typeBadge}>
             {(chrome as Record<string, unknown>)[FIELD_TYPE_CHROME_KEY[field.type]] as string || field.type}

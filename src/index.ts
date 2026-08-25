@@ -1,5 +1,7 @@
 export { default as FormBuilder, default } from "./FormBuilder";
 export { localStorageAdapter } from "./lib/storage/localStorageAdapter";
+export { DEFAULT_THEME } from "./theme/defaultTheme";
+export { DARK_THEME } from "./theme/darkTheme";
 export type {
   FormBuilderProps, StorageAdapter, Theme, ThemeLayout, ThemeOverrides,
   FormField, FieldPatch, FieldType, Option, Section, FormDocument, DocumentFields,

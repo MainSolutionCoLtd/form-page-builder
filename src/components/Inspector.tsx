@@ -62,7 +62,7 @@ function InspectorBody({ selected, language, chrome, features, onUpdateField, on
           {!meta.isContent && (
             <label style={styles.toggleRow}>
               <input type="checkbox" checked={!!selected.hideLabel} onChange={(e) => onUpdateField({ hideLabel: e.target.checked })} style={{ width: 15, height: 15, accentColor: "var(--fb-primary)" }} />
-              <span style={{ fontSize: 13, color: "#4A4D57" }}>{chrome.hideLabel}</span>
+              <span style={{ fontSize: 13, color: "var(--fb-ink)" }}>{chrome.hideLabel}</span>
             </label>
           )}
         </>
@@ -197,7 +197,7 @@ function InspectorBody({ selected, language, chrome, features, onUpdateField, on
       {!meta.isContent && (
         <label style={styles.toggleRow}>
           <input type="checkbox" checked={!!selected.required} onChange={(e) => onUpdateField({ required: e.target.checked })} style={{ width: 15, height: 15, accentColor: "var(--fb-primary)" }} />
-          <span style={{ fontSize: 13, color: "#4A4D57" }}>{chrome.requiredField}</span>
+          <span style={{ fontSize: 13, color: "var(--fb-ink)" }}>{chrome.requiredField}</span>
         </label>
       )}
 
@@ -217,7 +217,7 @@ function InspectorBody({ selected, language, chrome, features, onUpdateField, on
           <div style={styles.panelHeading}>{chrome.icon}</div>
           <label style={styles.toggleRow}>
             <input type="checkbox" checked={!!selected.showIcon} onChange={(e) => onUpdateField({ showIcon: e.target.checked })} style={{ width: 15, height: 15, accentColor: "var(--fb-primary)" }} />
-            <span style={{ fontSize: 13, color: "#4A4D57" }}>{chrome.showIcon}</span>
+            <span style={{ fontSize: 13, color: "var(--fb-ink)" }}>{chrome.showIcon}</span>
           </label>
           {selected.showIcon && (
             <div style={styles.iconGrid}>

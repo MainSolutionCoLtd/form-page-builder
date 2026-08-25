@@ -8,6 +8,7 @@ import { DEFAULT_LANGUAGES } from "./i18n/languages";
 import { DEFAULT_STRINGS } from "./i18n/strings";
 import { CHROME } from "./i18n/chrome";
 import { t } from "./lib/bilingual";
+import { mixHex } from "./lib/color";
 import { localStorageAdapter } from "./lib/storage/localStorageAdapter";
 import { migrateDocument } from "./lib/migrate";
 import { resolveFeatures } from "./lib/features";
@@ -102,6 +103,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
     "--fb-danger": theme.danger, "--fb-danger-soft": theme.dangerSoft,
     "--fb-ink": theme.ink, "--fb-muted": theme.muted, "--fb-border": theme.border,
     "--fb-surface": theme.surface, "--fb-canvas": theme.canvas, "--fb-page-bg": theme.pageBackground,
+    "--fb-surface-2": mixHex(theme.surface, theme.ink, 0.06),
     "--fb-space-page": `${theme.layout.pagePadding}px`, "--fb-space-canvas": `${theme.layout.canvasPadding}px`,
     "--fb-space-section": `${theme.layout.sectionGap}px`, "--fb-space-field": `${theme.layout.fieldGap}px`,
     "--fb-space-toolbar": `${theme.layout.toolbarPadding}px`, "--fb-space-panel": `${theme.layout.panelPadding}px`,

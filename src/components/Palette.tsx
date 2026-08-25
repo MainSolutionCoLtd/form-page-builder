@@ -62,7 +62,7 @@ export function Palette({
               <div style={styles.paletteList}>
                 {contentTypes.map((f) => {
                   const Icon = f.icon;
-                  return (<button key={f.type} style={styles.paletteItem} onClick={() => onAddField(f.type)}><Icon size={16} color="var(--fb-primary)" /><span>{chrome[FIELD_TYPE_CHROME_KEY[f.type] as keyof ChromeShape] as string}</span><Plus size={13} color="#A6A8B3" style={{ marginLeft: "auto" }} /></button>);
+                  return (<button key={f.type} style={styles.paletteItem} onClick={() => onAddField(f.type)}><Icon size={16} color="var(--fb-primary)" /><span>{chrome[FIELD_TYPE_CHROME_KEY[f.type] as keyof ChromeShape] as string}</span><Plus size={13} color="var(--fb-muted)" style={{ marginLeft: "auto" }} /></button>);
                 })}
               </div>
             </>
@@ -73,7 +73,7 @@ export function Palette({
               <div style={styles.paletteList}>
                 {formTypes.map((f) => {
                   const Icon = f.icon;
-                  return (<button key={f.type} style={styles.paletteItem} onClick={() => onAddField(f.type)}><Icon size={16} color="var(--fb-primary)" /><span>{chrome[FIELD_TYPE_CHROME_KEY[f.type] as keyof ChromeShape] as string}</span><Plus size={13} color="#A6A8B3" style={{ marginLeft: "auto" }} /></button>);
+                  return (<button key={f.type} style={styles.paletteItem} onClick={() => onAddField(f.type)}><Icon size={16} color="var(--fb-primary)" /><span>{chrome[FIELD_TYPE_CHROME_KEY[f.type] as keyof ChromeShape] as string}</span><Plus size={13} color="var(--fb-muted)" style={{ marginLeft: "auto" }} /></button>);
                 })}
               </div>
             </>

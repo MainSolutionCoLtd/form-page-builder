@@ -10,7 +10,7 @@ Embeddable, bilingual (EN/JA by default, extensible), drag-and-drop form builder
 
 ## Examples
 
-The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gallery of six `<FormBuilder />` configurations, each showing a different realistic way to compose `features`/`theme`/`storage`/`initialDocument`/`language` — jump straight to one:
+The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gallery of six `<FormBuilder />` configurations, each showing a different realistic way to compose `features`/`theme`/`storage`/`initialDocument`/`language` — jump straight to one. The demo page itself (its headings/captions, not the widget's own EN/JA switcher) has an EN/日本語 toggle, and a Light/Dark toggle that swaps every example except "Branded" (whose whole point is a fixed theme) between `DEFAULT_THEME` and `DARK_THEME`.
 
 | Example | What it shows |
 |---|---|
@@ -116,6 +116,18 @@ Disabling `contentBlocks`/`fieldTypes` for a given type only hides it from the p
 ### Features vs. theming
 
 `features` and `theme` are separate, composable concerns: `features.design` decides whether the Design tab's color/spacing *controls* are shown at all, while `theme` (and the Design tab, when shown) decide what those colors/spacing values *are*. You can, for instance, pass a fixed `theme` with `features.design` and `features.blockStyling` both `false` to lock a form to your brand's colors with zero styling UI exposed to the builder's user.
+
+### Dark theme
+
+Every color in the widget — including modals, toggles, and badges, not just the canvas/toolbar — is driven by the `theme` prop via CSS custom properties, so dark mode is just a different set of color values, no separate "dark mode" flag needed:
+
+```tsx
+import { FormBuilder, DARK_THEME } from "form-page-builder";
+
+<FormBuilder theme={DARK_THEME} />;
+```
+
+`DARK_THEME` (and `DEFAULT_THEME`, the light palette used when `theme` is omitted) are both exported as plain `Theme` objects, so you can spread and tweak either one (`{ ...DARK_THEME, primary: "#22c55e" }`) or swap between them at runtime for a user-facing light/dark toggle — see the "Localized (French)"-adjacent light/Dark switch in the [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) for a working example.
 
 ### Persistence: `StorageAdapter`
 
