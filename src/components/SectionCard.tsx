@@ -60,7 +60,7 @@ export function SectionCard({
         />
         {section.collapsed && <span style={styles.miniBadge}>{chrome.fieldsCount(section.fields.length)}</span>}
         <div style={styles.sectionHeaderActions} onClick={(e) => e.stopPropagation()}>
-          {features.sections && !section.collapsed && (
+          {features.sectionBackground && !section.collapsed && (
             <div style={styles.swatchRow}>
               {SECTION_BG_SWATCHES.map((c) => (
                 <button key={c || "none"} type="button" title={c || chrome.none} style={{ ...styles.swatchBtn, background: c || "var(--fb-canvas)", ...(section.background === c ? styles.swatchBtnActive : {}) }} onClick={() => onUpdateBackground(c)} />

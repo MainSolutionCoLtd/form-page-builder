@@ -277,8 +277,10 @@ export interface FormBuilderFeatures {
   contentBlocks?: boolean | ContentBlockType[];
   /** Which form field types can be added from the palette. `true` = all, `false` = none, or an allowlist array. Default true. */
   fieldTypes?: boolean | InputFieldType[];
-  /** Add/duplicate/move/delete section controls + section background picker. Default true. */
+  /** Add/duplicate/move/delete section controls + the "Add section" button. Default true. */
   sections?: boolean;
+  /** Per-section background-color swatches + custom-color picker in the section header. Independent of `sections`. Defaults to whatever `sections` resolves to (so an existing `sections: false` keeps hiding it), else true. */
+  sectionBackground?: boolean;
   /** Drag-to-reorder fields within a section. Default true. */
   dragReorder?: boolean;
   /** Laptop/Tablet/Mobile width switcher above the Preview canvas. Default true. */

@@ -13,6 +13,7 @@ export interface ResolvedFeatures {
   contentBlocks: boolean | Set<ContentBlockType>;
   fieldTypes: boolean | Set<InputFieldType>;
   sections: boolean;
+  sectionBackground: boolean;
   dragReorder: boolean;
   deviceToggle: boolean;
   maxFields?: number;
@@ -31,6 +32,7 @@ export const DEFAULT_FEATURES: ResolvedFeatures = {
   contentBlocks: true,
   fieldTypes: true,
   sections: true,
+  sectionBackground: true,
   dragReorder: true,
   deviceToggle: true,
 };
@@ -41,6 +43,8 @@ export function resolveFeatures(features?: FormBuilderFeatures): ResolvedFeature
     ...features,
     contentBlocks: Array.isArray(features?.contentBlocks) ? new Set(features.contentBlocks) : features?.contentBlocks ?? DEFAULT_FEATURES.contentBlocks,
     fieldTypes: Array.isArray(features?.fieldTypes) ? new Set(features.fieldTypes) : features?.fieldTypes ?? DEFAULT_FEATURES.fieldTypes,
+    // Not explicitly set → inherit from `sections`, so a pre-existing `sections: false` keeps hiding the picker.
+    sectionBackground: features?.sectionBackground ?? features?.sections ?? DEFAULT_FEATURES.sectionBackground,
   };
 }
 

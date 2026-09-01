@@ -71,6 +71,33 @@ describe("features prop", () => {
     expect(screen.queryByRole("button", { name: /add section/i })).not.toBeInTheDocument();
   });
 
+  it("shows the per-section background picker by default", async () => {
+    render(<FormBuilder storage={createMemoryStorage()} />);
+    await screen.findByLabelText("Form title");
+    expect(screen.getByTitle("Custom color")).toBeInTheDocument();
+  });
+
+  it("hides only the section background picker when features.sectionBackground is false, keeping structural controls", async () => {
+    render(<FormBuilder storage={createMemoryStorage()} features={{ sectionBackground: false }} />);
+    await screen.findByLabelText("Form title");
+    expect(screen.queryByTitle("Custom color")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /add section/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Delete section" })).toBeInTheDocument();
+  });
+
+  it("hides the section background picker when features.sections is false (inherited)", async () => {
+    render(<FormBuilder storage={createMemoryStorage()} features={{ sections: false }} />);
+    await screen.findByLabelText("Form title");
+    expect(screen.queryByTitle("Custom color")).not.toBeInTheDocument();
+  });
+
+  it("keeps the section background picker when sections is false but sectionBackground is explicitly true", async () => {
+    render(<FormBuilder storage={createMemoryStorage()} features={{ sections: false, sectionBackground: true }} />);
+    await screen.findByLabelText("Form title");
+    expect(screen.getByTitle("Custom color")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /add section/i })).not.toBeInTheDocument();
+  });
+
   it("disables the Form Fields palette once features.maxFields is reached, and re-enables after a delete", async () => {
     const user = userEvent.setup();
     render(<FormBuilder storage={createMemoryStorage()} features={{ maxFields: 1, contentBlocks: false }} />);

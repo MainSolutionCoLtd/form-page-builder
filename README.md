@@ -114,7 +114,8 @@ Every optional UI surface can be switched on or off independently through one `f
 | `blockStyling` | `boolean` | `true` | Per-field styling controls: paragraph heading/font/color, button color — independent of `design`. |
 | `contentBlocks` | `boolean \| ("paragraph" \| "image" \| "button")[]` | `true` | Which content blocks can be *added* from the palette. `true` = all, `false` = none, or an allowlist. |
 | `fieldTypes` | `boolean \| ("input" \| "textarea" \| "select" \| "radio" \| "checkboxGroup" \| "checkbox" \| "toggle")[]` | `true` | Which form field types can be *added* from the palette. `true` = all, `false` = none, or an allowlist. |
-| `sections` | `boolean` | `true` | Add/duplicate/move/delete-section controls and the section background picker. |
+| `sections` | `boolean` | `true` | Add/duplicate/move/delete-section controls and the "Add section" button. |
+| `sectionBackground` | `boolean` | inherits `sections` | Per-section background-color swatches + custom-color picker in the section header. Independent of `sections` — set it `false` to lock section backgrounds while keeping the structural controls, or leave it unset and it follows whatever `sections` is. |
 | `dragReorder` | `boolean` | `true` | Drag-to-reorder fields within a section. |
 | `deviceToggle` | `boolean` | `true` | The Laptop/Tablet/Mobile width switcher above the Preview canvas. When `false`, Preview always renders at the Laptop (full) width. |
 | `maxFields` | `number` | `undefined` (unlimited) | Caps the total number of input-type fields (not content blocks) addable across the whole document. Once reached, the Form Fields palette buttons disable until a field is removed. |
