@@ -3,11 +3,9 @@ import type { ContentBlockType, FormBuilderFeatures, InputFieldType } from "../t
 export const DEFAULT_MAX_TEMPLATES = 5;
 
 export interface ResolvedTemplates {
-  /** Whether the Templates button/modal is available at all. */
   enabled: boolean;
-  /** Whether the user can create/overwrite/delete templates (vs. only pick one to apply). */
+  /** false = pick-and-apply only. */
   manage: boolean;
-  /** How many templates can be stored. */
   max: number;
 }
 
@@ -63,7 +61,7 @@ export function resolveFeatures(features?: FormBuilderFeatures): ResolvedFeature
     templates: resolveTemplates(features?.templates),
     contentBlocks: Array.isArray(features?.contentBlocks) ? new Set(features.contentBlocks) : features?.contentBlocks ?? DEFAULT_FEATURES.contentBlocks,
     fieldTypes: Array.isArray(features?.fieldTypes) ? new Set(features.fieldTypes) : features?.fieldTypes ?? DEFAULT_FEATURES.fieldTypes,
-    // Not explicitly set → inherit from `sections`, so a pre-existing `sections: false` keeps hiding the picker.
+    // Unset → follow `sections`, so an existing `sections: false` still hides the picker.
     sectionBackground: features?.sectionBackground ?? features?.sections ?? DEFAULT_FEATURES.sectionBackground,
   };
 }

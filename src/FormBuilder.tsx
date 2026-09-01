@@ -57,7 +57,6 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const drag = useDragReorder(doc.reorderWithinSection);
 
   const [mode, setModeState] = useState<"build" | "preview">(initialMode ?? "build");
-  // Wraps setMode so both the mount value and every toggle reach the host via onModeChange.
   const setMode = (next: "build" | "preview") => { setModeState(next); onModeChange?.(next); };
   useEffect(() => { onModeChange?.(mode); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [showJson, setShowJson] = useState(false);
@@ -65,9 +64,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const [copied, setCopied] = useState(false);
   const [templateCopied, setTemplateCopied] = useState(false);
   const clipboard = useTemplateClipboard(templateClipboardKey);
-  // Only meaningful below the 720px breakpoint (see globalCss) where Palette
-  // and Inspector become full-bleed drawers over Canvas instead of columns;
-  // harmless to keep updating above it since the CSS there ignores it.
+  // Which drawer is open below the 720px breakpoint (see globalCss); ignored above it.
   const [mobilePanel, setMobilePanel] = useState<"none" | "palette" | "inspector">("none");
 
   const persistence = usePersistence({
@@ -130,7 +127,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [jsonDoc, jsonString]);
 
-  // Only input-type fields count toward `features.maxFields` — content blocks (paragraph/image/button) are free.
+  // Content blocks don't count toward `features.maxFields`.
   const fieldCount = doc.sections.reduce((n, s) => n + s.fields.filter((f) => !getMeta(f.type).isContent).length, 0);
 
   const activeSectionIdx = doc.sections.findIndex((s) => s.id === doc.activeSection?.id);

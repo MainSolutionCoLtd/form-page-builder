@@ -9,9 +9,8 @@ import { bi, t } from "../lib/bilingual";
 export interface UsePersistenceArgs {
   storage: StorageAdapter;
   autosave: boolean;
-  /** Max templates that can be stored (from `features.templates.max`). */
   templateMax: number;
-  /** Whether the user may create/overwrite/delete templates (from `features.templates.manage`). */
+  /** false = pick-and-apply only (no create/overwrite/delete). */
   templateManage: boolean;
   language: string;
   chrome: ChromeShape;
@@ -37,11 +36,8 @@ export interface SaveAsPrompt {
 }
 
 /**
- * Owns draft autoload + autosave + the saved-forms library, on top of a
- * pluggable StorageAdapter. Both the draft-load effect and the autosave
- * effect live in this single hook because `hasLoadedOnce` (set by the load
- * effect) gates the autosave effect from firing before the real draft has
- * loaded — splitting them would require sharing a ref across hooks.
+ * Draft autoload + autosave + the templates library, over a pluggable StorageAdapter.
+ * Both effects live here because the load effect's `hasLoadedOnce` ref gates the autosave one.
  */
 export function usePersistence({
   storage, autosave, templateMax, templateManage, language, chrome, document, initialDocument, onLoadDocument, onLoadThemeOverrides, onTitleChange, onNewForm, onTemplateChange, ensureActiveSection,
@@ -55,8 +51,7 @@ export function usePersistence({
 
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasLoadedOnce = useRef(false);
-  // JSON of the document as it was last loaded-from / saved-to a template. Compared against the
-  // live document to surface an "Edited" indicator. null when no template is being edited.
+  // Document JSON as last synced with a template; compared to the live doc for the "Edited" flag. null = no active template.
   const savedSnapshot = useRef<string | null>(null);
 
   function flashSaved() {
@@ -96,7 +91,7 @@ export function usePersistence({
             }
             if (parsed.currentFormId && templateManage) {
               setCurrentFormId(parsed.currentFormId);
-              // Snapshot the *template* record (not the draft) so the "Edited" indicator stays honest across reloads.
+              // Snapshot the template record, not the draft, so "Edited" stays honest across reloads.
               try {
                 const tplRaw = await storage.get(formKey(parsed.currentFormId));
                 const tplDoc = tplRaw ? migrateDocument(JSON.parse(tplRaw)) : null;
@@ -195,8 +190,7 @@ export function usePersistence({
       if (!doc) { setTemplateState("error"); return false; }
       onLoadDocument(doc);
       onLoadThemeOverrides(doc.themeOverrides);
-      // In pick-and-apply mode the template is only a starting point — it isn't "the form being
-      // edited", so we don't bind currentFormId (nothing in-package can overwrite it anyway).
+      // Pick-and-apply mode: template is just a seed, so don't bind currentFormId to it.
       const boundId = templateManage ? id : null;
       setCurrentFormId(boundId);
       savedSnapshot.current = boundId ? snapshotOf(doc) : null;

@@ -48,8 +48,8 @@ export function Toolbar({
         {templateState === "loading" ? (
           <span style={styles.saveStatus}><Loader2 size={12} className="spin" /> {chrome.templateLoading}</span>
         ) : activeTemplateTitle && (
-          <span style={styles.templateTag} title={chrome.templateLabel(activeTemplateTitle)}>
-            {chrome.templateLabel(activeTemplateTitle)}
+          <span className="fb-template-tag" style={styles.templateTag} title={chrome.templateLabel(activeTemplateTitle)}>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{chrome.templateLabel(activeTemplateTitle)}</span>
             {templateDirty && <span style={styles.currentBadge}>{chrome.templateEdited}</span>}
           </span>
         )}
@@ -93,21 +93,10 @@ export function Toolbar({
         )}
         {features.templateClipboard && (
           <>
-            <button
-              style={styles.iconBtn}
-              onClick={onCopyTemplate}
-              title={chrome.copyTemplateTitle}
-              aria-label={chrome.copyTemplate}
-            >
+            <button style={styles.toolbarIconBtn} onClick={onCopyTemplate} title={chrome.copyTemplateTitle} aria-label={chrome.copyTemplate}>
               {templateCopied ? <Check size={14} /> : <ClipboardCopy size={14} />}
             </button>
-            <button
-              style={styles.iconBtn}
-              onClick={onPasteTemplate}
-              disabled={!clipboardReady}
-              title={chrome.pasteTemplateTitle}
-              aria-label={chrome.pasteTemplate}
-            >
+            <button style={styles.toolbarIconBtn} onClick={onPasteTemplate} disabled={!clipboardReady} title={chrome.pasteTemplateTitle} aria-label={chrome.pasteTemplate}>
               <ClipboardPaste size={14} />
             </button>
           </>

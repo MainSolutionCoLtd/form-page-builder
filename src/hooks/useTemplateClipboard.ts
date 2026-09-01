@@ -4,12 +4,8 @@ import { CLIPBOARD_KEY } from "../lib/storage/keys";
 import { parseTemplate, serializeTemplate } from "../lib/template";
 
 /**
- * A cross-instance "template clipboard" backed by a single localStorage key
- * (deliberately not the pluggable StorageAdapter — this is ephemeral, per-browser
- * scratch state, like a real clipboard). Every mounted builder watches the key so
- * a copy in one instance immediately enables Paste in the others: the `storage`
- * event covers other tabs, and a module-level listener set covers the same tab
- * (where `storage` does not fire).
+ * Cross-instance "template clipboard" over one localStorage key (not the StorageAdapter — this is
+ * ephemeral per-browser scratch). Watched via `storage` events (other tabs) + this listener set (same tab).
  */
 const sameTabListeners = new Set<() => void>();
 function notifySameTab() {
@@ -52,10 +48,10 @@ export function useTemplateClipboard(clipboardKey: string = CLIPBOARD_KEY) {
     try {
       window.localStorage?.setItem(keyRef.current, str);
     } catch {
-      /* quota / unavailable — Paste just stays disabled elsewhere */
+      /* quota / unavailable */
     }
-    // Best-effort mirror to the OS clipboard so it can be pasted as text outside the app too.
-    navigator?.clipboard?.writeText?.(str).catch(() => {});
+    navigator?.clipboard?.writeText?.(str).catch(() => {}); // best-effort OS-clipboard mirror
+
     notifySameTab();
     refresh();
   }, [refresh]);

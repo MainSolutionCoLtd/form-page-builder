@@ -7,7 +7,7 @@ export interface TemplatesModalProps {
   chrome: ChromeShape;
   savedForms: SavedFormMeta[];
   currentFormId: string | null;
-  /** When false, the user can only apply a template — no delete, and the action button reads "Apply" rather than "Open". */
+  /** false = apply-only: no delete, action button reads "Apply". */
   manage: boolean;
   templateState: "idle" | "loading" | "saving" | "saved" | "error";
   onOpen: (id: string) => void;

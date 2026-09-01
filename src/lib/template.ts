@@ -1,7 +1,7 @@
 import type { DocumentFields, FormDocument, FormTemplate } from "../types";
 import { migrateDocument } from "./migrate";
 
-/** Bumped only if the envelope shape (not the document shape) changes. */
+/** Envelope version — bump only if the wrapper shape changes, not the document. */
 export const TEMPLATE_FORMAT = 1;
 
 export function serializeTemplate(document: FormDocument): string {
@@ -9,12 +9,7 @@ export function serializeTemplate(document: FormDocument): string {
   return JSON.stringify(envelope);
 }
 
-/**
- * Parses a serialized template back into a ready-to-load document. Accepts either
- * a `serializeTemplate` envelope or a bare document (e.g. copy-pasted "View JSON"
- * output). Runs everything through `migrateDocument`, so older/looser shapes are
- * tolerated. Returns `null` for anything that isn't valid JSON describing a document.
- */
+/** Accepts a `serializeTemplate` envelope or a bare document (e.g. "View JSON" output); `null` if not a document. */
 export function parseTemplate(raw: string | null | undefined): DocumentFields | null {
   if (!raw) return null;
   let parsed: unknown;
