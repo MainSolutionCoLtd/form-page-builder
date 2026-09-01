@@ -65,7 +65,7 @@ export function usePersistence({
       const raw = await storage.get(INDEX_KEY);
       const list: SavedFormMeta[] = raw ? JSON.parse(raw) : [];
       setSavedForms(list.sort((a, b) => b.updatedAt - a.updatedAt));
-    } catch (err) {
+    } catch {
       setSavedForms([]);
     }
   }
@@ -105,7 +105,7 @@ export function usePersistence({
             ensureActiveSection();
           }
         }
-      } catch (err) {
+      } catch {
         ensureActiveSection();
       } finally {
         setLoadingDraft(false);
@@ -124,7 +124,7 @@ export function usePersistence({
       try {
         await storage.set(DRAFT_KEY, JSON.stringify({ ...document, currentFormId }));
         setSaveState("saved");
-      } catch (err) {
+      } catch {
         setSaveState("error");
       }
     }, 600);
@@ -157,7 +157,7 @@ export function usePersistence({
       savedSnapshot.current = snapshotOf(docToSave);
       flashSaved();
       onTemplateChange?.({ id, title: name, source: "new" });
-    } catch (err) {
+    } catch {
       setTemplateState("error");
     }
   }
@@ -178,7 +178,7 @@ export function usePersistence({
       savedSnapshot.current = snapshotOf(document);
       flashSaved();
       onTemplateChange?.({ id: currentFormId, title: t(document.title, language), source: "saved" });
-    } catch (err) {
+    } catch {
       setTemplateState("error");
     }
   }
@@ -199,7 +199,7 @@ export function usePersistence({
       setTemplateState("idle");
       onTemplateChange?.({ id, title: t(doc.title, language), source: "applied" });
       return true;
-    } catch (err) {
+    } catch {
       setTemplateState("error");
       return false;
     }
@@ -218,7 +218,7 @@ export function usePersistence({
         savedSnapshot.current = null;
       }
       onTemplateChange?.({ id: currentFormId === id ? null : id, title: removed?.title ?? "", source: "deleted" });
-    } catch (err) {
+    } catch {
       setTemplateState("error");
     }
   }
