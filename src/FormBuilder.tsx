@@ -3,7 +3,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { Loader2, Menu, SlidersHorizontal } from "lucide-react";
-import type { DocumentFields, FormBuilderHandle, FormBuilderProps } from "./types";
+import type { FormBuilderHandle, FormBuilderProps } from "./types";
 import { getMeta } from "./constants/fieldTypes";
 import { DEFAULT_LANGUAGES } from "./i18n/languages";
 import { DEFAULT_STRINGS } from "./i18n/strings";
@@ -64,7 +64,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const [showLibrary, setShowLibrary] = useState(false);
   const [copied, setCopied] = useState(false);
   const [templateCopied, setTemplateCopied] = useState(false);
-  const [pendingPaste, setPendingPaste] = useState<DocumentFields | null>(null);
+  const [pastePrompt, setPastePrompt] = useState(false);
   const clipboard = useTemplateClipboard(templateClipboardKey);
   // Which drawer is open below the 720px breakpoint (see globalCss); ignored above it.
   const [mobilePanel, setMobilePanel] = useState<"none" | "palette" | "inspector">("none");
@@ -114,9 +114,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   }
 
   function pasteTemplate() {
-    const migrated = clipboard.readTemplate();
-    if (!migrated) return;
-    setPendingPaste(migrated);
+    if (clipboard.readTemplate()) setPastePrompt(true);
   }
 
   useImperativeHandle(ref, () => ({
@@ -293,15 +291,15 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
         />
       )}
 
-      {pendingPaste && (
+      {pastePrompt && (
         <ConfirmModal
           chrome={chrome}
           title={chrome.pasteTemplate}
           message={chrome.pasteTemplateConfirm}
           confirmLabel={chrome.confirmReplace}
           tone="danger"
-          onConfirm={() => { applyDocument(pendingPaste); setPendingPaste(null); }}
-          onClose={() => setPendingPaste(null)}
+          onConfirm={() => { applyDocument(clipboard.readTemplate()); setPastePrompt(false); }}
+          onClose={() => setPastePrompt(false)}
         />
       )}
 

@@ -50,8 +50,6 @@ export function useTemplateClipboard(clipboardKey: string = CLIPBOARD_KEY) {
     } catch {
       /* quota / unavailable */
     }
-    navigator?.clipboard?.writeText?.(str).catch(() => {}); // best-effort OS-clipboard mirror
-
     notifySameTab();
     refresh();
   }, [refresh]);
