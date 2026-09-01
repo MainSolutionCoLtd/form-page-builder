@@ -3,7 +3,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import type { CSSProperties } from "react";
 import { Loader2, Menu, SlidersHorizontal } from "lucide-react";
-import type { FormBuilderHandle, FormBuilderProps } from "./types";
+import type { DocumentFields, FormBuilderHandle, FormBuilderProps } from "./types";
 import { getMeta } from "./constants/fieldTypes";
 import { DEFAULT_LANGUAGES } from "./i18n/languages";
 import { DEFAULT_STRINGS } from "./i18n/strings";
@@ -27,6 +27,7 @@ import { PreviewPane } from "./components/PreviewPane";
 import { JsonModal } from "./components/modals/JsonModal";
 import { TemplatesModal } from "./components/modals/TemplatesModal";
 import { SaveAsModal } from "./components/modals/SaveAsModal";
+import { ConfirmModal } from "./components/modals/ConfirmModal";
 import { css } from "./styles/globalCss";
 import { styles } from "./styles/styles";
 
@@ -63,6 +64,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const [showLibrary, setShowLibrary] = useState(false);
   const [copied, setCopied] = useState(false);
   const [templateCopied, setTemplateCopied] = useState(false);
+  const [pendingPaste, setPendingPaste] = useState<DocumentFields | null>(null);
   const clipboard = useTemplateClipboard(templateClipboardKey);
   // Which drawer is open below the 720px breakpoint (see globalCss); ignored above it.
   const [mobilePanel, setMobilePanel] = useState<"none" | "palette" | "inspector">("none");
@@ -114,8 +116,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   function pasteTemplate() {
     const migrated = clipboard.readTemplate();
     if (!migrated) return;
-    if (typeof window !== "undefined" && !window.confirm(chrome.pasteTemplateConfirm)) return;
-    applyDocument(migrated);
+    setPendingPaste(migrated);
   }
 
   useImperativeHandle(ref, () => ({
@@ -289,6 +290,27 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
           templateState={persistence.templateState}
           onSave={persistence.saveAs}
           onClose={persistence.dismissSaveAsPrompt}
+        />
+      )}
+
+      {pendingPaste && (
+        <ConfirmModal
+          chrome={chrome}
+          title={chrome.pasteTemplate}
+          message={chrome.pasteTemplateConfirm}
+          confirmLabel={chrome.confirmReplace}
+          tone="danger"
+          onConfirm={() => { applyDocument(pendingPaste); setPendingPaste(null); }}
+          onClose={() => setPendingPaste(null)}
+        />
+      )}
+
+      {persistence.notice && (
+        <ConfirmModal
+          chrome={chrome}
+          title={chrome.templatesLimitTitle}
+          message={persistence.notice}
+          onClose={persistence.dismissNotice}
         />
       )}
     </div>

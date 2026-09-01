@@ -131,7 +131,6 @@ describe("features.templates", () => {
   it("enforces features.templates.max when saving a new template", async () => {
     const storage = createMemoryStorage();
     await seedTemplate(storage, "tpl_1", "Only Slot");
-    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     const user = userEvent.setup();
 
     render(<FormBuilder storage={storage} features={{ templates: { max: 1 } }} />);
@@ -140,9 +139,8 @@ describe("features.templates", () => {
     await user.click(screen.getByRole("button", { name: "Save" }));
     await user.click(await screen.findByRole("button", { name: "Save template" }));
 
-    expect(alertSpy).toHaveBeenCalledWith("You can save up to 1 template. Delete one to save another.");
+    expect(await screen.findByText("You can save up to 1 template. Delete one to save another.")).toBeInTheDocument();
     const index = JSON.parse((await storage.get(INDEX_KEY))!);
     expect(index).toHaveLength(1);
-    alertSpy.mockRestore();
   });
 });

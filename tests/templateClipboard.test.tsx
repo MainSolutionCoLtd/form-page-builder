@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import FormBuilder from "../src/FormBuilder";
@@ -63,30 +63,30 @@ describe("Copy template / Paste template", () => {
 
   it("pastes the copied template into the working document after confirmation", async () => {
     window.localStorage.setItem(CLIPBOARD_KEY, serializeTemplate(sampleDoc));
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     const user = userEvent.setup();
 
     render(<FormBuilder storage={createMemoryStorage()} />);
     await screen.findByLabelText("Form title");
 
     await user.click(screen.getByLabelText("Paste template"));
+    const dialog = await screen.findByRole("alertdialog");
+    await user.click(within(dialog).getByRole("button", { name: "Replace" }));
 
     expect(await screen.findByDisplayValue("Pasted Form")).toBeInTheDocument();
-    confirmSpy.mockRestore();
   });
 
   it("does not paste when confirmation is declined", async () => {
     window.localStorage.setItem(CLIPBOARD_KEY, serializeTemplate(sampleDoc));
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     const user = userEvent.setup();
 
     render(<FormBuilder storage={createMemoryStorage()} />);
     await screen.findByLabelText("Form title");
 
     await user.click(screen.getByLabelText("Paste template"));
+    const dialog = await screen.findByRole("alertdialog");
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
 
     expect(screen.queryByDisplayValue("Pasted Form")).not.toBeInTheDocument();
-    confirmSpy.mockRestore();
   });
 
   it("hides the copy/paste buttons when features.templateClipboard is false", async () => {
