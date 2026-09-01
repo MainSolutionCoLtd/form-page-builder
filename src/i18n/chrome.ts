@@ -128,3 +128,6 @@ export const CHROME = {
 };
 
 export type ChromeShape = typeof CHROME.en;
+
+// Fails the build if `ja` drifts from `en` (missing or mistyped key).
+CHROME.ja satisfies ChromeShape;

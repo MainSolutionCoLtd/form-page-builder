@@ -137,6 +137,7 @@ export function usePersistence({
   async function saveAs(name: string) {
     if (!templateManage) return;
     if (savedForms.length >= templateMax) {
+      setSaveAsPrompt(null);
       setNotice(chrome.templatesLimitReached(templateMax));
       return;
     }

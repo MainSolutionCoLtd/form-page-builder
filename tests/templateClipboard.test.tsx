@@ -89,6 +89,21 @@ describe("Copy template / Paste template", () => {
     expect(screen.queryByDisplayValue("Pasted Form")).not.toBeInTheDocument();
   });
 
+  it("dismisses the paste confirmation on Escape without pasting", async () => {
+    window.localStorage.setItem(CLIPBOARD_KEY, serializeTemplate(sampleDoc));
+    const user = userEvent.setup();
+
+    render(<FormBuilder storage={createMemoryStorage()} />);
+    await screen.findByLabelText("Form title");
+
+    await user.click(screen.getByLabelText("Paste template"));
+    await screen.findByRole("alertdialog");
+    await user.keyboard("{Escape}");
+
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    expect(screen.queryByDisplayValue("Pasted Form")).not.toBeInTheDocument();
+  });
+
   it("hides the copy/paste buttons when features.templateClipboard is false", async () => {
     render(<FormBuilder storage={createMemoryStorage()} features={{ templateClipboard: false }} />);
     await screen.findByLabelText("Form title");

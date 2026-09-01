@@ -22,3 +22,6 @@ export const DEFAULT_STRINGS = {
 };
 
 export type StringsShape = typeof DEFAULT_STRINGS.en;
+
+// Fails the build if `ja` drifts from `en` (missing or mistyped key).
+DEFAULT_STRINGS.ja satisfies StringsShape;
