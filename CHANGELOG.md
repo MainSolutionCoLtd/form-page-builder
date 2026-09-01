@@ -1,5 +1,31 @@
 # form-page-builder
 
+## 2.2.0
+
+### Minor Changes
+
+- [#12](https://github.com/MainSolutionCoLtd/form-page-builder/pull/12) [`dc7da44`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/dc7da4457096d9b4df3bed6afc5046b6c7bc9362) Thanks [@MainSolutionCoLtd](https://github.com/MainSolutionCoLtd)! - `features.templates` now accepts an object: `{ manage?: boolean; max?: number }`. `manage: false` keeps the Templates library visible but read-only — the user can apply a template as a starting point but can't create, overwrite, or delete one, and the toolbar "Save" button is hidden. `max` caps how many templates can be stored (default 5, previously a hard-coded constant). `templates: true` / `false` keep working unchanged.
+
+- [#12](https://github.com/MainSolutionCoLtd/form-page-builder/pull/12) [`135f42f`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/135f42f20f80c14f63bcd0a2331772e5ee4eae07) Thanks [@MainSolutionCoLtd](https://github.com/MainSolutionCoLtd)! - Add "Copy template" / "Paste template" — icon buttons next to "View JSON" (toggle with `features.templateClipboard`, default on) that move the current form between builder instances across pages, tabs, and reloads in the same browser. Copy writes a portable envelope to a localStorage key (`templateClipboardKey` prop, default `"form-page-builder:clipboard"`); every mounted builder watches the key so Paste enables as soon as something is copied. Paste confirms, then replaces the working document.
+
+  New exports back the same flow programmatically: `serializeTemplate(document)` / `parseTemplate(str)` helpers (the latter also accepts bare "View JSON" output and returns `null` for anything that isn't a document), the `FormTemplate` type, and `getTemplate()` / `loadTemplate(input)` on the ref handle.
+
+- [#12](https://github.com/MainSolutionCoLtd/form-page-builder/pull/12) [`0f90826`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/0f90826e334ad3360605e8be084b5302093ea42e) Thanks [@MainSolutionCoLtd](https://github.com/MainSolutionCoLtd)! - Replace the native `window.confirm` (paste template) and `window.alert` (template limit reached) with in-widget modals styled like the rest of the builder — host apps no longer get browser chrome dialogs. New `chrome` strings: `confirm`, `cancel`, `dismiss`, `confirmReplace`, `templatesLimitTitle`. A `satisfies` guard now fails the build if the `en`/`ja` `chrome` or `strings` tables drift apart.
+
+- [#12](https://github.com/MainSolutionCoLtd/form-page-builder/pull/12) [`acdb3af`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/acdb3af1c14469a69bde4795cdb9c59a004beb8c) Thanks [@MainSolutionCoLtd](https://github.com/MainSolutionCoLtd)! - Add `features.sectionBackground` — gates only the per-section background-color swatches and custom-color picker in the section header, split out from `features.sections` (which now covers just the add/duplicate/move/delete controls and the "Add section" button). It defaults to whatever `sections` resolves to, so an existing `sections: false` keeps hiding the picker; set `sectionBackground: false` on its own to lock section backgrounds while keeping the structural controls.
+
+- [#12](https://github.com/MainSolutionCoLtd/form-page-builder/pull/12) [`b06efef`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/b06efef072962eb4186055f17108a11f54fbc3b3) Thanks [@MainSolutionCoLtd](https://github.com/MainSolutionCoLtd)! - Export the storage-key helpers a backend `StorageAdapter` needs — `DRAFT_KEY`, `INDEX_KEY`, `CLIPBOARD_KEY`, `formKey(id)`, and `savedFormId(key)` (the template id for a per-template key, else `null`). Adapters can now route the draft, the template index, and per-template records to their own endpoints without hardcoding the key strings. README's `StorageAdapter` example updated to use them.
+
+- [#12](https://github.com/MainSolutionCoLtd/form-page-builder/pull/12) [`e851fcb`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/e851fcbf18570cf3d9361a8f0af610c239323bfe) Thanks [@MainSolutionCoLtd](https://github.com/MainSolutionCoLtd)! - Template save/load now has its own status, separate from the draft autosave indicator: the Templates modal shows a spinner while a load is in flight and an inline error if the `StorageAdapter` throws or rejects (previously a blocking `alert()`), and the Save-as modal reflects a saving/failed state. The toolbar shows which template is currently being edited and an "Edited" flag once the document diverges from it. New `onTemplateChange` prop fires on create / overwrite / apply / delete with `{ id, title, source }` so a host can sync its own state or backend index. Modals now expose `role="dialog"`.
+
+### Patch Changes
+
+- [#12](https://github.com/MainSolutionCoLtd/form-page-builder/pull/12) [`1db9022`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/1db902247557918d7e2fa7fc6cff0ee5b286e873) Thanks [@MainSolutionCoLtd](https://github.com/MainSolutionCoLtd)! - "Paste template" reads the clipboard key when the confirmation is accepted rather than snapshotting it when the prompt opens, so a template copied elsewhere while the prompt is open is applied correctly. "Copy template" no longer also writes to the OS clipboard — that copy was never read back; use "View JSON" to grab a form as text.
+
+- [#12](https://github.com/MainSolutionCoLtd/form-page-builder/pull/12) [`e673e97`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/e673e9783879ade5ea612d0d5fd3fbe3300f91ac) Thanks [@MainSolutionCoLtd](https://github.com/MainSolutionCoLtd)! - `useTheme`'s resolved theme and the internal JSON document are memoized, so the imperative handle (`getDocument`/`exportJson`) and root styles keep a stable identity between renders instead of being rebuilt every time.
+
+- [#12](https://github.com/MainSolutionCoLtd/form-page-builder/pull/12) [`84a6e19`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/84a6e19f22baff32856a1e29db364e6191dd2050) Thanks [@MainSolutionCoLtd](https://github.com/MainSolutionCoLtd)! - Every dialog (templates, save-as, JSON view, confirm) now traps Tab focus, closes on Escape, and restores focus to the control that opened it. All modal buttons are explicitly `type="button"`.
+
 ## 2.1.0
 
 ### Minor Changes
