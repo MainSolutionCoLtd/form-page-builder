@@ -1,6 +1,6 @@
-import { useEffect } from "react";
 import { X } from "lucide-react";
 import type { ChromeShape } from "../../i18n/chrome";
+import { useModalA11y } from "../../hooks/useModalA11y";
 import { styles } from "../../styles/styles";
 
 export interface ConfirmModalProps {
@@ -16,12 +16,7 @@ export interface ConfirmModalProps {
 
 /** In-widget replacement for window.alert / window.confirm. */
 export function ConfirmModal({ chrome, title, message, onConfirm, confirmLabel, tone = "default", onClose }: ConfirmModalProps) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
+  const panelRef = useModalA11y<HTMLDivElement>(onClose);
   const confirmStyle =
     tone === "danger"
       ? { ...styles.primaryBtn, background: "var(--fb-danger)", borderColor: "var(--fb-danger)" }
@@ -29,7 +24,7 @@ export function ConfirmModal({ chrome, title, message, onConfirm, confirmLabel, 
 
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
-      <div style={{ ...styles.modal, maxWidth: 380 }} role="alertdialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
+      <div ref={panelRef} style={{ ...styles.modal, maxWidth: 380 }} role="alertdialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <div style={styles.modalHeader}>
           <span style={{ fontWeight: 600, fontSize: 14 }}>{title}</span>
           <button type="button" style={styles.iconBtn} onClick={onClose}><X size={16} /></button>
