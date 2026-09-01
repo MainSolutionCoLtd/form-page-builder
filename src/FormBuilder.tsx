@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { Loader2, Menu, SlidersHorizontal } from "lucide-react";
 import type { DocumentFields, FormBuilderHandle, FormBuilderProps } from "./types";
@@ -86,12 +86,12 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
     ensureActiveSection: () => doc.setActiveSectionId((prev) => prev ?? doc.sections[0]?.id ?? null),
   });
 
-  const jsonDoc = {
+  const jsonDoc = useMemo(() => ({
     version: 5 as const,
     title: doc.title, theme, themeOverrides,
     sections: doc.sections.map((s) => ({ id: s.id, title: s.title, background: s.background, collapsed: s.collapsed, fields: s.fields })),
-  };
-  const jsonString = JSON.stringify(jsonDoc, null, 2);
+  }), [doc.title, doc.sections, theme, themeOverrides]);
+  const jsonString = useMemo(() => JSON.stringify(jsonDoc, null, 2), [jsonDoc]);
 
   function copyJson() {
     navigator.clipboard.writeText(jsonString).then(() => {

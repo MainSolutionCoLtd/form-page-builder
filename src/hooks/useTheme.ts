@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Theme, ThemeOverrides } from "../types";
 import { DEFAULT_THEME } from "../theme/defaultTheme";
 
@@ -12,17 +12,19 @@ export interface UseThemeResult {
 }
 
 export function useTheme(themeOverrideProp?: Partial<Theme>): UseThemeResult {
-  const baseTheme: Theme = {
+  const [themeOverrides, setThemeOverrides] = useState<ThemeOverrides>({});
+
+  const baseTheme = useMemo<Theme>(() => ({
     ...DEFAULT_THEME,
     ...(themeOverrideProp || {}),
     layout: { ...DEFAULT_THEME.layout, ...((themeOverrideProp && themeOverrideProp.layout) || {}) },
-  };
-  const [themeOverrides, setThemeOverrides] = useState<ThemeOverrides>({});
-  const theme: Theme = {
+  }), [themeOverrideProp]);
+
+  const theme = useMemo<Theme>(() => ({
     ...baseTheme,
     ...themeOverrides,
     layout: { ...baseTheme.layout, ...(themeOverrides.layout || {}) },
-  };
+  }), [baseTheme, themeOverrides]);
 
   function updateThemeColor(key: keyof Omit<Theme, "layout">, value: string) {
     setThemeOverrides((prev) => ({ ...prev, [key]: value }));
