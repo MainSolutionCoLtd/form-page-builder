@@ -89,6 +89,15 @@ const jobApplicationDocument: FormDocument = {
   ],
 };
 
+/** A blank starting document for the "pick-and-apply" instance, so it doesn't surface the other instance's autosaved draft. */
+const blankStarterDocument: FormDocument = {
+  version: 5,
+  title: { en: "New form" },
+  themeOverrides: {},
+  theme: DEFAULT_THEME,
+  sections: [{ id: "s1", title: { en: "" }, background: "", collapsed: false, fields: [] }],
+};
+
 const DEMO_STRINGS = {
   en: {
     title: "form-page-builder — examples",
@@ -130,6 +139,11 @@ const DEMO_STRINGS = {
         title: "Localized (French)",
         description:
           "`language`/`languages` set the initial and available UI languages beyond the built-in EN/JA, and `strings`/`chrome` supply French text for the bits shown here — anything left untranslated quietly falls back to English rather than breaking, so a partial translation is enough to get started.",
+      },
+      templateRoles: {
+        title: "Template roles: manage vs. pick-and-apply",
+        description:
+          "Two instances sharing one template library (same `storage`). The first uses `features.templates = { manage: true, max: 3 }` — a company-settings screen where someone curates the shared templates. The second uses `{ manage: false }` — everywhere else in the app, where a user can only apply a template as a starting point (no Save, no delete) and then edit the form. \"Copy template\" / \"Paste template\" (next to View JSON) moves a form between the two without going through the library.",
       },
     },
   },
@@ -173,6 +187,11 @@ const DEMO_STRINGS = {
         title: "多言語対応（フランス語）",
         description:
           "language / languages で、標準搭載のEN/JA以外の言語を初期言語・選択可能言語として設定できます。strings / chrome でここに表示される部分のフランス語訳を渡していますが、未翻訳の項目は静かに英語へフォールバックするため、壊れることなく部分的な翻訳から始められます。",
+      },
+      templateRoles: {
+        title: "テンプレートの役割: 管理 vs. 選択のみ",
+        description:
+          "1つのテンプレートライブラリ（同じ storage）を共有する2つのインスタンスです。1つ目は features.templates = { manage: true, max: 3 } — 共有テンプレートを整備する会社設定画面を想定しています。2つ目は { manage: false } — アプリの他の画面で、ユーザーはテンプレートを出発点として適用できるだけ（保存・削除は不可）で、その後フォームを編集します。「テンプレートをコピー」/「テンプレートを貼り付け」（View JSONの隣）で、ライブラリを介さずにフォームを2つの間で移動できます。",
       },
     },
   },
@@ -398,6 +417,33 @@ function DemoApp() {
             }}
             storage={namespacedStorage("fr")}
           />
+        </Example>
+
+        <Example id="template-roles" title={s.examples.templateRoles.title} description={s.examples.templateRoles.description}>
+          <div style={{ display: "grid", gap: 24 }}>
+            <div>
+              <h3 style={{ margin: "0 0 8px", fontSize: 15, color: "var(--demo-muted)" }}>
+                1 · <code>{`templates: { manage: true, max: 3 }`}</code>
+              </h3>
+              <FormBuilder
+                theme={theme}
+                features={{ templates: { manage: true, max: 3 } }}
+                onTemplateChange={(c) => console.log("[template-roles] change", c)}
+                storage={namespacedStorage("company-templates")}
+              />
+            </div>
+            <div>
+              <h3 style={{ margin: "0 0 8px", fontSize: 15, color: "var(--demo-muted)" }}>
+                2 · <code>{`templates: { manage: false }`}</code>
+              </h3>
+              <FormBuilder
+                theme={theme}
+                features={{ templates: { manage: false }, newForm: false, autosave: false }}
+                initialDocument={blankStarterDocument}
+                storage={namespacedStorage("company-templates")}
+              />
+            </div>
+          </div>
         </Example>
       </div>
 

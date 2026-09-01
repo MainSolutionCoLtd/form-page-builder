@@ -10,7 +10,7 @@ Embeddable, bilingual (EN/JA by default, extensible), drag-and-drop form builder
 
 ## Examples
 
-The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gallery of six `<FormBuilder />` configurations, each showing a different realistic way to compose `features`/`theme`/`storage`/`initialDocument`/`language` — jump straight to one. Its sticky header (its headings/captions, not the widget's own EN/JA switcher) has an EN/日本語 toggle, a Light/Dark toggle that swaps every example except "Branded" (badged "Fixed theme", since its whole point is a locked theme) between `DEFAULT_THEME` and `DARK_THEME`, and links back to this repo and the npm package.
+The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gallery of `<FormBuilder />` configurations, each showing a different realistic way to compose `features`/`theme`/`storage`/`initialDocument`/`language` — jump straight to one. Its sticky header (its headings/captions, not the widget's own EN/JA switcher) has an EN/日本語 toggle, a Light/Dark toggle that swaps every example except "Branded" (badged "Fixed theme", since its whole point is a locked theme) between `DEFAULT_THEME` and `DARK_THEME`, and links back to this repo and the npm package.
 
 | Example | What it shows |
 |---|---|
@@ -20,8 +20,9 @@ The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gal
 | [Survey builder](https://mainsolutioncoltd.github.io/form-page-builder/#survey) | `fieldTypes`/`contentBlocks` allowlists plus `onSubmit` — a single-shape survey embed that hands you the answers. |
 | [Locked-structure form](https://mainsolutioncoltd.github.io/form-page-builder/#locked-structure) | `initialDocument` seeds a fixed field set; structural toggles are off so only styling/labels stay editable. |
 | [Localized (French)](https://mainsolutioncoltd.github.io/form-page-builder/#localized) | `language`/`languages`/`strings`/`chrome` — a language beyond the built-in EN/JA, partially translated. |
+| [Template roles](https://mainsolutioncoltd.github.io/form-page-builder/#template-roles) | Two instances sharing one template library — `templates: { manage: true, max: 3 }` (curate) next to `{ manage: false }` (apply-only), plus copy/paste between them. |
 
-The source for all six lives in [dev/main.tsx](./dev/main.tsx) — `npm run dev` runs the same gallery locally against `src/` directly, and is the fastest way to try a `features`/`theme` combination before wiring it into your app.
+The source for all of them lives in [dev/main.tsx](./dev/main.tsx) — `npm run dev` runs the same gallery locally against `src/` directly, and is the fastest way to try a `features`/`theme` combination before wiring it into your app.
 
 **This is a builder + viewer, not a data handler.** It builds and previews a JSON *schema* describing a form's fields, sections, and layout blocks (including plain content blocks like paragraphs and images, not just inputs). Preview mode's "Submit" validates and shows a mock "here's what would be sent to your backend" modal, and — if you pass `onSubmit` — hands you the entered values too; either way, this package never sends or stores them itself. The only thing it persists on its own is the *builder's own* draft/Templates state (via the pluggable `StorageAdapter` below); actually delivering submissions to a backend is up to the host app.
 
