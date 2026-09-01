@@ -251,14 +251,40 @@ export interface FormBuilderHandle {
   loadDocument(doc: FormDocument): void;
   /** Convenience for `JSON.stringify(getDocument())`. */
   exportJson(): string;
+  /** The current document as a portable `FormTemplate` — pass to another builder's `loadTemplate()` or persist it. */
+  getTemplate(): FormTemplate;
+  /** Loads a `FormTemplate` (or its JSON, or bare document JSON); `false` if it can't be parsed. */
+  loadTemplate(input: FormTemplate | string): boolean;
+}
+
+// --- portable template ---
+/** Self-describing `FormDocument` wrapper; the `__fpb` tag marks it as ours. See `serializeTemplate` / `parseTemplate`. */
+export interface FormTemplate {
+  __fpb: "template";
+  v: number;
+  document: FormDocument;
+}
+
+// --- template events ---
+export interface TemplateChange {
+  /** Affected template's id; `null` when the active template was just deleted. */
+  id: string | null;
+  title: string;
+  /** `new` = created, `saved` = overwritten, `applied` = loaded as the working doc, `deleted`. */
+  source: "new" | "saved" | "applied" | "deleted";
 }
 
 // --- features (independently-toggleable UI surfaces, kept separate from theme/style props) ---
 export interface FormBuilderFeatures {
   /** Editable form title input in the Toolbar. Default true. */
   naming?: boolean;
-  /** Templates library (browse/open/delete) + "Save" button. Default true. */
-  templates?: boolean;
+  /**
+   * Templates library. `true` (default) = full CRUD + toolbar "Save"; `false` = hidden.
+   * `{ manage: false }` = pick-and-apply only (no save/overwrite/delete). `{ max }` caps the count (default 5).
+   */
+  templates?: boolean | { manage?: boolean; max?: number };
+  /** "Copy template" / "Paste template" icons by "View JSON"; paste enables once another instance copies. Default true. */
+  templateClipboard?: boolean;
   /** "New Form" reset button. Default true. */
   newForm?: boolean;
   /** Autosave the draft to `storage`. The initial draft load always happens; this only gates the write path. Default true. */
@@ -277,8 +303,10 @@ export interface FormBuilderFeatures {
   contentBlocks?: boolean | ContentBlockType[];
   /** Which form field types can be added from the palette. `true` = all, `false` = none, or an allowlist array. Default true. */
   fieldTypes?: boolean | InputFieldType[];
-  /** Add/duplicate/move/delete section controls + section background picker. Default true. */
+  /** Add/duplicate/move/delete section controls + the "Add section" button. Default true. */
   sections?: boolean;
+  /** Per-section background-color picker. Independent of `sections`; unset → follows `sections`, else true. */
+  sectionBackground?: boolean;
   /** Drag-to-reorder fields within a section. Default true. */
   dragReorder?: boolean;
   /** Laptop/Tablet/Mobile width switcher above the Preview canvas. Default true. */
@@ -304,4 +332,8 @@ export interface FormBuilderProps {
   initialMode?: "build" | "preview";
   /** Fires on mount and on every Build/Preview toggle — lets a host mirror the current mode without its own tab UI. */
   onModeChange?: (mode: "build" | "preview") => void;
+  /** Fires on template create/overwrite/apply/delete — for syncing a host's own state/backend. */
+  onTemplateChange?: (change: TemplateChange) => void;
+  /** localStorage key behind copy/paste (default `"form-page-builder:clipboard"`); instances sharing it can paste to each other. */
+  templateClipboardKey?: string;
 }

@@ -4,9 +4,7 @@ import type { ImageField } from "../../types";
 import { t } from "../../lib/bilingual";
 import { styles } from "../../styles/styles";
 
-// Always responsive: width fills the field's own grid width (1/3, 1/2, Full),
-// height is derived from aspect-ratio, object-fit crops cleanly. No fixed
-// pixel dimensions, so nothing can overflow on narrow screens.
+// No fixed pixel dimensions — width follows the field's grid column, height from aspect-ratio.
 function buildImageStyle(field: ImageField): CSSProperties {
   const aspectRatio = field.shape === "banner" ? "16 / 5" : "1 / 1";
   return {

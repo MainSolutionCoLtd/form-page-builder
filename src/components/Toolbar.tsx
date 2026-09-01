@@ -1,4 +1,4 @@
-import { Loader2, AlertCircle, Pencil, Eye, FilePlus2, FolderOpen, Save, Code2 } from "lucide-react";
+import { Loader2, AlertCircle, Pencil, Eye, FilePlus2, FolderOpen, Save, Code2, ClipboardCopy, ClipboardPaste, Check } from "lucide-react";
 import type { ChromeShape } from "../i18n/chrome";
 import type { LanguageOption, LocalizedString } from "../types";
 import type { ResolvedFeatures } from "../lib/features";
@@ -12,21 +12,29 @@ export interface ToolbarProps {
   languages: LanguageOption[];
   mode: "build" | "preview";
   saveState: "idle" | "saving" | "saved" | "error";
+  templateState: "idle" | "loading" | "saving" | "saved" | "error";
+  activeTemplateTitle: string | null;
+  templateDirty: boolean;
   chrome: ChromeShape;
   features: ResolvedFeatures;
   savedFormsCount: number;
   onTitleChange: (value: string) => void;
   onLanguageChange: (code: string) => void;
   onModeChange: (mode: "build" | "preview") => void;
+  clipboardReady: boolean;
+  templateCopied: boolean;
   onNewForm: () => void;
   onOpenLibrary: () => void;
   onSaveExisting: () => void;
   onOpenJson: () => void;
+  onCopyTemplate: () => void;
+  onPasteTemplate: () => void;
 }
 
 export function Toolbar({
-  title, language, languages, mode, saveState, chrome, features, savedFormsCount,
-  onTitleChange, onLanguageChange, onModeChange, onNewForm, onOpenLibrary, onSaveExisting, onOpenJson,
+  title, language, languages, mode, saveState, templateState, activeTemplateTitle, templateDirty, chrome, features, savedFormsCount,
+  clipboardReady, templateCopied,
+  onTitleChange, onLanguageChange, onModeChange, onNewForm, onOpenLibrary, onSaveExisting, onOpenJson, onCopyTemplate, onPasteTemplate,
 }: ToolbarProps) {
   return (
     <div style={styles.toolbar}>
@@ -36,6 +44,14 @@ export function Toolbar({
           <input value={t(title, language)} onChange={(e) => onTitleChange(e.target.value)} style={styles.titleInput} aria-label="Form title" />
         ) : (
           <span style={styles.titleInput}>{t(title, language)}</span>
+        )}
+        {templateState === "loading" ? (
+          <span style={styles.saveStatus}><Loader2 size={12} className="spin" /> {chrome.templateLoading}</span>
+        ) : activeTemplateTitle && (
+          <span className="fb-template-tag" style={styles.templateTag} title={chrome.templateLabel(activeTemplateTitle)}>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{chrome.templateLabel(activeTemplateTitle)}</span>
+            {templateDirty && <span style={styles.currentBadge}>{chrome.templateEdited}</span>}
+          </span>
         )}
       </div>
       <div style={styles.toolbarRight}>
@@ -57,21 +73,33 @@ export function Toolbar({
             <button style={mode === "preview" ? styles.tabBtnActive : styles.tabBtn} onClick={() => onModeChange("preview")}><Eye size={14} /> {chrome.preview}</button>
           </>
         )}
-        {(features.newForm || features.templates) && <div style={styles.toolbarDivider} />}
+        {(features.newForm || features.templates.enabled) && <div style={styles.toolbarDivider} />}
         {features.newForm && (
           <button style={styles.ghostBtn} onClick={onNewForm} title={chrome.startNewForm}><FilePlus2 size={14} /> {chrome.newForm}</button>
         )}
-        {features.templates && (
+        {features.templates.enabled && (
           <>
             <button style={styles.ghostBtn} onClick={onOpenLibrary} title={chrome.openTemplatesTitle}>
               <FolderOpen size={14} /> {chrome.templates}
               {savedFormsCount > 0 && <span style={styles.countBadge}>{savedFormsCount}</span>}
             </button>
-            <button style={styles.primaryBtn} onClick={onSaveExisting} title={chrome.saveToLibraryTitle}><Save size={14} /> {chrome.save}</button>
+            {features.templates.manage && (
+              <button style={styles.primaryBtn} onClick={onSaveExisting} title={chrome.saveToLibraryTitle}><Save size={14} /> {chrome.save}</button>
+            )}
           </>
         )}
         {features.jsonView && (
           <button style={styles.ghostBtn} onClick={onOpenJson}><Code2 size={14} /> {chrome.viewJson}</button>
+        )}
+        {features.templateClipboard && (
+          <>
+            <button style={styles.toolbarIconBtn} onClick={onCopyTemplate} title={chrome.copyTemplateTitle} aria-label={chrome.copyTemplate}>
+              {templateCopied ? <Check size={14} /> : <ClipboardCopy size={14} />}
+            </button>
+            <button style={styles.toolbarIconBtn} onClick={onPasteTemplate} disabled={!clipboardReady} title={chrome.pasteTemplateTitle} aria-label={chrome.pasteTemplate}>
+              <ClipboardPaste size={14} />
+            </button>
+          </>
         )}
       </div>
     </div>

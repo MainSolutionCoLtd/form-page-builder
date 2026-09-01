@@ -4,20 +4,14 @@ export const css = `
   input, textarea, select { font-family: inherit; }
   @keyframes fb-spin { to { transform: rotate(360deg); } }
   .spin { animation: fb-spin 0.8s linear infinite; }
-  /* Caps the widget at the viewport height so it scrolls internally rather
-     than growing past whatever space its host container gives it; the
-     second declaration upgrades to the dynamic viewport unit on browsers
-     that support it (mobile browser chrome resizing the viewport), and is
-     simply ignored by ones that don't. */
+  /* Cap at viewport height so the widget scrolls internally; dvh upgrade is ignored where unsupported. */
   .fb-root { max-height: 100vh; max-height: 100dvh; }
 
-  /* Below this width the fixed 200px Palette + 270px Inspector columns
-     don't leave room for a usable Canvas, so instead of stacking all
-     three in flow (which buries Canvas under a tall Palette), Palette
-     and Inspector become narrow drawers over Canvas (which stays
-     partially visible behind them), toggled by .fb-mobile-bar's two
-     buttons, tracked by .fb-work-area's data-mobile-panel attribute,
-     and dismissible via .fb-mobile-backdrop. */
+  /* Toolbar's active-template label is nice-to-have — drop it first when width is tight. */
+  @media (max-width: 600px) { .fb-template-tag { display: none; } }
+
+  /* Under 720px: Palette/Inspector become drawers over Canvas, toggled by .fb-mobile-bar,
+     tracked by .fb-work-area[data-mobile-panel], dismissed via .fb-mobile-backdrop. */
   .fb-mobile-bar { display: none; align-items: center; gap: 6px; padding: 6px 10px; border-bottom: 1px solid var(--fb-border); background: var(--fb-surface); flex-shrink: 0; }
   .fb-mobile-btn { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 7px; border: 1px solid var(--fb-border); background: var(--fb-surface); color: var(--fb-muted); font-size: 12.5px; font-weight: 600; }
   .fb-mobile-btn[aria-pressed="true"] { border-color: var(--fb-primary); background: var(--fb-primary-soft); color: var(--fb-primary); }

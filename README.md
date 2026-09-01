@@ -10,7 +10,7 @@ Embeddable, bilingual (EN/JA by default, extensible), drag-and-drop form builder
 
 ## Examples
 
-The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gallery of six `<FormBuilder />` configurations, each showing a different realistic way to compose `features`/`theme`/`storage`/`initialDocument`/`language` — jump straight to one. Its sticky header (its headings/captions, not the widget's own EN/JA switcher) has an EN/日本語 toggle, a Light/Dark toggle that swaps every example except "Branded" (badged "Fixed theme", since its whole point is a locked theme) between `DEFAULT_THEME` and `DARK_THEME`, and links back to this repo and the npm package.
+The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gallery of `<FormBuilder />` configurations, each showing a different realistic way to compose `features`/`theme`/`storage`/`initialDocument`/`language` — jump straight to one. Its sticky header (its headings/captions, not the widget's own EN/JA switcher) has an EN/日本語 toggle, a Light/Dark toggle that swaps every example except "Branded" (badged "Fixed theme", since its whole point is a locked theme) between `DEFAULT_THEME` and `DARK_THEME`, and links back to this repo and the npm package.
 
 | Example | What it shows |
 |---|---|
@@ -20,8 +20,9 @@ The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gal
 | [Survey builder](https://mainsolutioncoltd.github.io/form-page-builder/#survey) | `fieldTypes`/`contentBlocks` allowlists plus `onSubmit` — a single-shape survey embed that hands you the answers. |
 | [Locked-structure form](https://mainsolutioncoltd.github.io/form-page-builder/#locked-structure) | `initialDocument` seeds a fixed field set; structural toggles are off so only styling/labels stay editable. |
 | [Localized (French)](https://mainsolutioncoltd.github.io/form-page-builder/#localized) | `language`/`languages`/`strings`/`chrome` — a language beyond the built-in EN/JA, partially translated. |
+| [Template roles](https://mainsolutioncoltd.github.io/form-page-builder/#template-roles) | Two instances sharing one template library — `templates: { manage: true, max: 3 }` (curate) next to `{ manage: false }` (apply-only), plus copy/paste between them. |
 
-The source for all six lives in [dev/main.tsx](./dev/main.tsx) — `npm run dev` runs the same gallery locally against `src/` directly, and is the fastest way to try a `features`/`theme` combination before wiring it into your app.
+The source for all of them lives in [dev/main.tsx](./dev/main.tsx) — `npm run dev` runs the same gallery locally against `src/` directly, and is the fastest way to try a `features`/`theme` combination before wiring it into your app.
 
 **This is a builder + viewer, not a data handler.** It builds and previews a JSON *schema* describing a form's fields, sections, and layout blocks (including plain content blocks like paragraphs and images, not just inputs). Preview mode's "Submit" validates and shows a mock "here's what would be sent to your backend" modal, and — if you pass `onSubmit` — hands you the entered values too; either way, this package never sends or stores them itself. The only thing it persists on its own is the *builder's own* draft/Templates state (via the pluggable `StorageAdapter` below); actually delivering submissions to a backend is up to the host app.
 
@@ -72,8 +73,10 @@ Above ~720px wide, Build mode is the usual three-column Palette/Canvas/Inspector
 | `initialDocument` | `FormDocument` | Seeds the builder with this document on mount instead of the autosaved draft — see "Programmatic integration" below. |
 | `initialMode` | `"build" \| "preview"` | Which mode the widget mounts into (default `"build"`). Pair with `features.previewMode: false` to lock a consumer to just one mode with no tabs — e.g. a fill-only embed that never shows the Build canvas. Or leave `previewMode` on and pick `initialMode` per document (e.g. `"preview"` once a document already has saved data) so the widget opens on the right mode while still letting the built-in tabs switch it. |
 | `onModeChange` | `(mode: "build" \| "preview") => void` | Fires on mount and on every Build/Preview toggle. Lets a host mirror the current mode (e.g. to show its own Save button only in Build mode) without building a separate tab UI around the widget. |
+| `onTemplateChange` | `(change: TemplateChange) => void` | Fires when a template is created (`source: "new"`), overwritten (`"saved"`), applied as the working document (`"applied"`), or deleted (`"deleted"`). `change` is `{ id: string \| null; title: string; source }`. Useful for syncing a host's own state or backend index. |
+| `templateClipboardKey` | `string` | Overrides the localStorage key behind "Copy template" / "Paste template" (default `"form-page-builder:clipboard"`). Instances sharing a key can copy/paste between each other. |
 
-A `ref` on `<FormBuilder />` gives you a `FormBuilderHandle` (`getDocument()` / `loadDocument()` / `exportJson()`) — see "Programmatic integration" below.
+A `ref` on `<FormBuilder />` gives you a `FormBuilderHandle` (`getDocument()` / `loadDocument()` / `exportJson()` / `getTemplate()` / `loadTemplate()`) — see "Programmatic integration" and "Copy / paste templates" below.
 
 ### Features: `features`
 
@@ -104,17 +107,19 @@ Every optional UI surface can be switched on or off independently through one `f
 | Key | Type | Default | Controls |
 |---|---|---|---|
 | `naming` | `boolean` | `true` | The editable form-title input in the toolbar. |
-| `templates` | `boolean` | `true` | The Templates library (browse/open/delete) and the "Save" button. |
+| `templates` | `boolean \| { manage?: boolean; max?: number }` | `true` | The Templates library and the "Save" button. `true` = full library (browse / apply / save / overwrite / delete). `false` = no template UI. `{ manage: false }` = pick-and-apply only: the library lists templates and the user can apply one as a starting point, but can't create, overwrite, or delete them and the "Save" button is hidden. `{ max: n }` caps how many templates can be stored (default 5). |
 | `newForm` | `boolean` | `true` | The "New Form" reset button. |
 | `autosave` | `boolean` | `true` | Autosaving the draft to `storage`. The initial draft *load* always happens regardless — this only gates the write path. |
 | `jsonView` | `boolean` | `true` | The "View JSON" button and modal. |
+| `templateClipboard` | `boolean` | `true` | The "Copy template" / "Paste template" icon buttons next to "View JSON". Paste is enabled only once another builder instance in the same browser has copied one. |
 | `previewMode` | `boolean` | `true` | The Build/Preview tabs. When `false`, the tabs are hidden and the builder stays in whichever mode it started in (`initialMode`, Build by default). |
 | `languageSwitcher` | `boolean` | `true` | The language-switcher pill in the toolbar. |
 | `design` | `boolean` | `false` | The global "Design" tab (colors/spacing), i.e. the old `themeEditable` prop. |
 | `blockStyling` | `boolean` | `true` | Per-field styling controls: paragraph heading/font/color, button color — independent of `design`. |
 | `contentBlocks` | `boolean \| ("paragraph" \| "image" \| "button")[]` | `true` | Which content blocks can be *added* from the palette. `true` = all, `false` = none, or an allowlist. |
 | `fieldTypes` | `boolean \| ("input" \| "textarea" \| "select" \| "radio" \| "checkboxGroup" \| "checkbox" \| "toggle")[]` | `true` | Which form field types can be *added* from the palette. `true` = all, `false` = none, or an allowlist. |
-| `sections` | `boolean` | `true` | Add/duplicate/move/delete-section controls and the section background picker. |
+| `sections` | `boolean` | `true` | Add/duplicate/move/delete-section controls and the "Add section" button. |
+| `sectionBackground` | `boolean` | inherits `sections` | Per-section background-color swatches + custom-color picker in the section header. Independent of `sections` — set it `false` to lock section backgrounds while keeping the structural controls, or leave it unset and it follows whatever `sections` is. |
 | `dragReorder` | `boolean` | `true` | Drag-to-reorder fields within a section. |
 | `deviceToggle` | `boolean` | `true` | The Laptop/Tablet/Mobile width switcher above the Preview canvas. When `false`, Preview always renders at the Laptop (full) width. |
 | `maxFields` | `number` | `undefined` (unlimited) | Caps the total number of input-type fields (not content blocks) addable across the whole document. Once reached, the Form Fields palette buttons disable until a field is removed. |
@@ -139,7 +144,7 @@ import { FormBuilder, DARK_THEME } from "form-page-builder";
 
 ### Persistence: `StorageAdapter`
 
-By default the component autosaves a draft, plus a "Templates" library (up to 5 saved forms, shown via the toolbar's Templates button), to `window.localStorage`. Being local-storage-only means neither persists across devices or browsers. To persist the builder's state to your own backend (a Next.js API route, a PHP endpoint, etc.) instead — so drafts and templates are shared across devices, and your backend can populate/manage the template list itself — implement and pass a `StorageAdapter`. Its `get`/`set`/`delete` calls *are* the create/update/delete hooks: whatever your implementation does inside them (write to a database, call your API) runs on every template save/update/delete, so no separate event callbacks are needed.
+By default the component autosaves a draft, plus a "Templates" library (up to 5 saved forms, shown via the toolbar's Templates button), to `window.localStorage`. Being local-storage-only means neither persists across devices or browsers. To persist the builder's state to your own backend (a Next.js API route, a PHP endpoint, etc.) instead — so drafts and templates are shared across devices, and your backend can populate/manage the template list itself — implement and pass a `StorageAdapter`. Its `get`/`set`/`delete` calls *are* the create/update/delete hooks: whatever your implementation does inside them (write to a database, call your API) runs on every template save/update/delete. `get`/`set` may be async — the Templates modal shows a spinner while a load is in flight and an inline error if the adapter throws or rejects — and `onTemplateChange` (see the props table) fires alongside so a host can keep its own index in sync.
 
 ```ts
 interface StorageAdapter {
@@ -149,23 +154,33 @@ interface StorageAdapter {
 }
 ```
 
+The adapter is called with three kinds of key, exported so you can route them to your own REST endpoints without hardcoding the strings: `DRAFT_KEY` (the autosaved draft), `INDEX_KEY` (the template list — a JSON `SavedFormMeta[]`), and `formKey(id)` (one saved template). `savedFormId(key)` returns the id for a per-template key, else `null`.
+
 ```tsx
-import { FormBuilder, type StorageAdapter } from "form-page-builder";
+import {
+  FormBuilder, type StorageAdapter,
+  DRAFT_KEY, INDEX_KEY, savedFormId,
+} from "form-page-builder";
 
 const apiStorage: StorageAdapter = {
   async get(key) {
-    const res = await fetch(`/api/form-page-builder/${encodeURIComponent(key)}`);
-    if (!res.ok) return null;
-    return (await res.json()).value ?? null;
+    if (key === DRAFT_KEY) return localStorage.getItem(key); // keep the draft local
+    if (key === INDEX_KEY) {
+      const res = await fetch("/api/form-templates");
+      return res.ok ? JSON.stringify(await res.json()) : null;
+    }
+    const id = savedFormId(key);
+    const res = await fetch(`/api/form-templates/${id}`);
+    return res.ok ? JSON.stringify(await res.json()) : null;
   },
   async set(key, value) {
-    await fetch(`/api/form-page-builder/${encodeURIComponent(key)}`, {
-      method: "PUT",
-      body: value,
-    });
+    if (key === DRAFT_KEY) return void localStorage.setItem(key, value);
+    if (key === INDEX_KEY) return; // index is re-derived from the records on read
+    await fetch(`/api/form-templates/${savedFormId(key)}`, { method: "PUT", body: value });
   },
   async delete(key) {
-    await fetch(`/api/form-page-builder/${encodeURIComponent(key)}`, { method: "DELETE" });
+    const id = savedFormId(key);
+    if (id) await fetch(`/api/form-templates/${id}`, { method: "DELETE" });
   },
 };
 
@@ -223,6 +238,24 @@ function BuilderPage() {
   if (!initialDocument) return null;
   return <FormBuilder ref={ref} initialDocument={initialDocument} />;
 }
+```
+
+### Copy / paste templates
+
+The toolbar's "Copy template" / "Paste template" icons (next to "View JSON", toggle with `features.templateClipboard`) let a user copy the current form from one builder and paste it into another — across pages, tabs, and reloads in the same browser. Copy writes a portable envelope to a localStorage key (`templateClipboardKey`, default `"form-page-builder:clipboard"`); every mounted builder watches that key, so Paste lights up everywhere as soon as something is copied. Paste asks for confirmation, then replaces the working document.
+
+The same portable object is available programmatically — use it to hand a template to your own storage, or to move one between builders without the clipboard:
+
+```tsx
+import { FormBuilder, serializeTemplate, parseTemplate, type FormBuilderHandle } from "form-page-builder";
+
+// via the ref handle
+const tpl = ref.current.getTemplate();        // { __fpb: "template", v: 1, document }
+ref.current.loadTemplate(tpl);                 // accepts the object or its JSON string; returns false if unparseable
+
+// or the standalone helpers (e.g. to persist to your backend)
+const json = serializeTemplate(ref.current.getDocument());
+const doc = parseTemplate(json);               // also accepts bare "View JSON" output; null if not a document
 ```
 
 ## Using in a plain HTML page (no bundler)

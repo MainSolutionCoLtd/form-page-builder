@@ -53,8 +53,7 @@ export function defaultFieldFor(type: FieldType, language: string, chrome: Chrom
   } else {
     base.defaultValue = "";
   }
-  // `base` is built up field-by-field depending on the type's metadata flags,
-  // so it can only be soundly typed as FormField once fully assembled.
+  // Assembled incrementally from the type's metadata flags — only sound as FormField once complete.
   return base as unknown as FormField;
 }
 

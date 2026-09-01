@@ -1,5 +1,6 @@
 import { Check, ClipboardCopy, X } from "lucide-react";
 import type { ChromeShape } from "../../i18n/chrome";
+import { useModalA11y } from "../../hooks/useModalA11y";
 import { styles } from "../../styles/styles";
 
 export interface JsonModalProps {
@@ -11,14 +12,15 @@ export interface JsonModalProps {
 }
 
 export function JsonModal({ chrome, jsonString, copied, onCopy, onClose }: JsonModalProps) {
+  const panelRef = useModalA11y<HTMLDivElement>(onClose);
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div ref={panelRef} style={styles.modal} role="dialog" aria-modal="true" aria-label={chrome.formJson} onClick={(e) => e.stopPropagation()}>
         <div style={styles.modalHeader}>
           <span style={{ fontWeight: 600, fontSize: 14 }}>{chrome.formJson}</span>
           <div style={{ display: "flex", gap: 8 }}>
-            <button style={styles.ghostBtn} onClick={onCopy}>{copied ? <Check size={14} /> : <ClipboardCopy size={14} />}{copied ? chrome.copied : chrome.copy}</button>
-            <button style={styles.iconBtn} onClick={onClose}><X size={16} /></button>
+            <button type="button" style={styles.ghostBtn} onClick={onCopy}>{copied ? <Check size={14} /> : <ClipboardCopy size={14} />}{copied ? chrome.copied : chrome.copy}</button>
+            <button type="button" style={styles.iconBtn} onClick={onClose}><X size={16} /></button>
           </div>
         </div>
         <pre style={styles.jsonPre}>{jsonString}</pre>

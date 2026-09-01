@@ -5,11 +5,7 @@ import { defaultSection } from "./fieldDefaults";
 import { genSectionId, nextId, resyncIdCounter } from "./id";
 import { sectionHasFormFields } from "./submittable";
 
-/**
- * Raw, untyped JSON as loaded from storage (draft, saved form, or a
- * hand-edited/older export). Its whole purpose is to absorb legacy/loose
- * shapes, so it's deliberately not typed against the current domain model.
- */
+/** Raw JSON from storage or an older/hand-edited export — untyped on purpose, to absorb legacy shapes. */
 type RawDocument = Record<string, any>;
 
 export function migrateField(field: Record<string, any>): FormField {
@@ -88,8 +84,7 @@ export function migrateDocument(raw: RawDocument | null | undefined): DocumentFi
 
   const legacy = raw.version === undefined || raw.version < 5;
   if (legacy) {
-    // Synthesized button ids must not collide with ids already present in `sections`,
-    // and the caller's own resyncIdCounter (post-migration) runs too late for that.
+    // Resync now (not just post-migration) so synthesized button ids can't collide with existing ones.
     resyncIdCounter(sections.flatMap((s) => s.fields));
     const submitMode = raw.submitMode === "perSection" ? "perSection" : "combined";
     const submitLabel = raw.submitLabel;

@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 export const styles: Record<string, CSSProperties> = {
   app: { fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", background: "var(--fb-canvas)", borderRadius: 12, overflow: "hidden", border: "1px solid var(--fb-border)", color: "var(--fb-ink)", display: "flex", flexDirection: "column" },
   toolbar: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "var(--fb-space-toolbar) 16px", borderBottom: "1px solid var(--fb-border)", background: "var(--fb-surface)", flexWrap: "wrap", gap: 8, position: "relative" },
-  toolbarLeft: { display: "flex", alignItems: "center", gap: 10 },
+  toolbarLeft: { display: "flex", alignItems: "center", gap: 10, minWidth: 0, flexShrink: 1 },
   logoMark: { width: 26, height: 26, borderRadius: 7, background: "var(--fb-primary)", color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "-0.5px" },
   titleInput: { border: "none", outline: "none", fontSize: 14, fontWeight: 600, background: "transparent", color: "var(--fb-ink)", padding: "4px 6px", borderRadius: 6, minWidth: 160 },
   toolbarRight: { display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" },
@@ -13,6 +13,8 @@ export const styles: Record<string, CSSProperties> = {
   ghostBtn: { display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 7, border: "1px solid var(--fb-border)", background: "var(--fb-surface)", color: "var(--fb-ink)", fontSize: 13, fontWeight: 500 },
   primaryBtn: { display: "flex", alignItems: "center", gap: 6, padding: "6px 13px", borderRadius: 7, border: "1px solid var(--fb-primary)", background: "var(--fb-primary)", color: "#fff", fontSize: 13, fontWeight: 600 },
   saveStatus: { display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--fb-muted)", minWidth: 60 },
+  templateTag: { display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--fb-muted)", minWidth: 0, flexShrink: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  toolbarIconBtn: { display: "flex", alignItems: "center", justifyContent: "center", padding: "6px 9px", borderRadius: 7, border: "1px solid var(--fb-border)", background: "var(--fb-surface)", color: "var(--fb-ink)" },
   countBadge: { fontSize: 10.5, fontWeight: 700, background: "var(--fb-primary-soft)", color: "var(--fb-primary)", borderRadius: 9, padding: "1px 6px", marginLeft: 2 },
   loadingScreen: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "var(--fb-muted)" },
   libraryBody: { padding: "var(--fb-space-panel)", overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 },

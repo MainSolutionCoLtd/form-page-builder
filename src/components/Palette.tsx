@@ -18,7 +18,7 @@ export interface PaletteProps {
   updateThemeColor: (key: keyof Omit<Theme, "layout">, value: string) => void;
   updateThemeLayout: (key: keyof Theme["layout"], value: number) => void;
   resetTheme: () => void;
-  /** Current count of placed input-type fields, for gating against `features.maxFields`. */
+  /** Placed input-type field count, for gating against `features.maxFields`. */
   fieldCount: number;
 }
 
@@ -29,7 +29,7 @@ export function Palette({
   const [tab, setTab] = useState<"blocks" | "design">("blocks");
   const contentTypes = CONTENT_TYPES.filter((f) => isContentBlockEnabled(features, f.type as ContentBlockType));
   const formTypes = FORM_TYPES.filter((f) => isFieldTypeEnabled(features, f.type as InputFieldType));
-  // Content blocks are never capped — only input-type fields count toward maxFields.
+  // Content blocks aren't capped by maxFields.
   const atFieldCap = typeof features.maxFields === "number" && fieldCount >= features.maxFields;
 
   return (

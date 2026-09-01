@@ -6,16 +6,9 @@ function hasLocalStorage(): boolean {
 }
 
 /**
- * Default StorageAdapter, backed by window.localStorage. Availability is
- * checked inside each method (not once at module load) so the same module
- * behaves correctly whether it runs during SSR (no window) or later on the
- * client, within the same process.
- *
- * Values are compressed before writing (drafts/templates are JSON with a lot
- * of repeated keys, which compresses well) to reduce how much of the quota
- * they use. On read, a decompressed result is only trusted if it's valid
- * JSON — anything else falls back to the raw stored string, so drafts
- * written before compression was added keep loading correctly.
+ * Default StorageAdapter over window.localStorage. Availability is checked per-call so it survives SSR.
+ * Values are compressed on write; on read, a decompressed result is used only if it parses as JSON,
+ * else the raw string is returned (so pre-compression drafts still load).
  */
 export const localStorageAdapter: StorageAdapter = {
   async get(key) {
@@ -28,7 +21,7 @@ export const localStorageAdapter: StorageAdapter = {
         JSON.parse(decompressed);
         return decompressed;
       } catch {
-        // Not valid JSON once decompressed — treat `raw` as legacy, uncompressed data below.
+        // Not JSON once decompressed — fall through and return `raw` as legacy uncompressed data.
       }
     }
     return raw;

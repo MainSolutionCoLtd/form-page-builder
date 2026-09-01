@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { Loader2, Menu, SlidersHorizontal } from "lucide-react";
 import type { FormBuilderHandle, FormBuilderProps } from "./types";
@@ -12,10 +12,12 @@ import { t } from "./lib/bilingual";
 import { mixHex } from "./lib/color";
 import { localStorageAdapter } from "./lib/storage/localStorageAdapter";
 import { migrateDocument } from "./lib/migrate";
+import { parseTemplate, TEMPLATE_FORMAT } from "./lib/template";
 import { resolveFeatures } from "./lib/features";
 import { useTheme } from "./hooks/useTheme";
 import { useFormDocument } from "./hooks/useFormDocument";
 import { usePersistence } from "./hooks/usePersistence";
+import { useTemplateClipboard } from "./hooks/useTemplateClipboard";
 import { useDragReorder } from "./hooks/useDragReorder";
 import { Toolbar } from "./components/Toolbar";
 import { Palette } from "./components/Palette";
@@ -25,6 +27,7 @@ import { PreviewPane } from "./components/PreviewPane";
 import { JsonModal } from "./components/modals/JsonModal";
 import { TemplatesModal } from "./components/modals/TemplatesModal";
 import { SaveAsModal } from "./components/modals/SaveAsModal";
+import { ConfirmModal } from "./components/modals/ConfirmModal";
 import { css } from "./styles/globalCss";
 import { styles } from "./styles/styles";
 
@@ -40,6 +43,8 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   initialDocument,
   initialMode,
   onModeChange,
+  onTemplateChange,
+  templateClipboardKey,
 }, ref) {
   const features = resolveFeatures(featuresProp);
   const storage = storageProp ?? localStorageAdapter;
@@ -53,20 +58,22 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const drag = useDragReorder(doc.reorderWithinSection);
 
   const [mode, setModeState] = useState<"build" | "preview">(initialMode ?? "build");
-  // Wraps setMode so both the mount value and every toggle reach the host via onModeChange.
   const setMode = (next: "build" | "preview") => { setModeState(next); onModeChange?.(next); };
   useEffect(() => { onModeChange?.(mode); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [showJson, setShowJson] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [copied, setCopied] = useState(false);
-  // Only meaningful below the 720px breakpoint (see globalCss) where Palette
-  // and Inspector become full-bleed drawers over Canvas instead of columns;
-  // harmless to keep updating above it since the CSS there ignores it.
+  const [templateCopied, setTemplateCopied] = useState(false);
+  const [pastePrompt, setPastePrompt] = useState(false);
+  const clipboard = useTemplateClipboard(templateClipboardKey);
+  // Which drawer is open below the 720px breakpoint (see globalCss); ignored above it.
   const [mobilePanel, setMobilePanel] = useState<"none" | "palette" | "inspector">("none");
 
   const persistence = usePersistence({
     storage,
     autosave: features.autosave,
+    templateMax: features.templates.max,
+    templateManage: features.templates.manage,
     language,
     chrome,
     document: { title: doc.title, themeOverrides, sections: doc.sections },
@@ -75,15 +82,16 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
     onLoadThemeOverrides: replaceThemeOverrides,
     onTitleChange: doc.setTitle,
     onNewForm: () => { doc.resetToBlank(); resetTheme(); },
+    onTemplateChange,
     ensureActiveSection: () => doc.setActiveSectionId((prev) => prev ?? doc.sections[0]?.id ?? null),
   });
 
-  const jsonDoc = {
+  const jsonDoc = useMemo(() => ({
     version: 5 as const,
     title: doc.title, theme, themeOverrides,
     sections: doc.sections.map((s) => ({ id: s.id, title: s.title, background: s.background, collapsed: s.collapsed, fields: s.fields })),
-  };
-  const jsonString = JSON.stringify(jsonDoc, null, 2);
+  }), [doc.title, doc.sections, theme, themeOverrides]);
+  const jsonString = useMemo(() => JSON.stringify(jsonDoc, null, 2), [jsonDoc]);
 
   function copyJson() {
     navigator.clipboard.writeText(jsonString).then(() => {
@@ -92,19 +100,33 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
     }).catch(() => {});
   }
 
+  function applyDocument(migrated: ReturnType<typeof migrateDocument>) {
+    if (!migrated) return false;
+    doc.loadDocument(migrated);
+    replaceThemeOverrides(migrated.themeOverrides);
+    return true;
+  }
+
+  function copyTemplate() {
+    clipboard.copyTemplate(jsonDoc);
+    setTemplateCopied(true);
+    setTimeout(() => setTemplateCopied(false), 1500);
+  }
+
+  function pasteTemplate() {
+    if (clipboard.readTemplate()) setPastePrompt(true);
+  }
+
   useImperativeHandle(ref, () => ({
     getDocument: () => jsonDoc,
     exportJson: () => jsonString,
-    loadDocument: (raw) => {
-      const migrated = migrateDocument(raw);
-      if (!migrated) return;
-      doc.loadDocument(migrated);
-      replaceThemeOverrides(migrated.themeOverrides);
-    },
+    loadDocument: (raw) => { applyDocument(migrateDocument(raw)); },
+    getTemplate: () => ({ __fpb: "template", v: TEMPLATE_FORMAT, document: jsonDoc }),
+    loadTemplate: (input) => applyDocument(parseTemplate(typeof input === "string" ? input : JSON.stringify(input))),
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [jsonDoc, jsonString]);
 
-  // Only input-type fields count toward `features.maxFields` — content blocks (paragraph/image/button) are free.
+  // Content blocks don't count toward `features.maxFields`.
   const fieldCount = doc.sections.reduce((n, s) => n + s.fields.filter((f) => !getMeta(f.type).isContent).length, 0);
 
   const activeSectionIdx = doc.sections.findIndex((s) => s.id === doc.activeSection?.id);
@@ -133,9 +155,14 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
         languages={languages}
         mode={mode}
         saveState={persistence.saveState}
+        templateState={persistence.templateState}
+        activeTemplateTitle={persistence.activeTemplateTitle}
+        templateDirty={persistence.isTemplateDirty}
         chrome={chrome}
         features={features}
         savedFormsCount={persistence.savedForms.length}
+        clipboardReady={clipboard.hasClipboard}
+        templateCopied={templateCopied}
         onTitleChange={doc.updateTitle}
         onLanguageChange={setLanguage}
         onModeChange={setMode}
@@ -143,6 +170,8 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
         onOpenLibrary={() => setShowLibrary(true)}
         onSaveExisting={persistence.saveExisting}
         onOpenJson={() => setShowJson(true)}
+        onCopyTemplate={copyTemplate}
+        onPasteTemplate={pasteTemplate}
       />
 
       {persistence.loadingDraft ? (
@@ -244,7 +273,9 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
           chrome={chrome}
           savedForms={persistence.savedForms}
           currentFormId={persistence.currentFormId}
-          onOpen={async (id) => { await persistence.loadForm(id); setShowLibrary(false); }}
+          manage={features.templates.manage}
+          templateState={persistence.templateState}
+          onOpen={async (id) => { if (await persistence.loadForm(id)) setShowLibrary(false); }}
           onDelete={persistence.deleteForm}
           onClose={() => setShowLibrary(false)}
         />
@@ -254,8 +285,30 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
         <SaveAsModal
           chrome={chrome}
           suggestedName={persistence.saveAsPrompt.suggestedName}
+          templateState={persistence.templateState}
           onSave={persistence.saveAs}
           onClose={persistence.dismissSaveAsPrompt}
+        />
+      )}
+
+      {pastePrompt && (
+        <ConfirmModal
+          chrome={chrome}
+          title={chrome.pasteTemplate}
+          message={chrome.pasteTemplateConfirm}
+          confirmLabel={chrome.confirmReplace}
+          tone="danger"
+          onConfirm={() => { applyDocument(clipboard.readTemplate()); setPastePrompt(false); }}
+          onClose={() => setPastePrompt(false)}
+        />
+      )}
+
+      {persistence.notice && (
+        <ConfirmModal
+          chrome={chrome}
+          title={persistence.notice.title}
+          message={persistence.notice.message}
+          onClose={persistence.dismissNotice}
         />
       )}
     </div>

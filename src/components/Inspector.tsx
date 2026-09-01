@@ -1,6 +1,6 @@
 import { Bold, Italic, X, Plus, Trash2 } from "lucide-react";
 import type { ChromeShape } from "../i18n/chrome";
-import type { FieldPatch, FormField, LocalizedString, Option } from "../types";
+import type { FieldPatch, FormField, Option } from "../types";
 import type { ResolvedFeatures } from "../lib/features";
 import { getMeta, INPUT_SUBTYPES, INPUT_SUBTYPE_CHROME_KEY, IMAGE_SHAPE_CHROME_KEY } from "../constants/fieldTypes";
 import { IMAGE_SHAPES } from "../constants/fieldTypes";
