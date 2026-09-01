@@ -154,23 +154,33 @@ interface StorageAdapter {
 }
 ```
 
+The adapter is called with three kinds of key, exported so you can route them to your own REST endpoints without hardcoding the strings: `DRAFT_KEY` (the autosaved draft), `INDEX_KEY` (the template list — a JSON `SavedFormMeta[]`), and `formKey(id)` (one saved template). `savedFormId(key)` returns the id for a per-template key, else `null`.
+
 ```tsx
-import { FormBuilder, type StorageAdapter } from "form-page-builder";
+import {
+  FormBuilder, type StorageAdapter,
+  DRAFT_KEY, INDEX_KEY, savedFormId,
+} from "form-page-builder";
 
 const apiStorage: StorageAdapter = {
   async get(key) {
-    const res = await fetch(`/api/form-page-builder/${encodeURIComponent(key)}`);
-    if (!res.ok) return null;
-    return (await res.json()).value ?? null;
+    if (key === DRAFT_KEY) return localStorage.getItem(key); // keep the draft local
+    if (key === INDEX_KEY) {
+      const res = await fetch("/api/form-templates");
+      return res.ok ? JSON.stringify(await res.json()) : null;
+    }
+    const id = savedFormId(key);
+    const res = await fetch(`/api/form-templates/${id}`);
+    return res.ok ? JSON.stringify(await res.json()) : null;
   },
   async set(key, value) {
-    await fetch(`/api/form-page-builder/${encodeURIComponent(key)}`, {
-      method: "PUT",
-      body: value,
-    });
+    if (key === DRAFT_KEY) return void localStorage.setItem(key, value);
+    if (key === INDEX_KEY) return; // index is re-derived from the records on read
+    await fetch(`/api/form-templates/${savedFormId(key)}`, { method: "PUT", body: value });
   },
   async delete(key) {
-    await fetch(`/api/form-page-builder/${encodeURIComponent(key)}`, { method: "DELETE" });
+    const id = savedFormId(key);
+    if (id) await fetch(`/api/form-templates/${id}`, { method: "DELETE" });
   },
 };
 
