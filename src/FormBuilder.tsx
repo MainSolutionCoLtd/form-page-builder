@@ -308,8 +308,8 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
       {persistence.notice && (
         <ConfirmModal
           chrome={chrome}
-          title={chrome.templatesLimitTitle}
-          message={persistence.notice}
+          title={persistence.notice.title}
+          message={persistence.notice.message}
           onClose={persistence.dismissNotice}
         />
       )}

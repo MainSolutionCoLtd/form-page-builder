@@ -48,7 +48,7 @@ export function usePersistence({
   const [templateState, setTemplateState] = useState<TemplateState>("idle");
   const [savedForms, setSavedForms] = useState<SavedFormMeta[]>([]);
   const [saveAsPrompt, setSaveAsPrompt] = useState<SaveAsPrompt | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ title: string; message: string } | null>(null);
 
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasLoadedOnce = useRef(false);
@@ -138,7 +138,7 @@ export function usePersistence({
     if (!templateManage) return;
     if (savedForms.length >= templateMax) {
       setSaveAsPrompt(null);
-      setNotice(chrome.templatesLimitReached(templateMax));
+      setNotice({ title: chrome.templatesLimitTitle, message: chrome.templatesLimitReached(templateMax) });
       return;
     }
     const id = genFormId();
