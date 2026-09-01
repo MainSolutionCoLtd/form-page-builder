@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ChromeShape } from "../i18n/chrome";
-import type { DocumentFields, FormDocument, LocalizedString, SavedFormMeta, StorageAdapter, ThemeOverrides } from "../types";
+import type { DocumentFields, FormDocument, LocalizedString, SavedFormMeta, StorageAdapter, TemplateChange, ThemeOverrides } from "../types";
 import { DRAFT_KEY, INDEX_KEY, formKey } from "../lib/storage/keys";
 import { migrateDocument } from "../lib/migrate";
 import { genFormId } from "../lib/id";
@@ -21,7 +21,14 @@ export interface UsePersistenceArgs {
   onLoadThemeOverrides: (overrides: ThemeOverrides) => void;
   onTitleChange: (title: LocalizedString) => void;
   onNewForm: () => void;
+  onTemplateChange?: (change: TemplateChange) => void;
   ensureActiveSection: () => void;
+}
+
+export type TemplateState = "idle" | "loading" | "saving" | "saved" | "error";
+
+function snapshotOf(d: DocumentFields): string {
+  return JSON.stringify({ title: d.title, themeOverrides: d.themeOverrides, sections: d.sections });
 }
 
 export interface SaveAsPrompt {
@@ -37,16 +44,25 @@ export interface SaveAsPrompt {
  * loaded — splitting them would require sharing a ref across hooks.
  */
 export function usePersistence({
-  storage, autosave, templateMax, templateManage, language, chrome, document, initialDocument, onLoadDocument, onLoadThemeOverrides, onTitleChange, onNewForm, ensureActiveSection,
+  storage, autosave, templateMax, templateManage, language, chrome, document, initialDocument, onLoadDocument, onLoadThemeOverrides, onTitleChange, onNewForm, onTemplateChange, ensureActiveSection,
 }: UsePersistenceArgs) {
   const [currentFormId, setCurrentFormId] = useState<string | null>(null);
   const [loadingDraft, setLoadingDraft] = useState(true);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [templateState, setTemplateState] = useState<TemplateState>("idle");
   const [savedForms, setSavedForms] = useState<SavedFormMeta[]>([]);
   const [saveAsPrompt, setSaveAsPrompt] = useState<SaveAsPrompt | null>(null);
 
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasLoadedOnce = useRef(false);
+  // JSON of the document as it was last loaded-from / saved-to a template. Compared against the
+  // live document to surface an "Edited" indicator. null when no template is being edited.
+  const savedSnapshot = useRef<string | null>(null);
+
+  function flashSaved() {
+    setTemplateState("saved");
+    setTimeout(() => setTemplateState((s) => (s === "saved" ? "idle" : s)), 1500);
+  }
 
   async function refreshLibrary() {
     try {
@@ -78,7 +94,17 @@ export function usePersistence({
               onLoadDocument(doc);
               onLoadThemeOverrides(doc.themeOverrides);
             }
-            if (parsed.currentFormId) setCurrentFormId(parsed.currentFormId);
+            if (parsed.currentFormId && templateManage) {
+              setCurrentFormId(parsed.currentFormId);
+              // Snapshot the *template* record (not the draft) so the "Edited" indicator stays honest across reloads.
+              try {
+                const tplRaw = await storage.get(formKey(parsed.currentFormId));
+                const tplDoc = tplRaw ? migrateDocument(JSON.parse(tplRaw)) : null;
+                savedSnapshot.current = tplDoc ? snapshotOf(tplDoc) : null;
+              } catch {
+                savedSnapshot.current = null;
+              }
+            }
           } else {
             ensureActiveSection();
           }
@@ -120,17 +146,22 @@ export function usePersistence({
     }
     const id = genFormId();
     const now = Date.now();
+    setTemplateState("saving");
     try {
       const newTitle = bi(name, "");
-      await storage.set(formKey(id), JSON.stringify({ ...document, title: newTitle, id, updatedAt: now }));
+      const docToSave: DocumentFields = { ...document, title: newTitle };
+      await storage.set(formKey(id), JSON.stringify({ ...docToSave, id, updatedAt: now }));
       const next = [...savedForms, { id, title: name, updatedAt: now }];
       await storage.set(INDEX_KEY, JSON.stringify(next));
       setSavedForms(next);
       setCurrentFormId(id);
       onTitleChange(newTitle);
       setSaveAsPrompt(null);
+      savedSnapshot.current = snapshotOf(docToSave);
+      flashSaved();
+      onTemplateChange?.({ id, title: name, source: "new" });
     } catch (err) {
-      alert("Couldn't save the form. Please try again.");
+      setTemplateState("error");
     }
   }
 
@@ -141,56 +172,79 @@ export function usePersistence({
       return;
     }
     const now = Date.now();
+    setTemplateState("saving");
     try {
       await storage.set(formKey(currentFormId), JSON.stringify({ ...document, id: currentFormId, updatedAt: now }));
       const next = savedForms.map((f) => (f.id === currentFormId ? { ...f, title: t(document.title, "en"), updatedAt: now } : f));
       setSavedForms(next);
       await storage.set(INDEX_KEY, JSON.stringify(next));
+      savedSnapshot.current = snapshotOf(document);
+      flashSaved();
+      onTemplateChange?.({ id: currentFormId, title: t(document.title, language), source: "saved" });
     } catch (err) {
-      alert("Couldn't save the form. Please try again.");
+      setTemplateState("error");
     }
   }
 
-  async function loadForm(id: string) {
+  async function loadForm(id: string): Promise<boolean> {
+    setTemplateState("loading");
     try {
       const raw = await storage.get(formKey(id));
-      if (!raw) return;
+      if (!raw) { setTemplateState("error"); return false; }
       const doc = migrateDocument(JSON.parse(raw));
-      if (!doc) return;
+      if (!doc) { setTemplateState("error"); return false; }
       onLoadDocument(doc);
       onLoadThemeOverrides(doc.themeOverrides);
       // In pick-and-apply mode the template is only a starting point — it isn't "the form being
       // edited", so we don't bind currentFormId (nothing in-package can overwrite it anyway).
-      setCurrentFormId(templateManage ? id : null);
+      const boundId = templateManage ? id : null;
+      setCurrentFormId(boundId);
+      savedSnapshot.current = boundId ? snapshotOf(doc) : null;
+      setTemplateState("idle");
+      onTemplateChange?.({ id, title: t(doc.title, language), source: "applied" });
+      return true;
     } catch (err) {
-      alert("Couldn't load that form.");
+      setTemplateState("error");
+      return false;
     }
   }
 
   async function deleteForm(id: string) {
     if (!templateManage) return;
+    const removed = savedForms.find((f) => f.id === id);
     try {
       await storage.delete(formKey(id));
       const next = savedForms.filter((f) => f.id !== id);
       setSavedForms(next);
       await storage.set(INDEX_KEY, JSON.stringify(next));
-      if (currentFormId === id) setCurrentFormId(null);
+      if (currentFormId === id) {
+        setCurrentFormId(null);
+        savedSnapshot.current = null;
+      }
+      onTemplateChange?.({ id: currentFormId === id ? null : id, title: removed?.title ?? "", source: "deleted" });
     } catch (err) {
-      // Non-critical.
+      setTemplateState("error");
     }
   }
 
   function newForm() {
     onNewForm();
     setCurrentFormId(null);
+    savedSnapshot.current = null;
+    setTemplateState("idle");
   }
+
+  const activeTemplate = currentFormId ? savedForms.find((f) => f.id === currentFormId) ?? null : null;
+  const isTemplateDirty = savedSnapshot.current !== null && snapshotOf(document) !== savedSnapshot.current;
 
   function dismissSaveAsPrompt() {
     setSaveAsPrompt(null);
   }
 
   return {
-    loadingDraft, saveState, savedForms, currentFormId,
+    loadingDraft, saveState, templateState, savedForms, currentFormId,
+    activeTemplateTitle: activeTemplate?.title ?? null,
+    isTemplateDirty,
     saveAs, saveExisting, loadForm, deleteForm, refreshLibrary, newForm,
     saveAsPrompt, dismissSaveAsPrompt,
   };

@@ -72,6 +72,7 @@ Above ~720px wide, Build mode is the usual three-column Palette/Canvas/Inspector
 | `initialDocument` | `FormDocument` | Seeds the builder with this document on mount instead of the autosaved draft — see "Programmatic integration" below. |
 | `initialMode` | `"build" \| "preview"` | Which mode the widget mounts into (default `"build"`). Pair with `features.previewMode: false` to lock a consumer to just one mode with no tabs — e.g. a fill-only embed that never shows the Build canvas. Or leave `previewMode` on and pick `initialMode` per document (e.g. `"preview"` once a document already has saved data) so the widget opens on the right mode while still letting the built-in tabs switch it. |
 | `onModeChange` | `(mode: "build" \| "preview") => void` | Fires on mount and on every Build/Preview toggle. Lets a host mirror the current mode (e.g. to show its own Save button only in Build mode) without building a separate tab UI around the widget. |
+| `onTemplateChange` | `(change: TemplateChange) => void` | Fires when a template is created (`source: "new"`), overwritten (`"saved"`), applied as the working document (`"applied"`), or deleted (`"deleted"`). `change` is `{ id: string \| null; title: string; source }`. Useful for syncing a host's own state or backend index. |
 
 A `ref` on `<FormBuilder />` gives you a `FormBuilderHandle` (`getDocument()` / `loadDocument()` / `exportJson()`) — see "Programmatic integration" below.
 
@@ -140,7 +141,7 @@ import { FormBuilder, DARK_THEME } from "form-page-builder";
 
 ### Persistence: `StorageAdapter`
 
-By default the component autosaves a draft, plus a "Templates" library (up to 5 saved forms, shown via the toolbar's Templates button), to `window.localStorage`. Being local-storage-only means neither persists across devices or browsers. To persist the builder's state to your own backend (a Next.js API route, a PHP endpoint, etc.) instead — so drafts and templates are shared across devices, and your backend can populate/manage the template list itself — implement and pass a `StorageAdapter`. Its `get`/`set`/`delete` calls *are* the create/update/delete hooks: whatever your implementation does inside them (write to a database, call your API) runs on every template save/update/delete, so no separate event callbacks are needed.
+By default the component autosaves a draft, plus a "Templates" library (up to 5 saved forms, shown via the toolbar's Templates button), to `window.localStorage`. Being local-storage-only means neither persists across devices or browsers. To persist the builder's state to your own backend (a Next.js API route, a PHP endpoint, etc.) instead — so drafts and templates are shared across devices, and your backend can populate/manage the template list itself — implement and pass a `StorageAdapter`. Its `get`/`set`/`delete` calls *are* the create/update/delete hooks: whatever your implementation does inside them (write to a database, call your API) runs on every template save/update/delete. `get`/`set` may be async — the Templates modal shows a spinner while a load is in flight and an inline error if the adapter throws or rejects — and `onTemplateChange` (see the props table) fires alongside so a host can keep its own index in sync.
 
 ```ts
 interface StorageAdapter {

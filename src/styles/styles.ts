@@ -13,6 +13,7 @@ export const styles: Record<string, CSSProperties> = {
   ghostBtn: { display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 7, border: "1px solid var(--fb-border)", background: "var(--fb-surface)", color: "var(--fb-ink)", fontSize: 13, fontWeight: 500 },
   primaryBtn: { display: "flex", alignItems: "center", gap: 6, padding: "6px 13px", borderRadius: 7, border: "1px solid var(--fb-primary)", background: "var(--fb-primary)", color: "#fff", fontSize: 13, fontWeight: 600 },
   saveStatus: { display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--fb-muted)", minWidth: 60 },
+  templateTag: { display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--fb-muted)", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   countBadge: { fontSize: 10.5, fontWeight: 700, background: "var(--fb-primary-soft)", color: "var(--fb-primary)", borderRadius: 9, padding: "1px 6px", marginLeft: 2 },
   loadingScreen: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "var(--fb-muted)" },
   libraryBody: { padding: "var(--fb-space-panel)", overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 },

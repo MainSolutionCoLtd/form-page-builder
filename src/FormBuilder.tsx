@@ -40,6 +40,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   initialDocument,
   initialMode,
   onModeChange,
+  onTemplateChange,
 }, ref) {
   const features = resolveFeatures(featuresProp);
   const storage = storageProp ?? localStorageAdapter;
@@ -77,6 +78,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
     onLoadThemeOverrides: replaceThemeOverrides,
     onTitleChange: doc.setTitle,
     onNewForm: () => { doc.resetToBlank(); resetTheme(); },
+    onTemplateChange,
     ensureActiveSection: () => doc.setActiveSectionId((prev) => prev ?? doc.sections[0]?.id ?? null),
   });
 
@@ -135,6 +137,9 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
         languages={languages}
         mode={mode}
         saveState={persistence.saveState}
+        templateState={persistence.templateState}
+        activeTemplateTitle={persistence.activeTemplateTitle}
+        templateDirty={persistence.isTemplateDirty}
         chrome={chrome}
         features={features}
         savedFormsCount={persistence.savedForms.length}
@@ -247,7 +252,8 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
           savedForms={persistence.savedForms}
           currentFormId={persistence.currentFormId}
           manage={features.templates.manage}
-          onOpen={async (id) => { await persistence.loadForm(id); setShowLibrary(false); }}
+          templateState={persistence.templateState}
+          onOpen={async (id) => { if (await persistence.loadForm(id)) setShowLibrary(false); }}
           onDelete={persistence.deleteForm}
           onClose={() => setShowLibrary(false)}
         />
@@ -257,6 +263,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
         <SaveAsModal
           chrome={chrome}
           suggestedName={persistence.saveAsPrompt.suggestedName}
+          templateState={persistence.templateState}
           onSave={persistence.saveAs}
           onClose={persistence.dismissSaveAsPrompt}
         />

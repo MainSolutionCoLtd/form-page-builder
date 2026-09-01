@@ -12,6 +12,9 @@ export interface ToolbarProps {
   languages: LanguageOption[];
   mode: "build" | "preview";
   saveState: "idle" | "saving" | "saved" | "error";
+  templateState: "idle" | "loading" | "saving" | "saved" | "error";
+  activeTemplateTitle: string | null;
+  templateDirty: boolean;
   chrome: ChromeShape;
   features: ResolvedFeatures;
   savedFormsCount: number;
@@ -25,7 +28,7 @@ export interface ToolbarProps {
 }
 
 export function Toolbar({
-  title, language, languages, mode, saveState, chrome, features, savedFormsCount,
+  title, language, languages, mode, saveState, templateState, activeTemplateTitle, templateDirty, chrome, features, savedFormsCount,
   onTitleChange, onLanguageChange, onModeChange, onNewForm, onOpenLibrary, onSaveExisting, onOpenJson,
 }: ToolbarProps) {
   return (
@@ -36,6 +39,14 @@ export function Toolbar({
           <input value={t(title, language)} onChange={(e) => onTitleChange(e.target.value)} style={styles.titleInput} aria-label="Form title" />
         ) : (
           <span style={styles.titleInput}>{t(title, language)}</span>
+        )}
+        {templateState === "loading" ? (
+          <span style={styles.saveStatus}><Loader2 size={12} className="spin" /> {chrome.templateLoading}</span>
+        ) : activeTemplateTitle && (
+          <span style={styles.templateTag} title={chrome.templateLabel(activeTemplateTitle)}>
+            {chrome.templateLabel(activeTemplateTitle)}
+            {templateDirty && <span style={styles.currentBadge}>{chrome.templateEdited}</span>}
+          </span>
         )}
       </div>
       <div style={styles.toolbarRight}>

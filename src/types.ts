@@ -253,6 +253,16 @@ export interface FormBuilderHandle {
   exportJson(): string;
 }
 
+// --- template events ---
+export interface TemplateChange {
+  /** The affected template's id. `null` when the active template was just deleted. */
+  id: string | null;
+  /** The affected template's title. */
+  title: string;
+  /** What happened: a new template was created, an existing one overwritten, one applied as the working document, or one deleted. */
+  source: "new" | "saved" | "applied" | "deleted";
+}
+
 // --- features (independently-toggleable UI surfaces, kept separate from theme/style props) ---
 export interface FormBuilderFeatures {
   /** Editable form title input in the Toolbar. Default true. */
@@ -311,4 +321,6 @@ export interface FormBuilderProps {
   initialMode?: "build" | "preview";
   /** Fires on mount and on every Build/Preview toggle — lets a host mirror the current mode without its own tab UI. */
   onModeChange?: (mode: "build" | "preview") => void;
+  /** Fires whenever a template is created, overwritten, applied, or deleted — lets a host sync its own state/backend. */
+  onTemplateChange?: (change: TemplateChange) => void;
 }

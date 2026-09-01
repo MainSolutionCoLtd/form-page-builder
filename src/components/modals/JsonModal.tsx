@@ -13,7 +13,7 @@ export interface JsonModalProps {
 export function JsonModal({ chrome, jsonString, copied, onCopy, onClose }: JsonModalProps) {
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div style={styles.modal} role="dialog" aria-modal="true" aria-label={chrome.formJson} onClick={(e) => e.stopPropagation()}>
         <div style={styles.modalHeader}>
           <span style={{ fontWeight: 600, fontSize: 14 }}>{chrome.formJson}</span>
           <div style={{ display: "flex", gap: 8 }}>
