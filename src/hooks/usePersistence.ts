@@ -6,11 +6,13 @@ import { migrateDocument } from "../lib/migrate";
 import { genFormId } from "../lib/id";
 import { bi, t } from "../lib/bilingual";
 
-export const MAX_TEMPLATES = 5;
-
 export interface UsePersistenceArgs {
   storage: StorageAdapter;
   autosave: boolean;
+  /** Max templates that can be stored (from `features.templates.max`). */
+  templateMax: number;
+  /** Whether the user may create/overwrite/delete templates (from `features.templates.manage`). */
+  templateManage: boolean;
   language: string;
   chrome: ChromeShape;
   document: DocumentFields;
@@ -35,7 +37,7 @@ export interface SaveAsPrompt {
  * loaded — splitting them would require sharing a ref across hooks.
  */
 export function usePersistence({
-  storage, autosave, language, chrome, document, initialDocument, onLoadDocument, onLoadThemeOverrides, onTitleChange, onNewForm, ensureActiveSection,
+  storage, autosave, templateMax, templateManage, language, chrome, document, initialDocument, onLoadDocument, onLoadThemeOverrides, onTitleChange, onNewForm, ensureActiveSection,
 }: UsePersistenceArgs) {
   const [currentFormId, setCurrentFormId] = useState<string | null>(null);
   const [loadingDraft, setLoadingDraft] = useState(true);
@@ -111,8 +113,9 @@ export function usePersistence({
   }, [document.title, document.themeOverrides, document.sections, currentFormId]);
 
   async function saveAs(name: string) {
-    if (savedForms.length >= MAX_TEMPLATES) {
-      alert(chrome.templatesLimitReached);
+    if (!templateManage) return;
+    if (savedForms.length >= templateMax) {
+      alert(chrome.templatesLimitReached(templateMax));
       return;
     }
     const id = genFormId();
@@ -132,6 +135,7 @@ export function usePersistence({
   }
 
   async function saveExisting() {
+    if (!templateManage) return;
     if (!currentFormId) {
       setSaveAsPrompt({ open: true, suggestedName: t(document.title, language) });
       return;
@@ -155,13 +159,16 @@ export function usePersistence({
       if (!doc) return;
       onLoadDocument(doc);
       onLoadThemeOverrides(doc.themeOverrides);
-      setCurrentFormId(id);
+      // In pick-and-apply mode the template is only a starting point — it isn't "the form being
+      // edited", so we don't bind currentFormId (nothing in-package can overwrite it anyway).
+      setCurrentFormId(templateManage ? id : null);
     } catch (err) {
       alert("Couldn't load that form.");
     }
   }
 
   async function deleteForm(id: string) {
+    if (!templateManage) return;
     try {
       await storage.delete(formKey(id));
       const next = savedForms.filter((f) => f.id !== id);

@@ -257,8 +257,13 @@ export interface FormBuilderHandle {
 export interface FormBuilderFeatures {
   /** Editable form title input in the Toolbar. Default true. */
   naming?: boolean;
-  /** Templates library (browse/open/delete) + "Save" button. Default true. */
-  templates?: boolean;
+  /**
+   * Templates library. `true` (default) = full library: browse, apply, save, overwrite, delete, plus the toolbar "Save" button.
+   * `false` = no Templates UI at all.
+   * `{ manage: false }` = pick-and-apply only — the library lists templates and the user can apply one as a starting point, but cannot create, overwrite, or delete them and the "Save" button is hidden.
+   * `{ max: number }` = cap how many templates can be stored (default 5).
+   */
+  templates?: boolean | { manage?: boolean; max?: number };
   /** "New Form" reset button. Default true. */
   newForm?: boolean;
   /** Autosave the draft to `storage`. The initial draft load always happens; this only gates the write path. Default true. */

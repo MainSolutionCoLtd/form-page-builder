@@ -67,6 +67,8 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const persistence = usePersistence({
     storage,
     autosave: features.autosave,
+    templateMax: features.templates.max,
+    templateManage: features.templates.manage,
     language,
     chrome,
     document: { title: doc.title, themeOverrides, sections: doc.sections },
@@ -244,6 +246,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
           chrome={chrome}
           savedForms={persistence.savedForms}
           currentFormId={persistence.currentFormId}
+          manage={features.templates.manage}
           onOpen={async (id) => { await persistence.loadForm(id); setShowLibrary(false); }}
           onDelete={persistence.deleteForm}
           onClose={() => setShowLibrary(false)}

@@ -57,17 +57,19 @@ export function Toolbar({
             <button style={mode === "preview" ? styles.tabBtnActive : styles.tabBtn} onClick={() => onModeChange("preview")}><Eye size={14} /> {chrome.preview}</button>
           </>
         )}
-        {(features.newForm || features.templates) && <div style={styles.toolbarDivider} />}
+        {(features.newForm || features.templates.enabled) && <div style={styles.toolbarDivider} />}
         {features.newForm && (
           <button style={styles.ghostBtn} onClick={onNewForm} title={chrome.startNewForm}><FilePlus2 size={14} /> {chrome.newForm}</button>
         )}
-        {features.templates && (
+        {features.templates.enabled && (
           <>
             <button style={styles.ghostBtn} onClick={onOpenLibrary} title={chrome.openTemplatesTitle}>
               <FolderOpen size={14} /> {chrome.templates}
               {savedFormsCount > 0 && <span style={styles.countBadge}>{savedFormsCount}</span>}
             </button>
-            <button style={styles.primaryBtn} onClick={onSaveExisting} title={chrome.saveToLibraryTitle}><Save size={14} /> {chrome.save}</button>
+            {features.templates.manage && (
+              <button style={styles.primaryBtn} onClick={onSaveExisting} title={chrome.saveToLibraryTitle}><Save size={14} /> {chrome.save}</button>
+            )}
           </>
         )}
         {features.jsonView && (

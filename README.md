@@ -104,7 +104,7 @@ Every optional UI surface can be switched on or off independently through one `f
 | Key | Type | Default | Controls |
 |---|---|---|---|
 | `naming` | `boolean` | `true` | The editable form-title input in the toolbar. |
-| `templates` | `boolean` | `true` | The Templates library (browse/open/delete) and the "Save" button. |
+| `templates` | `boolean \| { manage?: boolean; max?: number }` | `true` | The Templates library and the "Save" button. `true` = full library (browse / apply / save / overwrite / delete). `false` = no template UI. `{ manage: false }` = pick-and-apply only: the library lists templates and the user can apply one as a starting point, but can't create, overwrite, or delete them and the "Save" button is hidden. `{ max: n }` caps how many templates can be stored (default 5). |
 | `newForm` | `boolean` | `true` | The "New Form" reset button. |
 | `autosave` | `boolean` | `true` | Autosaving the draft to `storage`. The initial draft *load* always happens regardless — this only gates the write path. |
 | `jsonView` | `boolean` | `true` | The "View JSON" button and modal. |
