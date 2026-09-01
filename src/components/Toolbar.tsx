@@ -1,4 +1,4 @@
-import { Loader2, AlertCircle, Pencil, Eye, FilePlus2, FolderOpen, Save, Code2 } from "lucide-react";
+import { Loader2, AlertCircle, Pencil, Eye, FilePlus2, FolderOpen, Save, Code2, ClipboardCopy, ClipboardPaste, Check } from "lucide-react";
 import type { ChromeShape } from "../i18n/chrome";
 import type { LanguageOption, LocalizedString } from "../types";
 import type { ResolvedFeatures } from "../lib/features";
@@ -21,15 +21,20 @@ export interface ToolbarProps {
   onTitleChange: (value: string) => void;
   onLanguageChange: (code: string) => void;
   onModeChange: (mode: "build" | "preview") => void;
+  clipboardReady: boolean;
+  templateCopied: boolean;
   onNewForm: () => void;
   onOpenLibrary: () => void;
   onSaveExisting: () => void;
   onOpenJson: () => void;
+  onCopyTemplate: () => void;
+  onPasteTemplate: () => void;
 }
 
 export function Toolbar({
   title, language, languages, mode, saveState, templateState, activeTemplateTitle, templateDirty, chrome, features, savedFormsCount,
-  onTitleChange, onLanguageChange, onModeChange, onNewForm, onOpenLibrary, onSaveExisting, onOpenJson,
+  clipboardReady, templateCopied,
+  onTitleChange, onLanguageChange, onModeChange, onNewForm, onOpenLibrary, onSaveExisting, onOpenJson, onCopyTemplate, onPasteTemplate,
 }: ToolbarProps) {
   return (
     <div style={styles.toolbar}>
@@ -85,6 +90,27 @@ export function Toolbar({
         )}
         {features.jsonView && (
           <button style={styles.ghostBtn} onClick={onOpenJson}><Code2 size={14} /> {chrome.viewJson}</button>
+        )}
+        {features.templateClipboard && (
+          <>
+            <button
+              style={styles.iconBtn}
+              onClick={onCopyTemplate}
+              title={chrome.copyTemplateTitle}
+              aria-label={chrome.copyTemplate}
+            >
+              {templateCopied ? <Check size={14} /> : <ClipboardCopy size={14} />}
+            </button>
+            <button
+              style={styles.iconBtn}
+              onClick={onPasteTemplate}
+              disabled={!clipboardReady}
+              title={chrome.pasteTemplateTitle}
+              aria-label={chrome.pasteTemplate}
+            >
+              <ClipboardPaste size={14} />
+            </button>
+          </>
         )}
       </div>
     </div>

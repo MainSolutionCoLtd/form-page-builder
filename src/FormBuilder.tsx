@@ -12,10 +12,12 @@ import { t } from "./lib/bilingual";
 import { mixHex } from "./lib/color";
 import { localStorageAdapter } from "./lib/storage/localStorageAdapter";
 import { migrateDocument } from "./lib/migrate";
+import { parseTemplate, TEMPLATE_FORMAT } from "./lib/template";
 import { resolveFeatures } from "./lib/features";
 import { useTheme } from "./hooks/useTheme";
 import { useFormDocument } from "./hooks/useFormDocument";
 import { usePersistence } from "./hooks/usePersistence";
+import { useTemplateClipboard } from "./hooks/useTemplateClipboard";
 import { useDragReorder } from "./hooks/useDragReorder";
 import { Toolbar } from "./components/Toolbar";
 import { Palette } from "./components/Palette";
@@ -41,6 +43,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   initialMode,
   onModeChange,
   onTemplateChange,
+  templateClipboardKey,
 }, ref) {
   const features = resolveFeatures(featuresProp);
   const storage = storageProp ?? localStorageAdapter;
@@ -60,6 +63,8 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const [showJson, setShowJson] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [templateCopied, setTemplateCopied] = useState(false);
+  const clipboard = useTemplateClipboard(templateClipboardKey);
   // Only meaningful below the 720px breakpoint (see globalCss) where Palette
   // and Inspector become full-bleed drawers over Canvas instead of columns;
   // harmless to keep updating above it since the CSS there ignores it.
@@ -96,15 +101,32 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
     }).catch(() => {});
   }
 
+  function applyDocument(migrated: ReturnType<typeof migrateDocument>) {
+    if (!migrated) return false;
+    doc.loadDocument(migrated);
+    replaceThemeOverrides(migrated.themeOverrides);
+    return true;
+  }
+
+  function copyTemplate() {
+    clipboard.copyTemplate(jsonDoc);
+    setTemplateCopied(true);
+    setTimeout(() => setTemplateCopied(false), 1500);
+  }
+
+  function pasteTemplate() {
+    const migrated = clipboard.readTemplate();
+    if (!migrated) return;
+    if (typeof window !== "undefined" && !window.confirm(chrome.pasteTemplateConfirm)) return;
+    applyDocument(migrated);
+  }
+
   useImperativeHandle(ref, () => ({
     getDocument: () => jsonDoc,
     exportJson: () => jsonString,
-    loadDocument: (raw) => {
-      const migrated = migrateDocument(raw);
-      if (!migrated) return;
-      doc.loadDocument(migrated);
-      replaceThemeOverrides(migrated.themeOverrides);
-    },
+    loadDocument: (raw) => { applyDocument(migrateDocument(raw)); },
+    getTemplate: () => ({ __fpb: "template", v: TEMPLATE_FORMAT, document: jsonDoc }),
+    loadTemplate: (input) => applyDocument(parseTemplate(typeof input === "string" ? input : JSON.stringify(input))),
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [jsonDoc, jsonString]);
 
@@ -143,6 +165,8 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
         chrome={chrome}
         features={features}
         savedFormsCount={persistence.savedForms.length}
+        clipboardReady={clipboard.hasClipboard}
+        templateCopied={templateCopied}
         onTitleChange={doc.updateTitle}
         onLanguageChange={setLanguage}
         onModeChange={setMode}
@@ -150,6 +174,8 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
         onOpenLibrary={() => setShowLibrary(true)}
         onSaveExisting={persistence.saveExisting}
         onOpenJson={() => setShowJson(true)}
+        onCopyTemplate={copyTemplate}
+        onPasteTemplate={pasteTemplate}
       />
 
       {persistence.loadingDraft ? (

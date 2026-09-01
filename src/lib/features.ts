@@ -14,6 +14,7 @@ export interface ResolvedTemplates {
 export interface ResolvedFeatures {
   naming: boolean;
   templates: ResolvedTemplates;
+  templateClipboard: boolean;
   newForm: boolean;
   autosave: boolean;
   jsonView: boolean;
@@ -33,6 +34,7 @@ export interface ResolvedFeatures {
 export const DEFAULT_FEATURES: ResolvedFeatures = {
   naming: true,
   templates: { enabled: true, manage: true, max: DEFAULT_MAX_TEMPLATES },
+  templateClipboard: true,
   newForm: true,
   autosave: true,
   jsonView: true,

@@ -251,6 +251,23 @@ export interface FormBuilderHandle {
   loadDocument(doc: FormDocument): void;
   /** Convenience for `JSON.stringify(getDocument())`. */
   exportJson(): string;
+  /** The current document wrapped in a portable `FormTemplate` envelope — hand this to another builder's `loadTemplate()` or persist it yourself. */
+  getTemplate(): FormTemplate;
+  /** Replaces the current document from a `FormTemplate` (or its JSON string, or bare document JSON). Returns `false` if the input can't be parsed as a document. */
+  loadTemplate(input: FormTemplate | string): boolean;
+}
+
+// --- portable template ---
+/**
+ * Self-describing wrapper around a `FormDocument`. The `__fpb` tag lets a paste
+ * target tell a form-page-builder template apart from arbitrary clipboard text.
+ * Produce/consume it with `serializeTemplate` / `parseTemplate`, or via the ref
+ * handle's `getTemplate()` / `loadTemplate()`.
+ */
+export interface FormTemplate {
+  __fpb: "template";
+  v: number;
+  document: FormDocument;
 }
 
 // --- template events ---
@@ -274,6 +291,8 @@ export interface FormBuilderFeatures {
    * `{ max: number }` = cap how many templates can be stored (default 5).
    */
   templates?: boolean | { manage?: boolean; max?: number };
+  /** "Copy template" / "Paste template" icon buttons next to "View JSON". Paste is enabled only when another builder instance in this browser has copied one. Default true. */
+  templateClipboard?: boolean;
   /** "New Form" reset button. Default true. */
   newForm?: boolean;
   /** Autosave the draft to `storage`. The initial draft load always happens; this only gates the write path. Default true. */
@@ -323,4 +342,6 @@ export interface FormBuilderProps {
   onModeChange?: (mode: "build" | "preview") => void;
   /** Fires whenever a template is created, overwritten, applied, or deleted — lets a host sync its own state/backend. */
   onTemplateChange?: (change: TemplateChange) => void;
+  /** Override the localStorage key backing "Copy template" / "Paste template" (default `"form-page-builder:clipboard"`). Instances sharing a key can copy/paste between each other. */
+  templateClipboardKey?: string;
 }

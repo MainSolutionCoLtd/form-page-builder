@@ -73,8 +73,9 @@ Above ~720px wide, Build mode is the usual three-column Palette/Canvas/Inspector
 | `initialMode` | `"build" \| "preview"` | Which mode the widget mounts into (default `"build"`). Pair with `features.previewMode: false` to lock a consumer to just one mode with no tabs — e.g. a fill-only embed that never shows the Build canvas. Or leave `previewMode` on and pick `initialMode` per document (e.g. `"preview"` once a document already has saved data) so the widget opens on the right mode while still letting the built-in tabs switch it. |
 | `onModeChange` | `(mode: "build" \| "preview") => void` | Fires on mount and on every Build/Preview toggle. Lets a host mirror the current mode (e.g. to show its own Save button only in Build mode) without building a separate tab UI around the widget. |
 | `onTemplateChange` | `(change: TemplateChange) => void` | Fires when a template is created (`source: "new"`), overwritten (`"saved"`), applied as the working document (`"applied"`), or deleted (`"deleted"`). `change` is `{ id: string \| null; title: string; source }`. Useful for syncing a host's own state or backend index. |
+| `templateClipboardKey` | `string` | Overrides the localStorage key behind "Copy template" / "Paste template" (default `"form-page-builder:clipboard"`). Instances sharing a key can copy/paste between each other. |
 
-A `ref` on `<FormBuilder />` gives you a `FormBuilderHandle` (`getDocument()` / `loadDocument()` / `exportJson()`) — see "Programmatic integration" below.
+A `ref` on `<FormBuilder />` gives you a `FormBuilderHandle` (`getDocument()` / `loadDocument()` / `exportJson()` / `getTemplate()` / `loadTemplate()`) — see "Programmatic integration" and "Copy / paste templates" below.
 
 ### Features: `features`
 
@@ -109,6 +110,7 @@ Every optional UI surface can be switched on or off independently through one `f
 | `newForm` | `boolean` | `true` | The "New Form" reset button. |
 | `autosave` | `boolean` | `true` | Autosaving the draft to `storage`. The initial draft *load* always happens regardless — this only gates the write path. |
 | `jsonView` | `boolean` | `true` | The "View JSON" button and modal. |
+| `templateClipboard` | `boolean` | `true` | The "Copy template" / "Paste template" icon buttons next to "View JSON". Paste is enabled only once another builder instance in the same browser has copied one. |
 | `previewMode` | `boolean` | `true` | The Build/Preview tabs. When `false`, the tabs are hidden and the builder stays in whichever mode it started in (`initialMode`, Build by default). |
 | `languageSwitcher` | `boolean` | `true` | The language-switcher pill in the toolbar. |
 | `design` | `boolean` | `false` | The global "Design" tab (colors/spacing), i.e. the old `themeEditable` prop. |
@@ -225,6 +227,24 @@ function BuilderPage() {
   if (!initialDocument) return null;
   return <FormBuilder ref={ref} initialDocument={initialDocument} />;
 }
+```
+
+### Copy / paste templates
+
+The toolbar's "Copy template" / "Paste template" icons (next to "View JSON", toggle with `features.templateClipboard`) let a user copy the current form from one builder and paste it into another — across pages, tabs, and reloads in the same browser. Copy writes a portable envelope to a localStorage key (`templateClipboardKey`, default `"form-page-builder:clipboard"`); every mounted builder watches that key, so Paste lights up everywhere as soon as something is copied. Paste asks for confirmation, then replaces the working document.
+
+The same portable object is available programmatically — use it to hand a template to your own storage, or to move one between builders without the clipboard:
+
+```tsx
+import { FormBuilder, serializeTemplate, parseTemplate, type FormBuilderHandle } from "form-page-builder";
+
+// via the ref handle
+const tpl = ref.current.getTemplate();        // { __fpb: "template", v: 1, document }
+ref.current.loadTemplate(tpl);                 // accepts the object or its JSON string; returns false if unparseable
+
+// or the standalone helpers (e.g. to persist to your backend)
+const json = serializeTemplate(ref.current.getDocument());
+const doc = parseTemplate(json);               // also accepts bare "View JSON" output; null if not a document
 ```
 
 ## Using in a plain HTML page (no bundler)
