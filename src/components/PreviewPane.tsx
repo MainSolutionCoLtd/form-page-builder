@@ -98,20 +98,20 @@ export function PreviewPane({ title, sections, onFieldChange, language, strings,
         {features.deviceToggle && (
           <div style={styles.previewToolbar}><Segmented options={deviceOptions} value={device} onChange={setDevice} /></div>
         )}
-        <div style={{ ...styles.previewCard, maxWidth, width: "100%" }}>
-          <h2 style={styles.previewTitle}>{t(title, language)}</h2>
+        <div className="fb-form" style={{ ...styles.previewCard, maxWidth, width: "100%" }}>
+          {features.formTitle && <h2 style={styles.previewTitle}>{t(title, language)}</h2>}
           {allFields.length === 0 && <p style={{ color: "var(--fb-muted)", fontSize: 14 }}>{strings.addFieldsHint}</p>}
 
           {sections.map((section) => {
             return (
-              <div key={section.id} style={{ background: section.background || "transparent", padding: section.background ? 16 : 0, borderRadius: section.background ? 10 : 0, marginBottom: "var(--fb-space-section)" }}>
+              <div key={section.id} className="fb-section" data-section-id={section.id} style={{ background: section.background || "transparent", padding: section.background ? 16 : 0, borderRadius: section.background ? 10 : 0, marginBottom: "var(--fb-space-section)" }}>
                 {t(section.title, language) && <h3 style={styles.sectionRuntimeTitle}>{t(section.title, language)}</h3>}
                 <div style={styles.previewGrid}>
                   {section.fields.map((field) => {
                     const width = effectiveWidth(field.width, device);
                     const flexBasis = `1 1 calc(${WIDTH_PERCENT[width]} - 14px)`;
                     return (
-                      <div key={field.id} style={{ flex: flexBasis, minWidth: 0, alignSelf: ALIGN_MAP[field.verticalAlign || "top"] }}>
+                      <div key={field.id} className={`fb-field fb-field--${field.type} fb-field--${field.id}`} data-field-id={field.id} style={{ flex: flexBasis, minWidth: 0, alignSelf: ALIGN_MAP[field.verticalAlign || "top"] }}>
                         <FieldBlock field={field} lang={language} onFieldChange={onFieldChange} strings={strings} chrome={chrome} error={errors[field.id]} onButtonAction={handleButtonAction} />
                         {field.type === "button" && field.id === attemptedButtonId && Object.keys(errors).length > 0 && (
                           <p style={styles.formErrorNote}><CircleAlert size={13} /> {strings.fixErrors}</p>

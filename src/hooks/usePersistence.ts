@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ChromeShape } from "../i18n/chrome";
 import type { DocumentFields, FormDocument, LocalizedString, SavedFormMeta, StorageAdapter, TemplateChange, ThemeOverrides } from "../types";
 import { DRAFT_KEY, INDEX_KEY, formKey } from "../lib/storage/keys";
-import { migrateDocument } from "../lib/migrate";
+import { DOCUMENT_VERSION, migrateDocument } from "../lib/migrate";
 import { genFormId } from "../lib/id";
 import { bi, t } from "../lib/bilingual";
 
@@ -122,7 +122,7 @@ export function usePersistence({
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
     autosaveTimer.current = setTimeout(async () => {
       try {
-        await storage.set(DRAFT_KEY, JSON.stringify({ ...document, currentFormId }));
+        await storage.set(DRAFT_KEY, JSON.stringify({ version: DOCUMENT_VERSION, ...document, currentFormId }));
         setSaveState("saved");
       } catch {
         setSaveState("error");
@@ -147,7 +147,7 @@ export function usePersistence({
     try {
       const newTitle = bi(name, "");
       const docToSave: DocumentFields = { ...document, title: newTitle };
-      await storage.set(formKey(id), JSON.stringify({ ...docToSave, id, updatedAt: now }));
+      await storage.set(formKey(id), JSON.stringify({ version: DOCUMENT_VERSION, ...docToSave, id, updatedAt: now }));
       const next = [...savedForms, { id, title: name, updatedAt: now }];
       await storage.set(INDEX_KEY, JSON.stringify(next));
       setSavedForms(next);
@@ -171,7 +171,7 @@ export function usePersistence({
     const now = Date.now();
     setTemplateState("saving");
     try {
-      await storage.set(formKey(currentFormId), JSON.stringify({ ...document, id: currentFormId, updatedAt: now }));
+      await storage.set(formKey(currentFormId), JSON.stringify({ version: DOCUMENT_VERSION, ...document, id: currentFormId, updatedAt: now }));
       const next = savedForms.map((f) => (f.id === currentFormId ? { ...f, title: t(document.title, "en"), updatedAt: now } : f));
       setSavedForms(next);
       await storage.set(INDEX_KEY, JSON.stringify(next));

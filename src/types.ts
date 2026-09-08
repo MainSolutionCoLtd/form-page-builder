@@ -278,6 +278,8 @@ export interface TemplateChange {
 export interface FormBuilderFeatures {
   /** Editable form title input in the Toolbar. Default true. */
   naming?: boolean;
+  /** Render the form title as a heading above the fields in Preview. Default false — the host usually shows the form name in its own chrome. */
+  formTitle?: boolean;
   /**
    * Templates library. `true` (default) = full CRUD + toolbar "Save"; `false` = hidden.
    * `{ manage: false }` = pick-and-apply only (no save/overwrite/delete). `{ max }` caps the count (default 5).

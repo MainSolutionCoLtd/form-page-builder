@@ -11,6 +11,7 @@ export interface ResolvedTemplates {
 
 export interface ResolvedFeatures {
   naming: boolean;
+  formTitle: boolean;
   templates: ResolvedTemplates;
   templateClipboard: boolean;
   newForm: boolean;
@@ -31,6 +32,7 @@ export interface ResolvedFeatures {
 
 export const DEFAULT_FEATURES: ResolvedFeatures = {
   naming: true,
+  formTitle: false,
   templates: { enabled: true, manage: true, max: DEFAULT_MAX_TEMPLATES },
   templateClipboard: true,
   newForm: true,

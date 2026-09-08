@@ -107,6 +107,7 @@ Every optional UI surface can be switched on or off independently through one `f
 | Key | Type | Default | Controls |
 |---|---|---|---|
 | `naming` | `boolean` | `true` | The editable form-title input in the toolbar. |
+| `formTitle` | `boolean` | `false` | Renders the form title as an `<h2>` heading above the fields in Preview. Off by default — the host app usually shows the form's name in its own chrome, so leave this off to avoid a duplicate. |
 | `templates` | `boolean \| { manage?: boolean; max?: number }` | `true` | The Templates library and the "Save" button. `true` = full library (browse / apply / save / overwrite / delete). `false` = no template UI. `{ manage: false }` = pick-and-apply only: the library lists templates and the user can apply one as a starting point, but can't create, overwrite, or delete them and the "Save" button is hidden. `{ max: n }` caps how many templates can be stored (default 5). |
 | `newForm` | `boolean` | `true` | The "New Form" reset button. |
 | `autosave` | `boolean` | `true` | Autosaving the draft to `storage`. The initial draft *load* always happens regardless — this only gates the write path. |
@@ -125,6 +126,20 @@ Every optional UI surface can be switched on or off independently through one `f
 | `maxFields` | `number` | `undefined` (unlimited) | Caps the total number of input-type fields (not content blocks) addable across the whole document. Once reached, the Form Fields palette buttons disable until a field is removed. |
 
 Disabling `contentBlocks`/`fieldTypes` for a given type only hides it from the palette going forward — if a document loaded via `initialDocument` (or a saved template) already contains fields of a now-disabled type, they still render and remain editable in Build mode; nothing is stripped or hidden.
+
+### Styling hooks
+
+The widget styles itself with inline styles and CSS custom properties (see theming below), but the rendered form also carries stable, rule-free class names so a host stylesheet can target it:
+
+| Class | On |
+|---|---|
+| `.fb-form` | The Preview form container. |
+| `.fb-section` | Each section wrapper (also `data-section-id`). |
+| `.fb-field` | Every field wrapper, in Preview and on the Build canvas (also `data-field-id`). |
+| `.fb-field--<type>` | Same wrapper, by field type — `fb-field--input`, `fb-field--select`, `fb-field--button`, … |
+| `.fb-field--<id>` | Same wrapper, by field id (`fb-field--field_1`). Field ids are sequential (`field_1`, `field_2`, …) and stable across reloads. |
+
+These are additive hooks only — the package ships no rules for them, so anything you write wins without `!important`.
 
 ### Features vs. theming
 

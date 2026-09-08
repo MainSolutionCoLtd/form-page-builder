@@ -11,7 +11,7 @@ import { CHROME } from "./i18n/chrome";
 import { t } from "./lib/bilingual";
 import { mixHex } from "./lib/color";
 import { localStorageAdapter } from "./lib/storage/localStorageAdapter";
-import { migrateDocument } from "./lib/migrate";
+import { DOCUMENT_VERSION, migrateDocument } from "./lib/migrate";
 import { parseTemplate, TEMPLATE_FORMAT } from "./lib/template";
 import { resolveFeatures } from "./lib/features";
 import { useTheme } from "./hooks/useTheme";
@@ -87,7 +87,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   });
 
   const jsonDoc = useMemo(() => ({
-    version: 5 as const,
+    version: DOCUMENT_VERSION,
     title: doc.title, theme, themeOverrides,
     sections: doc.sections.map((s) => ({ id: s.id, title: s.title, background: s.background, collapsed: s.collapsed, fields: s.fields })),
   }), [doc.title, doc.sections, theme, themeOverrides]);
