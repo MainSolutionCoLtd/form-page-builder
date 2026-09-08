@@ -113,7 +113,7 @@ const DEMO_STRINGS = {
       full: {
         title: "Full-featured (default)",
         description:
-          "Every toolbar action, the Design tab, and all block/field types available — this is what <FormBuilder /> looks like with no props at all (aside from turning the Design tab on, since that one defaults to off).",
+          "Every toolbar action, the Design tab, and all block/field types available — this is what <FormBuilder /> looks like with no props at all (aside from turning on the Design tab and the Preview form-title heading, since both default to off).",
       },
       minimal: {
         title: "Minimal (forms-only embed)",
@@ -161,7 +161,7 @@ const DEMO_STRINGS = {
       full: {
         title: "フル機能（デフォルト）",
         description:
-          "すべてのツールバー操作、Designタブ、すべてのブロック/フィールドタイプが利用可能です — propsを一切渡さない場合の <FormBuilder /> はこの状態になります（Designタブはデフォルトで無効なので、そこだけ design: true で有効化しています）。",
+          "すべてのツールバー操作、Designタブ、すべてのブロック/フィールドタイプが利用可能です — propsを一切渡さない場合の <FormBuilder /> はこの状態になります（Designタブとプレビューのフォームタイトル見出しはデフォルトで無効なので、design: true と formTitle: true で有効化しています）。",
       },
       minimal: {
         title: "ミニマル（フォーム専用埋め込み）",
@@ -325,7 +325,7 @@ function DemoApp() {
         <p style={{ marginTop: 0, color: "var(--demo-muted)", maxWidth: 760, overflowWrap: "break-word" }}>{s.intro}</p>
 
         <Example id="full-featured" title={s.examples.full.title} description={s.examples.full.description}>
-          <FormBuilder features={{ design: true }} theme={theme} storage={namespacedStorage("full-v2")} />
+          <FormBuilder features={{ design: true, formTitle: true }} theme={theme} storage={namespacedStorage("full-v2")} />
         </Example>
 
         <Example id="minimal" title={s.examples.minimal.title} description={s.examples.minimal.description}>

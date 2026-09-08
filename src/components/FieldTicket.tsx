@@ -39,6 +39,8 @@ export function FieldTicket({
     <div
       {...dropZoneHandlers}
       onClick={onSelect}
+      className={`fb-field fb-field--${field.type} fb-field--${field.id}`}
+      data-field-id={field.id}
       style={{
         ...styles.ticket,
         flex: `1 1 calc(${widthPct} - 10px)`,

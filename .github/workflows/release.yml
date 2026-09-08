@@ -29,18 +29,37 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run build
-      - run: npm publish --provenance --access public
+
+      # Idempotent so a failed run can be re-run to finish the mirror
+      # publish below without tripping npm's "cannot publish over an
+      # existing version" on the already-published tarball.
+      - name: Publish to npm
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "form-page-builder@$VERSION" version >/dev/null 2>&1; then
+            echo "form-page-builder@$VERSION already on npm — skipping."
+          else
+            npm publish --provenance --access public
+          fi
 
       # GitHub Packages requires a scoped name, unlike the public npm
       # package above, so rename in-place (not committed) for this
       # second, mirror-only publish that makes the release show up in
-      # the repo's Packages sidebar.
-      - run: npm pkg set name="@MainSolutionCoLtd/form-page-builder"
+      # the repo's Packages sidebar. The scope must be the repo owner
+      # lowercased — npm forbids capitals in package names.
       - uses: actions/setup-node@v7
         with:
           node-version: 24
           registry-url: https://npm.pkg.github.com
-          scope: "@MainSolutionCoLtd"
-      - run: npm publish
+          scope: "@mainsolutioncoltd"
+      - name: Mirror-publish to GitHub Packages
+        run: |
+          npm pkg set name="@mainsolutioncoltd/form-page-builder"
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "@mainsolutioncoltd/form-page-builder@$VERSION" version >/dev/null 2>&1; then
+            echo "@mainsolutioncoltd/form-page-builder@$VERSION already mirrored — skipping."
+          else
+            npm publish
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

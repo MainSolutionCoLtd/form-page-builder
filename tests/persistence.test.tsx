@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import FormBuilder from "../src/FormBuilder";
-import { DRAFT_KEY } from "../src/lib/storage/keys";
+import { DRAFT_KEY, INDEX_KEY, formKey } from "../src/lib/storage/keys";
 import { DEFAULT_THEME } from "../src/theme/defaultTheme";
 import { createMemoryStorage } from "./testUtils";
 
@@ -31,6 +32,30 @@ describe("autosave", () => {
 
     expect(await storage.get(DRAFT_KEY)).toBeNull();
   }, 2000);
+});
+
+describe("saved templates", () => {
+  it("stamps the schema version and never adds a Submit button of its own", async () => {
+    const storage = createMemoryStorage();
+    const user = userEvent.setup();
+    render(<FormBuilder storage={storage} />);
+    await screen.findByLabelText("Form title");
+
+    await user.click(screen.getByRole("button", { name: "Input" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    const nameInput = await screen.findByLabelText("Template name");
+    await user.clear(nameInput);
+    await user.type(nameInput, "Company Default");
+    await user.click(screen.getByRole("button", { name: "Save template" }));
+
+    const [{ id }] = JSON.parse((await storage.get(INDEX_KEY))!);
+    const stored = JSON.parse((await storage.get(formKey(id)))!);
+
+    expect(stored.version).toBe(5);
+    const fields = stored.sections.flatMap((s: { fields: { type: string }[] }) => s.fields);
+    expect(fields).toHaveLength(1);
+    expect(fields.some((f: { type: string }) => f.type === "button")).toBe(false);
+  }, 3000);
 });
 
 describe("initialDocument", () => {

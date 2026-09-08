@@ -124,6 +124,43 @@ describe("features.deviceToggle", () => {
   });
 });
 
+describe("features.formTitle", () => {
+  it("does not render the form title as a heading in Preview by default", async () => {
+    render(<FormBuilder storage={createMemoryStorage()} initialDocument={doc} initialMode="preview" />);
+    await screen.findByDisplayValue("Contact");
+
+    expect(screen.queryByRole("heading", { name: "Contact" })).not.toBeInTheDocument();
+  });
+
+  it("renders the form title as a heading in Preview when formTitle is true", async () => {
+    render(
+      <FormBuilder
+        storage={createMemoryStorage()}
+        initialDocument={doc}
+        initialMode="preview"
+        features={{ formTitle: true }}
+      />,
+    );
+    await screen.findByDisplayValue("Contact");
+
+    expect(screen.getByRole("heading", { name: "Contact" })).toBeInTheDocument();
+  });
+});
+
+describe("structural class hooks", () => {
+  it("tags the runtime form, section, and field wrappers with fb- classes", async () => {
+    const { container } = render(
+      <FormBuilder storage={createMemoryStorage()} initialDocument={doc} initialMode="preview" />,
+    );
+    await screen.findByDisplayValue("Contact");
+
+    expect(container.querySelector(".fb-form")).toBeInTheDocument();
+    expect(container.querySelector(".fb-section")).toBeInTheDocument();
+    expect(container.querySelector(".fb-field.fb-field--input.fb-field--f1")).toBeInTheDocument();
+    expect(container.querySelector(".fb-field--button")).toBeInTheDocument();
+  });
+});
+
 describe("Preview mode submit flow", () => {
   it("blocks submit and shows a validation error when a required field is empty", async () => {
     const { user, onSubmit } = await renderInPreview();
