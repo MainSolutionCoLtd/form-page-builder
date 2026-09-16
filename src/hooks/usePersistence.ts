@@ -187,9 +187,17 @@ export function usePersistence({
     setTemplateState("loading");
     try {
       const raw = await storage.get(formKey(id));
-      if (!raw) { setTemplateState("error"); return false; }
+      if (!raw) {
+        console.error(`[form-page-builder] loadForm(${id}): storage returned no data for this id`);
+        setTemplateState("error");
+        return false;
+      }
       const doc = migrateDocument(JSON.parse(raw));
-      if (!doc) { setTemplateState("error"); return false; }
+      if (!doc) {
+        console.error(`[form-page-builder] loadForm(${id}): stored data failed migrateDocument()`, raw);
+        setTemplateState("error");
+        return false;
+      }
       onLoadDocument(doc);
       onLoadThemeOverrides(doc.themeOverrides);
       // Pick-and-apply mode: template is just a seed, so don't bind currentFormId to it.
@@ -199,7 +207,8 @@ export function usePersistence({
       setTemplateState("idle");
       onTemplateChange?.({ id, title: t(doc.title, language), source: "applied" });
       return true;
-    } catch {
+    } catch (err) {
+      console.error(`[form-page-builder] loadForm(${id}) threw`, err);
       setTemplateState("error");
       return false;
     }
@@ -208,6 +217,7 @@ export function usePersistence({
   async function deleteForm(id: string) {
     if (!templateManage) return;
     const removed = savedForms.find((f) => f.id === id);
+    setTemplateState("loading");
     try {
       await storage.delete(formKey(id));
       const next = savedForms.filter((f) => f.id !== id);
@@ -217,6 +227,7 @@ export function usePersistence({
         setCurrentFormId(null);
         savedSnapshot.current = null;
       }
+      setTemplateState("idle");
       onTemplateChange?.({ id: currentFormId === id ? null : id, title: removed?.title ?? "", source: "deleted" });
     } catch {
       setTemplateState("error");
