@@ -1,5 +1,5 @@
 import type { DocumentFields, FormField, Section } from "../types";
-import { LEGACY_INPUT_TYPES } from "../constants/fieldTypes";
+import { LEGACY_INPUT_TYPES, getMeta } from "../constants/fieldTypes";
 import { bi } from "./bilingual";
 import { defaultSection } from "./fieldDefaults";
 import { genSectionId } from "./id";
@@ -35,6 +35,17 @@ export function migrateField(field: Record<string, any>): FormField {
     f.submitScope = f.submitScope === "section" ? "section" : "form";
   }
   f.verticalAlign = f.verticalAlign || "top";
+  // Defaults that compactDocument() may have omitted from a persisted document.
+  const meta = getMeta(f.type);
+  f.width = f.width || "1/1";
+  f.labelPosition = f.labelPosition || "top";
+  f.showIcon = !!f.showIcon;
+  f.displayIcon = f.displayIcon || meta.defaultIcon;
+  if (!meta.isContent) {
+    f.required = !!f.required;
+    if (meta.placeholder && !f.placeholder) f.placeholder = bi();
+    if (f.defaultValue === undefined) f.defaultValue = meta.boolean ? false : meta.multiValue ? [] : "";
+  }
   return f as FormField;
 }
 
