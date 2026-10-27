@@ -123,7 +123,7 @@ Every optional UI surface can be switched on or off independently through one `f
 | `sectionBackground` | `boolean` | inherits `sections` | Per-section background-color swatches + custom-color picker in the section header. Independent of `sections` — set it `false` to lock section backgrounds while keeping the structural controls, or leave it unset and it follows whatever `sections` is. |
 | `dragReorder` | `boolean` | `true` | Drag-to-reorder fields within a section. |
 | `deviceToggle` | `boolean` | `true` | The Laptop/Tablet/Mobile width switcher above the Preview canvas. When `false`, Preview always renders at the Laptop (full) width. |
-| `maxFields` | `number` | `undefined` (unlimited) | Caps the total number of input-type fields (not content blocks) addable across the whole document. Once reached, the Form Fields palette buttons disable until a field is removed. |
+| `maxFields` | `number` | `undefined` (unlimited) | Caps the total number of input-type fields (not content blocks) addable across the whole document. The palette shows a live "Fields: n / max" count; once reached, the Form Fields buttons disable and a limit message replaces the count until a field is removed. |
 
 Disabling `contentBlocks`/`fieldTypes` for a given type only hides it from the palette going forward — if a document loaded via `initialDocument` (or a saved template) already contains fields of a now-disabled type, they still render and remain editable in Build mode; nothing is stripped or hidden.
 
@@ -272,6 +272,20 @@ ref.current.loadTemplate(tpl);                 // accepts the object or its JSON
 const json = serializeTemplate(ref.current.getDocument());
 const doc = parseTemplate(json);               // also accepts bare "View JSON" output; null if not a document
 ```
+
+### Smaller stored documents
+
+Drafts and saved templates written through `storage` are compacted automatically: props equal to their default (`hideLabel`, `width`, `verticalAlign`, `labelPosition`, `showIcon`, `required`, the type's default icon, empty placeholders/default values, empty non-`en` translations) are omitted and the document is stamped `compact: 1`. Loading restores them, so older full documents still load unchanged.
+
+`getDocument()` still returns the full document. If you store it yourself, compact it first:
+
+```tsx
+import { compactDocument } from "form-page-builder";
+
+await save(JSON.stringify(compactDocument(ref.current.getDocument())));
+```
+
+Documents saved in the compact form need this package version (or newer) to be read back correctly, so upgrade every app that reads them together.
 
 ## Using in a plain HTML page (no bundler)
 
