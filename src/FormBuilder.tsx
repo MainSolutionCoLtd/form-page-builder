@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Loader2, Menu, SlidersHorizontal } from "lucide-react";
 import type { FormBuilderHandle, FormBuilderProps } from "./types";
@@ -46,6 +46,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   onTemplateChange,
   templateClipboardKey,
   onImageUpload,
+  onChange,
 }, ref) {
   const features = resolveFeatures(featuresProp);
   const storage = storageProp ?? localStorageAdapter;
@@ -94,6 +95,16 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   }), [doc.title, doc.sections, theme, themeOverrides]);
   const jsonString = useMemo(() => JSON.stringify(jsonDoc, null, 2), [jsonDoc]);
 
+  // The document as it was once loading finished; `onChange` reports whether the current one differs from it.
+  const baseline = useRef<string | null>(null);
+  const lastDirty = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (persistence.loadingDraft) return;
+    if (baseline.current === null) { baseline.current = jsonString; lastDirty.current = false; return; }
+    const dirty = jsonString !== baseline.current;
+    if (dirty !== lastDirty.current) { lastDirty.current = dirty; onChange?.({ dirty }); }
+  }, [jsonString, persistence.loadingDraft]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function copyJson() {
     navigator.clipboard.writeText(jsonString).then(() => {
       setCopied(true);
@@ -122,6 +133,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
     getDocument: () => jsonDoc,
     exportJson: () => jsonString,
     loadDocument: (raw) => { applyDocument(migrateDocument(raw)); },
+    markSaved: () => { baseline.current = jsonString; if (lastDirty.current) { lastDirty.current = false; onChange?.({ dirty: false }); } },
     getTemplate: () => ({ __fpb: "template", v: TEMPLATE_FORMAT, document: jsonDoc }),
     loadTemplate: (input) => applyDocument(parseTemplate(typeof input === "string" ? input : JSON.stringify(input))),
     // eslint-disable-next-line react-hooks/exhaustive-deps

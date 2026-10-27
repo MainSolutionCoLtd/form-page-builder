@@ -1,7 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { createRef } from "react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import FormBuilder from "../src/FormBuilder";
+import type { FormBuilderHandle } from "../src/types";
 import { createMemoryStorage } from "./testUtils";
 
 describe("features prop", () => {
@@ -182,5 +184,28 @@ describe("features.submitButtons", () => {
     await user.click(screen.getByRole("button", { name: "Button" }));
     expect(screen.queryByText("Submit")).not.toBeInTheDocument();
     expect(screen.getByPlaceholderText("https://...")).toBeInTheDocument();
+  });
+});
+
+describe("onChange / markSaved", () => {
+  it("reports dirty after an edit, not on load, and clears on markSaved", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const ref = createRef<FormBuilderHandle>();
+    render(<FormBuilder ref={ref} storage={createMemoryStorage()} onChange={onChange} />);
+    await screen.findByLabelText("Form title");
+    expect(onChange).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Paragraph" }));
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith({ dirty: true }));
+    expect(onChange).toHaveBeenCalledTimes(1); // further edits while dirty do not re-fire
+
+    await user.click(screen.getByRole("button", { name: "Button" }));
+    expect(onChange).toHaveBeenCalledTimes(1);
+
+    act(() => ref.current!.markSaved());
+    expect(onChange).toHaveBeenLastCalledWith({ dirty: false });
+    await user.click(screen.getByRole("button", { name: "Image" }));
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith({ dirty: true }));
   });
 });
