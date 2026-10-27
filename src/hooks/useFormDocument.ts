@@ -130,7 +130,10 @@ export function useFormDocument({ language, chrome }: UseFormDocumentArgs) {
       ...s,
       fields: s.fields.map((f) => {
         if (f.id !== fieldId || !("options" in f) || !f.options) return f;
-        const n = f.options.length + 1;
+        // Next free number, not length+1: after a removal that could repeat an existing value.
+        const used = new Set(f.options.map((o) => o.value));
+        let n = f.options.length + 1;
+        while (used.has(`option_${n}`)) n++;
         return { ...f, options: [...f.options, { label: withLang(bi(), language, chrome.optionSeed(n)), value: `option_${n}` }] };
       }),
     })));
@@ -138,7 +141,15 @@ export function useFormDocument({ language, chrome }: UseFormDocumentArgs) {
   function removeOption(fieldId: string, optIdx: number) {
     setSections((prev) => prev.map((s) => ({
       ...s,
-      fields: s.fields.map((f) => (f.id !== fieldId || !("options" in f) || !f.options ? f : { ...f, options: f.options.filter((_, i) => i !== optIdx) })),
+      fields: s.fields.map((f) => {
+        if (f.id !== fieldId || !("options" in f) || !f.options) return f;
+        const removed = f.options[optIdx]?.value;
+        const options = f.options.filter((_, i) => i !== optIdx);
+        // Keep defaultValue pointing only at options that still exist.
+        if (f.type === "checkboxGroup") return { ...f, options, defaultValue: f.defaultValue.filter((v) => v !== removed) };
+        if ((f.type === "select" || f.type === "radio") && f.defaultValue === removed) return { ...f, options, defaultValue: "" };
+        return { ...f, options };
+      }),
     })));
   }
 
