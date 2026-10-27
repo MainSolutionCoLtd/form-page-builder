@@ -149,10 +149,14 @@ function InspectorBody({ selected, language, chrome, features, onUpdateField, on
         <>
           <div style={styles.inspectorDivider} />
           <div style={styles.panelHeading}>{chrome.buttonActionTitle}</div>
-          <label style={styles.propLabel}>{chrome.buttonAction}</label>
-          <Segmented options={[{ value: "link", label: chrome.actionLink }, { value: "submit", label: chrome.actionSubmit }]} value={selected.action || "submit"} onChange={(v) => onUpdateField({ action: v as FieldPatch["action"] })} />
+          {features.submitButtons && (
+            <>
+              <label style={styles.propLabel}>{chrome.buttonAction}</label>
+              <Segmented options={[{ value: "link", label: chrome.actionLink }, { value: "submit", label: chrome.actionSubmit }]} value={selected.action || "submit"} onChange={(v) => onUpdateField({ action: v as FieldPatch["action"] })} />
+            </>
+          )}
 
-          {selected.action === "link" ? (
+          {selected.action === "link" || !features.submitButtons ? (
             <>
               <label style={styles.propLabel}>{chrome.linkOptional}</label>
               <input style={styles.propInput} placeholder="https://..." value={selected.href || ""} onChange={(e) => onUpdateField({ href: e.target.value })} />

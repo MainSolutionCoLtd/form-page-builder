@@ -163,3 +163,14 @@ describe("image upload + maxImages", () => {
     expect(screen.getByRole("button", { name: "Image" })).toBeEnabled();
   });
 });
+
+describe("features.submitButtons", () => {
+  it("hides the action picker and defaults new buttons to link when false", async () => {
+    const user = userEvent.setup();
+    render(<FormBuilder storage={createMemoryStorage()} features={{ submitButtons: false }} />);
+    await screen.findByLabelText("Form title");
+    await user.click(screen.getByRole("button", { name: "Button" }));
+    expect(screen.queryByText("Submit")).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText("https://...")).toBeInTheDocument();
+  });
+});

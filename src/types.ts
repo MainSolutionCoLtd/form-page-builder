@@ -317,6 +317,8 @@ export interface FormBuilderFeatures {
   maxFields?: number;
   /** Caps the number of image blocks across the whole document. Default undefined (unlimited). */
   maxImages?: number;
+  /** Offer "Submit" as a button action. When false, buttons are link-only: new buttons default to link and the action picker is hidden. Default true. */
+  submitButtons?: boolean;
 }
 
 // --- props ---

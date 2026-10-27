@@ -124,6 +124,7 @@ Every optional UI surface can be switched on or off independently through one `f
 | `sectionBackground` | `boolean` | inherits `sections` | Per-section background-color swatches + custom-color picker in the section header. Independent of `sections` — set it `false` to lock section backgrounds while keeping the structural controls, or leave it unset and it follows whatever `sections` is. |
 | `dragReorder` | `boolean` | `true` | Drag-to-reorder fields within a section. |
 | `deviceToggle` | `boolean` | `true` | The Laptop/Tablet/Mobile width switcher above the Preview canvas. When `false`, Preview always renders at the Laptop (full) width. |
+| `submitButtons` | `boolean` | `true` | When `false`, buttons are link-only: new buttons default to the link action and the Link/Submit picker is hidden. Use it when the host stores no submissions. |
 | `maxImages` | `number` | `undefined` (unlimited) | Caps the number of image blocks across the whole document. The palette shows "Images: n / max"; at the cap the Image button disables and Duplicate on an image (or a section containing images) is ignored until one is removed. |
 | `maxFields` | `number` | `undefined` (unlimited) | Caps the total number of input-type fields (not content blocks) addable across the whole document. The palette shows a live "Fields: n / max" count; once reached, the Form Fields buttons disable and a limit message replaces the count until a field is removed. |
 

@@ -55,7 +55,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const strings = { ...(DEFAULT_STRINGS[language as keyof typeof DEFAULT_STRINGS] || DEFAULT_STRINGS.en), ...((stringsOverride && stringsOverride[language]) || {}) };
   const chrome = { ...(CHROME[language as keyof typeof CHROME] || CHROME.en), ...((chromeOverride && chromeOverride[language]) || {}) };
 
-  const doc = useFormDocument({ language, chrome });
+  const doc = useFormDocument({ language, chrome, linkButtonsOnly: !features.submitButtons });
   const drag = useDragReorder(doc.reorderWithinSection);
 
   const [mode, setModeState] = useState<"build" | "preview">(initialMode ?? "build");
