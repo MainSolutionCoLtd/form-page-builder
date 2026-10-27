@@ -60,7 +60,7 @@ function InspectorBody({ selected, language, chrome, features, onUpdateField, on
     if (!file || !onImageUpload || selected.type !== "image") return;
     setUploading(true); setUploadError(false);
     try { onUpdateField({ src: await onImageUpload(file, { fieldId: selected.id, shape: selected.shape || "square" }) }); }
-    catch { setUploadError(true); }
+    catch (e) { if ((e as { name?: string })?.name !== "AbortError") setUploadError(true); } // an AbortError is a user cancel: leave the block quietly
     finally { setUploading(false); if (fileRef.current) fileRef.current.value = ""; }
   };
   const meta = getMeta(selected.type);

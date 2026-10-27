@@ -153,6 +153,16 @@ describe("image upload + maxImages", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Upload failed");
   });
 
+  it("stays quiet when the upload is cancelled with an AbortError", async () => {
+    const user = userEvent.setup();
+    render(<FormBuilder storage={createMemoryStorage()} onImageUpload={vi.fn().mockRejectedValue(new DOMException("cancelled", "AbortError"))} />);
+    await screen.findByLabelText("Form title");
+    await user.click(screen.getByRole("button", { name: "Image" }));
+    await user.upload(document.querySelector('input[type="file"]') as HTMLInputElement, new File(["x"], "a.png", { type: "image/png" }));
+    await screen.findByRole("button", { name: "Upload image" });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("disables the Image button at features.maxImages and re-enables after a delete", async () => {
     const user = userEvent.setup();
     render(<FormBuilder storage={createMemoryStorage()} features={{ maxImages: 1 }} />);
