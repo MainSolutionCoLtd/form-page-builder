@@ -20,17 +20,21 @@ export interface PaletteProps {
   resetTheme: () => void;
   /** Placed input-type field count, for gating against `features.maxFields`. */
   fieldCount: number;
+  /** Placed image-block count, for gating against `features.maxImages`. */
+  imageCount: number;
 }
 
 export function Palette({
   activeSectionLabel, chrome, onAddField, features, theme,
-  updateThemeColor, updateThemeLayout, resetTheme, fieldCount,
+  updateThemeColor, updateThemeLayout, resetTheme, fieldCount, imageCount,
 }: PaletteProps) {
   const [tab, setTab] = useState<"blocks" | "design">("blocks");
   const contentTypes = CONTENT_TYPES.filter((f) => isContentBlockEnabled(features, f.type as ContentBlockType));
   const formTypes = FORM_TYPES.filter((f) => isFieldTypeEnabled(features, f.type as InputFieldType));
   // Content blocks aren't capped by maxFields.
   const atFieldCap = typeof features.maxFields === "number" && fieldCount >= features.maxFields;
+
+  const atImageCap = typeof features.maxImages === "number" && imageCount >= features.maxImages;
 
   return (
     <div className="fb-palette" style={styles.palette}>
@@ -64,9 +68,15 @@ export function Palette({
             <>
               <div style={styles.panelHeading}>{chrome.contentBlocks}</div>
               <div style={styles.paletteList}>
+                {typeof features.maxImages === "number" && contentTypes.some((f) => f.type === "image") && (
+                  <div role="status" style={{ ...styles.activeSectionHint, marginBottom: 2, ...(atImageCap ? { color: "var(--fb-danger)" } : {}) }}>
+                    {atImageCap ? chrome.imageLimitReached(features.maxImages) : chrome.imageCount(imageCount, features.maxImages)}
+                  </div>
+                )}
                 {contentTypes.map((f) => {
                   const Icon = f.icon;
-                  return (<button key={f.type} style={styles.paletteItem} onClick={() => onAddField(f.type)}><Icon size={16} color="var(--fb-primary)" /><span>{chrome[FIELD_TYPE_CHROME_KEY[f.type] as keyof ChromeShape] as string}</span><Plus size={13} color="var(--fb-muted)" style={{ marginLeft: "auto" }} /></button>);
+                  const capped = f.type === "image" && atImageCap;
+                  return (<button key={f.type} type="button" disabled={capped} style={capped ? { ...styles.paletteItem, opacity: 0.45, cursor: "not-allowed" } : styles.paletteItem} onClick={() => onAddField(f.type)}><Icon size={16} color="var(--fb-primary)" /><span>{chrome[FIELD_TYPE_CHROME_KEY[f.type] as keyof ChromeShape] as string}</span><Plus size={13} color="var(--fb-muted)" style={{ marginLeft: "auto" }} /></button>);
                 })}
               </div>
             </>

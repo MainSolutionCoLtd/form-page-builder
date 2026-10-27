@@ -45,6 +45,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   onModeChange,
   onTemplateChange,
   templateClipboardKey,
+  onImageUpload,
 }, ref) {
   const features = resolveFeatures(featuresProp);
   const storage = storageProp ?? localStorageAdapter;
@@ -129,6 +130,9 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   // Content blocks don't count toward `features.maxFields`.
   const fieldCount = doc.sections.reduce((n, s) => n + s.fields.filter((f) => !getMeta(f.type).isContent).length, 0);
 
+  const imageCount = doc.sections.reduce((n, s) => n + s.fields.filter((f) => f.type === "image").length, 0);
+  const atImageCap = typeof features.maxImages === "number" && imageCount >= features.maxImages;
+
   const activeSectionIdx = doc.sections.findIndex((s) => s.id === doc.activeSection?.id);
   const activeSectionLabel = t(doc.activeSection?.title, language) || `#${activeSectionIdx + 1}`;
 
@@ -208,9 +212,10 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
             <Palette
               activeSectionLabel={activeSectionLabel}
               chrome={chrome}
-              onAddField={(type) => { doc.addField(type); setMobilePanel("none"); }}
+              onAddField={(type) => { if (type === "image" && atImageCap) return; doc.addField(type); setMobilePanel("none"); }}
               features={features}
               fieldCount={fieldCount}
+              imageCount={imageCount}
               theme={theme}
               updateThemeColor={updateThemeColor}
               updateThemeLayout={updateThemeLayout}
@@ -230,14 +235,14 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
               onToggleSectionCollapse={doc.toggleSectionCollapse}
               onUpdateSectionTitle={doc.updateSectionTitle}
               onUpdateSectionBackground={doc.updateSectionBackground}
-              onDuplicateSection={doc.duplicateSection}
+              onDuplicateSection={(sectionId) => { const imgs = doc.sections.find((s) => s.id === sectionId)?.fields.filter((f) => f.type === "image").length ?? 0; if (typeof features.maxImages === "number" && imageCount + imgs > features.maxImages) return; doc.duplicateSection(sectionId); }}
               onMoveSection={doc.moveSection}
               onDeleteSection={doc.deleteSection}
               onAddSection={doc.addSection}
               onSelectField={(sectionId, fieldId) => { doc.setSelectedId(fieldId); doc.setActiveSectionId(sectionId); setMobilePanel("inspector"); }}
               onFieldChange={doc.updateField}
               onMoveField={doc.moveField}
-              onDuplicateField={doc.duplicateField}
+              onDuplicateField={(fieldId) => { if (atImageCap && doc.sections.some((s) => s.fields.some((f) => f.id === fieldId && f.type === "image"))) return; doc.duplicateField(fieldId); }}
               onDeleteField={doc.deleteField}
               getDropZoneHandlers={drag.getDropZoneHandlers}
               getDragHandleProps={drag.getDragHandleProps}
@@ -248,6 +253,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
               language={language}
               chrome={chrome}
               features={features}
+              onImageUpload={onImageUpload}
               onUpdateField={(patch) => doc.selected && doc.updateField(doc.selected.id, patch)}
               onDeleteField={() => doc.selected && doc.deleteField(doc.selected.id)}
               onUpdateOption={(optIdx, patch) => doc.selected && doc.updateOption(doc.selected.id, optIdx, patch)}

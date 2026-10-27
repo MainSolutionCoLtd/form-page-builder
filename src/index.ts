@@ -13,5 +13,5 @@ export type {
   InputField, TextareaField, SelectField, RadioField, CheckboxGroupField,
   CheckboxField, ToggleField, ParagraphField, ImageField, SubmitStyle,
   SubmitPayload, FormBuilderHandle, FormBuilderFeatures, ContentBlockType, InputFieldType,
-  FormTemplate, TemplateChange,
+  FormTemplate, TemplateChange, ImageUploadContext,
 } from "./types";

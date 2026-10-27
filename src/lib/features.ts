@@ -28,6 +28,7 @@ export interface ResolvedFeatures {
   dragReorder: boolean;
   deviceToggle: boolean;
   maxFields?: number;
+  maxImages?: number;
 }
 
 export const DEFAULT_FEATURES: ResolvedFeatures = {

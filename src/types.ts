@@ -315,6 +315,8 @@ export interface FormBuilderFeatures {
   deviceToggle?: boolean;
   /** Caps the number of input-type fields (not content blocks) addable across the whole document. Default undefined (unlimited). */
   maxFields?: number;
+  /** Caps the number of image blocks across the whole document. Default undefined (unlimited). */
+  maxImages?: number;
 }
 
 // --- props ---
@@ -338,4 +340,14 @@ export interface FormBuilderProps {
   onTemplateChange?: (change: TemplateChange) => void;
   /** localStorage key behind copy/paste (default `"form-page-builder:clipboard"`); instances sharing it can paste to each other. */
   templateClipboardKey?: string;
+  /**
+   * Adds an Upload button beside an image block's URL box. Receives the picked file (open your own crop/compress UI here if you want one)
+   * and resolves to the hosted URL, which becomes the block's `src`. Rejecting leaves the block unchanged. Omit it to keep the URL-only input.
+   */
+  onImageUpload?: (file: File, ctx: ImageUploadContext) => Promise<string>;
+}
+
+export interface ImageUploadContext {
+  fieldId: string;
+  shape: NonNullable<ImageField["shape"]>;
 }
