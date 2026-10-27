@@ -19,9 +19,15 @@ const doc = {
   }],
 };
 
+// Empty non-`en` strings read the same as absent ones, so compare modulo those.
+const slim = (v: unknown): unknown =>
+  Array.isArray(v) ? v.map(slim)
+    : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).filter(([k, x]) => !(k !== "en" && x === "")).map(([k, x]) => [k, slim(x)]))
+    : v;
+
 describe("compactDocument", () => {
   it("round-trips: migrating the compact form equals migrating the full form", () => {
-    expect(migrateDocument(compactDocument(doc as never) as typeof doc as never)).toEqual(migrateDocument(doc as never));
+    expect(slim(migrateDocument(compactDocument(doc as never) as never))).toEqual(slim(migrateDocument(doc as never)));
   });
 
   it("is smaller and drops only default-valued props", () => {
@@ -39,5 +45,18 @@ describe("compactDocument", () => {
   it("still loads a legacy full document unchanged", () => {
     const migrated = migrateDocument(doc as never)!;
     expect(migrated.sections[0].fields[0]).toMatchObject({ width: "1/1", required: false, defaultValue: "option_2" });
+  });
+
+  it("stamps a compact version and drops empty non-en translations", () => {
+    const compact = compactDocument(doc as never) as unknown as { compact: number; title: object; sections: { fields: { options?: { label: object }[] }[] }[] };
+    expect(compact.compact).toBe(1);
+    expect(compact.title).toEqual({ en: "T" });
+    expect(compact.sections[0].fields[0].options![0].label).toEqual({ en: "A" });
+  });
+
+  it("keeps a non-empty ja translation", () => {
+    const withJa = { ...doc, sections: [{ ...doc.sections[0], fields: [{ ...doc.sections[0].fields[0], label: { en: "Radio", ja: "ラジオ" } }] }] };
+    const [f] = (compactDocument(withJa as never) as unknown as typeof doc).sections[0].fields;
+    expect(f.label).toEqual({ en: "Radio", ja: "ラジオ" });
   });
 });
