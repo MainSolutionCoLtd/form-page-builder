@@ -344,7 +344,7 @@ export interface FormBuilderProps {
   templateClipboardKey?: string;
   /**
    * Adds an Upload button beside an image block's URL box. Receives the picked file (open your own crop/compress UI here if you want one)
-   * and resolves to the hosted URL, which becomes the block's `src`. Rejecting leaves the block unchanged. Omit it to keep the URL-only input.
+   * and resolves to the hosted URL, which becomes the block's `src`. Rejecting leaves the block unchanged and shows an error; reject with an `AbortError` to cancel silently (e.g. the user closed your crop dialog). Omit it to keep the URL-only input.
    */
   onImageUpload?: (file: File, ctx: ImageUploadContext) => Promise<string>;
 }
