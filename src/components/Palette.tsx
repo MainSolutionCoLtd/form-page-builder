@@ -74,6 +74,11 @@ export function Palette({
           {formTypes.length > 0 && (
             <>
               <div style={{ ...styles.panelHeading, marginTop: 16 }}>{chrome.formFields}</div>
+              {typeof features.maxFields === "number" && (
+                <div role="status" style={{ ...styles.activeSectionHint, marginBottom: 8, ...(atFieldCap ? { color: "var(--fb-danger)" } : {}) }}>
+                  {atFieldCap ? chrome.fieldLimitReached(features.maxFields) : chrome.fieldCount(fieldCount, features.maxFields)}
+                </div>
+              )}
               <div style={styles.paletteList}>
                 {formTypes.map((f) => {
                   const Icon = f.icon;
