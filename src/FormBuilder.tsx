@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Loader2, Menu, SlidersHorizontal } from "lucide-react";
 import type { FormBuilderHandle, FormBuilderProps } from "./types";
@@ -9,7 +9,7 @@ import { DEFAULT_LANGUAGES } from "./i18n/languages";
 import { DEFAULT_STRINGS } from "./i18n/strings";
 import { CHROME } from "./i18n/chrome";
 import { t } from "./lib/bilingual";
-import { mixHex } from "./lib/color";
+import { themeVars } from "./lib/resolveTheme";
 import { localStorageAdapter } from "./lib/storage/localStorageAdapter";
 import { DOCUMENT_VERSION, migrateDocument } from "./lib/migrate";
 import { parseTemplate, TEMPLATE_FORMAT } from "./lib/template";
@@ -45,6 +45,8 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   onModeChange,
   onTemplateChange,
   templateClipboardKey,
+  onImageUpload,
+  onChange,
 }, ref) {
   const features = resolveFeatures(featuresProp);
   const storage = storageProp ?? localStorageAdapter;
@@ -54,7 +56,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const strings = { ...(DEFAULT_STRINGS[language as keyof typeof DEFAULT_STRINGS] || DEFAULT_STRINGS.en), ...((stringsOverride && stringsOverride[language]) || {}) };
   const chrome = { ...(CHROME[language as keyof typeof CHROME] || CHROME.en), ...((chromeOverride && chromeOverride[language]) || {}) };
 
-  const doc = useFormDocument({ language, chrome });
+  const doc = useFormDocument({ language, chrome, linkButtonsOnly: !features.submitButtons });
   const drag = useDragReorder(doc.reorderWithinSection);
 
   const [mode, setModeState] = useState<"build" | "preview">(initialMode ?? "build");
@@ -93,6 +95,16 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   }), [doc.title, doc.sections, theme, themeOverrides]);
   const jsonString = useMemo(() => JSON.stringify(jsonDoc, null, 2), [jsonDoc]);
 
+  // The document as it was once loading finished; `onChange` reports whether the current one differs from it.
+  const baseline = useRef<string | null>(null);
+  const lastDirty = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (persistence.loadingDraft) return;
+    if (baseline.current === null) { baseline.current = jsonString; lastDirty.current = false; return; }
+    const dirty = jsonString !== baseline.current;
+    if (dirty !== lastDirty.current) { lastDirty.current = dirty; onChange?.({ dirty }); }
+  }, [jsonString, persistence.loadingDraft]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function copyJson() {
     navigator.clipboard.writeText(jsonString).then(() => {
       setCopied(true);
@@ -121,6 +133,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
     getDocument: () => jsonDoc,
     exportJson: () => jsonString,
     loadDocument: (raw) => { applyDocument(migrateDocument(raw)); },
+    markSaved: () => { baseline.current = jsonString; if (lastDirty.current) { lastDirty.current = false; onChange?.({ dirty: false }); } },
     getTemplate: () => ({ __fpb: "template", v: TEMPLATE_FORMAT, document: jsonDoc }),
     loadTemplate: (input) => applyDocument(parseTemplate(typeof input === "string" ? input : JSON.stringify(input))),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -129,21 +142,13 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   // Content blocks don't count toward `features.maxFields`.
   const fieldCount = doc.sections.reduce((n, s) => n + s.fields.filter((f) => !getMeta(f.type).isContent).length, 0);
 
+  const imageCount = doc.sections.reduce((n, s) => n + s.fields.filter((f) => f.type === "image").length, 0);
+  const atImageCap = typeof features.maxImages === "number" && imageCount >= features.maxImages;
+
   const activeSectionIdx = doc.sections.findIndex((s) => s.id === doc.activeSection?.id);
   const activeSectionLabel = t(doc.activeSection?.title, language) || `#${activeSectionIdx + 1}`;
 
-  const rootStyle: CSSProperties = {
-    ...styles.app,
-    "--fb-primary": theme.primary, "--fb-primary-soft": theme.primarySoft,
-    "--fb-danger": theme.danger, "--fb-danger-soft": theme.dangerSoft,
-    "--fb-ink": theme.ink, "--fb-muted": theme.muted, "--fb-border": theme.border,
-    "--fb-surface": theme.surface, "--fb-canvas": theme.canvas, "--fb-page-bg": theme.pageBackground,
-    "--fb-surface-2": mixHex(theme.surface, theme.ink, 0.06),
-    "--fb-space-page": `${theme.layout.pagePadding}px`, "--fb-space-canvas": `${theme.layout.canvasPadding}px`,
-    "--fb-space-section": `${theme.layout.sectionGap}px`, "--fb-space-field": `${theme.layout.fieldGap}px`,
-    "--fb-space-toolbar": `${theme.layout.toolbarPadding}px`, "--fb-space-panel": `${theme.layout.panelPadding}px`,
-    "--fb-space-ticket": `${theme.layout.ticketPadding}px`,
-  } as CSSProperties;
+  const rootStyle: CSSProperties = { ...styles.app, ...themeVars(theme) } as CSSProperties;
 
   return (
     <div className="fb-root" style={rootStyle}>
@@ -208,9 +213,10 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
             <Palette
               activeSectionLabel={activeSectionLabel}
               chrome={chrome}
-              onAddField={(type) => { doc.addField(type); setMobilePanel("none"); }}
+              onAddField={(type) => { if (type === "image" && atImageCap) return; doc.addField(type); setMobilePanel("none"); }}
               features={features}
               fieldCount={fieldCount}
+              imageCount={imageCount}
               theme={theme}
               updateThemeColor={updateThemeColor}
               updateThemeLayout={updateThemeLayout}
@@ -230,14 +236,14 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
               onToggleSectionCollapse={doc.toggleSectionCollapse}
               onUpdateSectionTitle={doc.updateSectionTitle}
               onUpdateSectionBackground={doc.updateSectionBackground}
-              onDuplicateSection={doc.duplicateSection}
+              onDuplicateSection={(sectionId) => { const imgs = doc.sections.find((s) => s.id === sectionId)?.fields.filter((f) => f.type === "image").length ?? 0; if (typeof features.maxImages === "number" && imageCount + imgs > features.maxImages) return; doc.duplicateSection(sectionId); }}
               onMoveSection={doc.moveSection}
               onDeleteSection={doc.deleteSection}
               onAddSection={doc.addSection}
               onSelectField={(sectionId, fieldId) => { doc.setSelectedId(fieldId); doc.setActiveSectionId(sectionId); setMobilePanel("inspector"); }}
               onFieldChange={doc.updateField}
               onMoveField={doc.moveField}
-              onDuplicateField={doc.duplicateField}
+              onDuplicateField={(fieldId) => { if (atImageCap && doc.sections.some((s) => s.fields.some((f) => f.id === fieldId && f.type === "image"))) return; doc.duplicateField(fieldId); }}
               onDeleteField={doc.deleteField}
               getDropZoneHandlers={drag.getDropZoneHandlers}
               getDragHandleProps={drag.getDragHandleProps}
@@ -248,6 +254,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
               language={language}
               chrome={chrome}
               features={features}
+              onImageUpload={onImageUpload}
               onUpdateField={(patch) => doc.selected && doc.updateField(doc.selected.id, patch)}
               onDeleteField={() => doc.selected && doc.deleteField(doc.selected.id)}
               onUpdateOption={(optIdx, patch) => doc.selected && doc.updateOption(doc.selected.id, optIdx, patch)}

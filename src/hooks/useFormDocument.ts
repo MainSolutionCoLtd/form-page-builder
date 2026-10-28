@@ -8,9 +8,11 @@ import { genSectionId, nextId, resyncIdCounter } from "../lib/id";
 export interface UseFormDocumentArgs {
   language: string;
   chrome: ChromeShape;
+  /** New buttons default to a link action (no submit buttons in this host). */
+  linkButtonsOnly?: boolean;
 }
 
-export function useFormDocument({ language, chrome }: UseFormDocumentArgs) {
+export function useFormDocument({ language, chrome, linkButtonsOnly }: UseFormDocumentArgs) {
   const [title, setTitle] = useState<LocalizedString>(bi("Untitled form", ""));
   const [sections, setSections] = useState<Section[]>([defaultSection()]);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
@@ -70,7 +72,8 @@ export function useFormDocument({ language, chrome }: UseFormDocumentArgs) {
   }
 
   function addField(type: FieldType) {
-    const field = defaultFieldFor(type, language, chrome);
+    const made = defaultFieldFor(type, language, chrome);
+    const field = type === "button" && linkButtonsOnly ? ({ ...made, action: "link", target: "_blank" } as FormField) : made;
     const targetId = activeSectionId || sections[0]?.id;
     if (!targetId) return;
     setSections((prev) => prev.map((s) => (s.id === targetId ? { ...s, fields: [...s.fields, field] } : s)));

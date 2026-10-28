@@ -6,11 +6,11 @@
 
 **[Live demo](https://mainsolutioncoltd.github.io/form-page-builder/)**
 
-Embeddable, bilingual (EN/JA by default, extensible), drag-and-drop form builder widget for React. Ships a single `<FormBuilder />` component with a Build mode (drag/drop canvas, field inspector) and a Preview mode (responsive, validating runtime form), plus a JSON export of the resulting document.
+Embeddable, bilingual (EN/JA by default, extensible), drag-and-drop form builder widget for React. Ships a single `<FormBuilder />` component with a Build mode (drag/drop canvas, field inspector) and a Preview mode (responsive, validating runtime form), plus a JSON export of the resulting document. A separate, server-safe `<FormViewer />` (`form-page-builder/viewer`) draws a saved document read-only, for the public page.
 
 ## Examples
 
-The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gallery of `<FormBuilder />` configurations, each showing a different realistic way to compose `features`/`theme`/`storage`/`initialDocument`/`language` — jump straight to one. Its sticky header (its headings/captions, not the widget's own EN/JA switcher) has an EN/日本語 toggle, a Light/Dark toggle that swaps every example except "Branded" (badged "Fixed theme", since its whole point is a locked theme) between `DEFAULT_THEME` and `DARK_THEME`, and links back to this repo and the npm package.
+The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gallery of `<FormBuilder />` configurations and the read-only `<FormViewer />`, each showing a different realistic way to compose `features`/`theme`/`storage`/`initialDocument`/`language` — jump straight to one. Its sticky header (its headings/captions, not the widget's own EN/JA switcher) has an EN/日本語 toggle, a Light/Dark toggle that swaps every example except "Branded" (badged "Fixed theme", since its whole point is a locked theme) between `DEFAULT_THEME` and `DARK_THEME`, and links back to this repo and the npm package.
 
 | Example | What it shows |
 |---|---|
@@ -21,6 +21,8 @@ The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gal
 | [Locked-structure form](https://mainsolutioncoltd.github.io/form-page-builder/#locked-structure) | `initialDocument` seeds a fixed field set; structural toggles are off so only styling/labels stay editable. |
 | [Localized (French)](https://mainsolutioncoltd.github.io/form-page-builder/#localized) | `language`/`languages`/`strings`/`chrome` — a language beyond the built-in EN/JA, partially translated. |
 | [Template roles](https://mainsolutioncoltd.github.io/form-page-builder/#template-roles) | Two instances sharing one template library — `templates: { manage: true, max: 3 }` (curate) next to `{ manage: false }` (apply-only), plus copy/paste between them. |
+| [Page builder + viewer](https://mainsolutioncoltd.github.io/form-page-builder/#page-builder-viewer) | A landing-page setup: `fieldTypes: false`, `contentBlocks` limited to paragraph/image/button, `submitButtons: false`, `maxImages`, with a live `<FormViewer />` below fed from `getDocument()`. |
+| [Read-only viewer](https://mainsolutioncoltd.github.io/form-page-builder/#viewer) | A saved document drawn by `<FormViewer />` alone — follows language and light/dark, columns collapse with the container width (drag the corner to resize). |
 
 The source for all of them lives in [dev/main.tsx](./dev/main.tsx) — `npm run dev` runs the same gallery locally against `src/` directly, and is the fastest way to try a `features`/`theme` combination before wiring it into your app.
 
@@ -73,6 +75,8 @@ Above ~720px wide, Build mode is the usual three-column Palette/Canvas/Inspector
 | `initialDocument` | `FormDocument` | Seeds the builder with this document on mount instead of the autosaved draft — see "Programmatic integration" below. |
 | `initialMode` | `"build" \| "preview"` | Which mode the widget mounts into (default `"build"`). Pair with `features.previewMode: false` to lock a consumer to just one mode with no tabs — e.g. a fill-only embed that never shows the Build canvas. Or leave `previewMode` on and pick `initialMode` per document (e.g. `"preview"` once a document already has saved data) so the widget opens on the right mode while still letting the built-in tabs switch it. |
 | `onModeChange` | `(mode: "build" \| "preview") => void` | Fires on mount and on every Build/Preview toggle. Lets a host mirror the current mode (e.g. to show its own Save button only in Build mode) without building a separate tab UI around the widget. |
+| `onImageUpload` | `(file: File, ctx: { fieldId: string; shape: "square" \| "circle" \| "banner" }) => Promise<string>` | Adds an **Upload image** button beside an image block's URL box. Receives the picked file (open your own crop/compress dialog inside it if you like) and resolves to the hosted URL, which becomes the block's `src`. If it rejects, the block is left unchanged and a short error shows; reject with `new DOMException("cancelled", "AbortError")` to cancel silently (e.g. the user closed your crop dialog). Omit it to keep the URL-only input. The package never uploads or hosts anything itself. |
+| `onChange` | `(info: { dirty: boolean }) => void` | Fires when the working document starts or stops differing from the loaded one: `dirty` is true after the first change, false again if the user edits back to it or you call `ref.markSaved()` after saving. Use it to warn about unsaved changes. Not fired for the initial load. |
 | `onTemplateChange` | `(change: TemplateChange) => void` | Fires when a template is created (`source: "new"`), overwritten (`"saved"`), applied as the working document (`"applied"`), or deleted (`"deleted"`). `change` is `{ id: string \| null; title: string; source }`. Useful for syncing a host's own state or backend index. |
 | `templateClipboardKey` | `string` | Overrides the localStorage key behind "Copy template" / "Paste template" (default `"form-page-builder:clipboard"`). Instances sharing a key can copy/paste between each other. |
 
@@ -123,6 +127,8 @@ Every optional UI surface can be switched on or off independently through one `f
 | `sectionBackground` | `boolean` | inherits `sections` | Per-section background-color swatches + custom-color picker in the section header. Independent of `sections` — set it `false` to lock section backgrounds while keeping the structural controls, or leave it unset and it follows whatever `sections` is. |
 | `dragReorder` | `boolean` | `true` | Drag-to-reorder fields within a section. |
 | `deviceToggle` | `boolean` | `true` | The Laptop/Tablet/Mobile width switcher above the Preview canvas. When `false`, Preview always renders at the Laptop (full) width. |
+| `submitButtons` | `boolean` | `true` | When `false`, buttons are link-only: new buttons default to the link action and the Link/Submit picker is hidden. Use it when the host stores no submissions. |
+| `maxImages` | `number` | `undefined` (unlimited) | Caps the number of image blocks across the whole document. The palette shows "Images: n / max"; at the cap the Image button disables and Duplicate on an image (or a section containing images) is ignored until one is removed. |
 | `maxFields` | `number` | `undefined` (unlimited) | Caps the total number of input-type fields (not content blocks) addable across the whole document. The palette shows a live "Fields: n / max" count; once reached, the Form Fields buttons disable and a limit message replaces the count until a field is removed. |
 
 Disabling `contentBlocks`/`fieldTypes` for a given type only hides it from the palette going forward — if a document loaded via `initialDocument` (or a saved template) already contains fields of a now-disabled type, they still render and remain editable in Build mode; nothing is stripped or hidden.
@@ -255,6 +261,13 @@ function BuilderPage() {
 }
 ```
 
+To show what you saved, hand the same stored document to [`FormViewer`](#showing-a-saved-page-formviewer) — the builder's editor and the public page then draw from one set of block styles:
+
+```tsx
+// Editor (client)                                  // Public page (server component)
+await save(ref.current.getDocument());               <FormViewer document={await load(slug)} language="en" titleDisplay="auto" />
+```
+
 ### Copy / paste templates
 
 The toolbar's "Copy template" / "Paste template" icons (next to "View JSON", toggle with `features.templateClipboard`) let a user copy the current form from one builder and paste it into another — across pages, tabs, and reloads in the same browser. Copy writes a portable envelope to a localStorage key (`templateClipboardKey`, default `"form-page-builder:clipboard"`); every mounted builder watches that key, so Paste lights up everywhere as soon as something is copied. Paste asks for confirmation, then replaces the working document.
@@ -286,6 +299,38 @@ await save(JSON.stringify(compactDocument(ref.current.getDocument())));
 ```
 
 Documents saved in the compact form need this package version (or newer) to be read back correctly, so upgrade every app that reads them together.
+
+## Showing a saved page (`FormViewer`)
+
+`FormViewer` is the read-only counterpart of Preview: no toolbars, no state, just the blocks. Use it for the public page that visitors see, so it can never look different from what the author previewed. It draws paragraph, image and link-button blocks; form inputs and submit buttons are skipped.
+
+```tsx
+// app/p/[slug]/page.tsx — a Next.js server component, rendered into the initial HTML
+import { FormViewer } from "form-page-builder/viewer";
+
+export default async function Page({ params }) {
+  const page = await loadPage((await params).slug); // the object you got from getDocument(), compacted or not
+  return <FormViewer document={page.document} language="en" maxWidth={768} titleDisplay="auto" />;
+}
+```
+
+Import from `form-page-builder/viewer` in server components: that bundle has no `"use client"`, hooks, icons or editor code. `FormViewer` is also exported from the main entry for client components.
+
+| Prop | Default | |
+|---|---|---|
+| `document` | | The document to draw. `null` or empty draws an empty root. |
+| `language` | `"en"` | Falls back to `en`, then to any translation that has text. |
+| `theme` | `DEFAULT_THEME` | Partial theme. The document's own `themeOverrides` win over it. Values may be `var(--x)` references, which is how a host maps its own light/dark colours. |
+| `maxWidth` | `theme.layout.maxWidth` | Number (px) or any CSS length. |
+| `titleDisplay` | `"none"` | `"visible"` draws the title as an h1; `"auto"` adds a visually hidden h1 only when the document has no h1 block. |
+| `sectionTitles` | `true` | Draw section titles as h2. |
+| `headingOffset` | `0` | Pushes every heading down this many levels (`1`: h1 becomes h2, h2 becomes h3; capped at h6). Use it when the host page already has its own h1, so the page keeps exactly one. |
+| `sanitizeUrl` | `defaultSanitizeUrl` | `(url, "link" \| "image") => string \| null`; return `null` to drop the URL. |
+| `linkRel` | `"noopener noreferrer"` | `rel` for links that open a new tab (add `nofollow`/`ugc` for user content). |
+| `eagerImages` | `1` | How many leading images skip lazy loading (the likely LCP image). |
+| `as`, `className`, `style` | `div` | Wrapper element and root styling. `style` can override padding/background. |
+
+Columns (1/3, 1/2, full) collapse by the width of the container via CSS container queries, so it behaves in a narrow sidebar as well as on a phone.
 
 ## Using in a plain HTML page (no bundler)
 

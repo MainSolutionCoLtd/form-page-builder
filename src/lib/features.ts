@@ -28,6 +28,8 @@ export interface ResolvedFeatures {
   dragReorder: boolean;
   deviceToggle: boolean;
   maxFields?: number;
+  maxImages?: number;
+  submitButtons: boolean;
 }
 
 export const DEFAULT_FEATURES: ResolvedFeatures = {
@@ -48,6 +50,7 @@ export const DEFAULT_FEATURES: ResolvedFeatures = {
   sectionBackground: true,
   dragReorder: true,
   deviceToggle: true,
+  submitButtons: true,
 };
 
 function resolveTemplates(t: FormBuilderFeatures["templates"]): ResolvedTemplates {
