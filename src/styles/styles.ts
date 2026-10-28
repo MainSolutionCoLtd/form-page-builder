@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { BUTTON_BASE_STYLE } from "../lib/blockStyle";
 
 export const styles: Record<string, CSSProperties> = {
   app: { fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", background: "var(--fb-canvas)", borderRadius: 12, overflow: "hidden", border: "1px solid var(--fb-border)", color: "var(--fb-ink)", display: "flex", flexDirection: "column" },
@@ -107,7 +108,7 @@ export const styles: Record<string, CSSProperties> = {
   submittedValue: { color: "var(--fb-ink)", fontWeight: 600, textAlign: "right" },
   realInput: { width: "100%", border: "1px solid var(--fb-border)", borderRadius: 8, padding: "9px 11px", fontSize: 13.5, outline: "none", color: "var(--fb-ink)", background: "var(--fb-surface)", boxSizing: "border-box" },
   realInputError: { borderColor: "var(--fb-danger)" },
-  submitBtn: { marginTop: 8, color: "#fff", border: "none", borderRadius: 8, fontWeight: 600, width: "100%" },
+  submitBtn: BUTTON_BASE_STYLE,
   layoutPanelHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 },
   spacingRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "4px 0" },
   spacingLabel: { fontSize: 12, color: "var(--fb-ink)" },

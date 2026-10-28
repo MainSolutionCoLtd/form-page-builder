@@ -9,7 +9,7 @@ import { DEFAULT_LANGUAGES } from "./i18n/languages";
 import { DEFAULT_STRINGS } from "./i18n/strings";
 import { CHROME } from "./i18n/chrome";
 import { t } from "./lib/bilingual";
-import { mixHex } from "./lib/color";
+import { themeVars } from "./lib/resolveTheme";
 import { localStorageAdapter } from "./lib/storage/localStorageAdapter";
 import { DOCUMENT_VERSION, migrateDocument } from "./lib/migrate";
 import { parseTemplate, TEMPLATE_FORMAT } from "./lib/template";
@@ -148,18 +148,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const activeSectionIdx = doc.sections.findIndex((s) => s.id === doc.activeSection?.id);
   const activeSectionLabel = t(doc.activeSection?.title, language) || `#${activeSectionIdx + 1}`;
 
-  const rootStyle: CSSProperties = {
-    ...styles.app,
-    "--fb-primary": theme.primary, "--fb-primary-soft": theme.primarySoft,
-    "--fb-danger": theme.danger, "--fb-danger-soft": theme.dangerSoft,
-    "--fb-ink": theme.ink, "--fb-muted": theme.muted, "--fb-border": theme.border,
-    "--fb-surface": theme.surface, "--fb-canvas": theme.canvas, "--fb-page-bg": theme.pageBackground,
-    "--fb-surface-2": mixHex(theme.surface, theme.ink, 0.06),
-    "--fb-space-page": `${theme.layout.pagePadding}px`, "--fb-space-canvas": `${theme.layout.canvasPadding}px`,
-    "--fb-space-section": `${theme.layout.sectionGap}px`, "--fb-space-field": `${theme.layout.fieldGap}px`,
-    "--fb-space-toolbar": `${theme.layout.toolbarPadding}px`, "--fb-space-panel": `${theme.layout.panelPadding}px`,
-    "--fb-space-ticket": `${theme.layout.ticketPadding}px`,
-  } as CSSProperties;
+  const rootStyle: CSSProperties = { ...styles.app, ...themeVars(theme) } as CSSProperties;
 
   return (
     <div className="fb-root" style={rootStyle}>

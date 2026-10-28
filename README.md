@@ -291,6 +291,37 @@ await save(JSON.stringify(compactDocument(ref.current.getDocument())));
 
 Documents saved in the compact form need this package version (or newer) to be read back correctly, so upgrade every app that reads them together.
 
+## Showing a saved page (`FormViewer`)
+
+`FormViewer` is the read-only counterpart of Preview: no toolbars, no state, just the blocks. Use it for the public page that visitors see, so it can never look different from what the author previewed. It draws paragraph, image and link-button blocks; form inputs and submit buttons are skipped.
+
+```tsx
+// app/p/[slug]/page.tsx — a Next.js server component, rendered into the initial HTML
+import { FormViewer } from "form-page-builder/viewer";
+
+export default async function Page({ params }) {
+  const page = await loadPage((await params).slug); // the object you got from getDocument(), compacted or not
+  return <FormViewer document={page.document} language="en" maxWidth={768} titleDisplay="auto" />;
+}
+```
+
+Import from `form-page-builder/viewer` in server components: that bundle has no `"use client"`, hooks, icons or editor code. `FormViewer` is also exported from the main entry for client components.
+
+| Prop | Default | |
+|---|---|---|
+| `document` | | The document to draw. `null` or empty draws an empty root. |
+| `language` | `"en"` | Falls back to `en`, then to any translation that has text. |
+| `theme` | `DEFAULT_THEME` | Partial theme. The document's own `themeOverrides` win over it. Values may be `var(--x)` references, which is how a host maps its own light/dark colours. |
+| `maxWidth` | `theme.layout.maxWidth` | Number (px) or any CSS length. |
+| `titleDisplay` | `"none"` | `"visible"` draws the title as an h1; `"auto"` adds a visually hidden h1 only when the document has no h1 block. |
+| `sectionTitles` | `true` | Draw section titles as h2. |
+| `sanitizeUrl` | `defaultSanitizeUrl` | `(url, "link" \| "image") => string \| null`; return `null` to drop the URL. |
+| `linkRel` | `"noopener noreferrer"` | `rel` for links that open a new tab (add `nofollow`/`ugc` for user content). |
+| `eagerImages` | `1` | How many leading images skip lazy loading (the likely LCP image). |
+| `as`, `className`, `style` | `div` | Wrapper element and root styling. `style` can override padding/background. |
+
+Columns (1/3, 1/2, full) collapse by the width of the container via CSS container queries, so it behaves in a narrow sidebar as well as on a phone.
+
 ## Using in a plain HTML page (no bundler)
 
 There's intentionally no UMD/IIFE global-script build (see below), but you don't need a bundler to use this package — a browser-native ES module setup works too, via an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) and a CDN like [esm.sh](https://esm.sh/):
