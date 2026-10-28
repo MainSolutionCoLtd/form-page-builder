@@ -1,5 +1,20 @@
 # form-page-builder
 
+## 2.5.0
+
+### Minor Changes
+
+- [#19](https://github.com/MainSolutionCoLtd/form-page-builder/pull/19) [`c0ef325`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/c0ef3254b9867aa50c2eb6e879ec64da5de65871) Thanks [@sabalpoudel](https://github.com/sabalpoudel)! - - **`FormViewer`, a read-only renderer for a saved document.** Draws paragraph, image and link-button blocks with the same styling as the builder's Preview, with no toolbars, no state and no icons. Form inputs and submit buttons are skipped. Takes `document` (what `getDocument()` returns or what you stored, compacted or not), `language`, `theme` (under the document's own `themeOverrides`), `maxWidth`, `titleDisplay` (`none` | `visible` | `auto`, where `auto` adds a visually hidden h1 when the document has none), `sectionTitles`, `headingOffset` (pushes h1–h3 and the section titles down so a host page can keep the only h1), `sanitizeUrl`, `linkRel`, `eagerImages`, `as`, `className` and `style`. Columns (1/3, 1/2, full) collapse with the width of the container, not the screen.
+
+  - **`form-page-builder/viewer` entry.** The same viewer in a bundle with no `"use client"`, hooks, icons or editor code, so a Next.js server component can render it directly and the page stays in the initial HTML. `FormViewer` is also exported from the main entry for client use. `npm run build` now checks the viewer bundle stays free of client-only code.
+  - **Safe by default.** Links allow `http(s)`, `mailto`, `tel` and relative URLs; images allow `http(s)`, relative and raster `data:` URLs; colours must be hex, `rgb()`/`hsl()`, `var(--x)` or a keyword. Pass `sanitizeUrl` to tighten or replace the URL policy. New `defaultSanitizeUrl` export.
+  - **No change for existing code.** The builder's blocks and the viewer now share one set of style functions, so what the Preview shows is what the viewer draws. `FormBuilder`'s props, exports and output are unchanged; `typography.ts` and `layout.ts` re-export what moved.
+
+- [#19](https://github.com/MainSolutionCoLtd/form-page-builder/pull/19) [`b85aa21`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/b85aa21414742e8ce3b42e6ec848e79b866134c8) Thanks [@sabalpoudel](https://github.com/sabalpoudel)! - - **`onImageUpload` prop.** Adds an "Upload image" button beside an image block's URL box. The host receives the picked `File` plus `{ fieldId, shape }`, can show its own crop/compress UI, and resolves to the hosted URL, which becomes the block's `src`. Rejecting leaves the block unchanged and shows a short error (an `AbortError` rejection cancels silently). Without the prop nothing changes (URL-only input). New `ImageUploadContext` type export and `chrome` strings `uploadImage`, `uploadingImage`, `uploadImageFailed`.
+  - **`features.maxImages`.** Caps image blocks across the document: live "Images: n / max" line in the palette, Image button disabled at the cap, and Duplicate on an image (or on a section that would exceed the cap) is ignored. New `chrome` strings `imageCount`, `imageLimitReached`.
+  - **`features.submitButtons`.** Set to `false` for link-only buttons: new buttons default to the link action and the action picker is hidden (default `true`, unchanged).
+  - **`onChange` prop and `markSaved()`.** `onChange({ dirty })` fires when the document starts/stops differing from the loaded one (not on the initial load); call `ref.markSaved()` after saving to reset the baseline. Lets a host warn about unsaved changes.
+
 ## 2.4.0
 
 ### Minor Changes

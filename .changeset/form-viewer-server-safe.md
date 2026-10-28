@@ -1,8 +1,0 @@
----
-"form-page-builder": minor
----
-
-- **`FormViewer`, a read-only renderer for a saved document.** Draws paragraph, image and link-button blocks with the same styling as the builder's Preview, with no toolbars, no state and no icons. Form inputs and submit buttons are skipped. Takes `document` (what `getDocument()` returns or what you stored, compacted or not), `language`, `theme` (under the document's own `themeOverrides`), `maxWidth`, `titleDisplay` (`none` | `visible` | `auto`, where `auto` adds a visually hidden h1 when the document has none), `sectionTitles`, `headingOffset` (pushes h1–h3 and the section titles down so a host page can keep the only h1), `sanitizeUrl`, `linkRel`, `eagerImages`, `as`, `className` and `style`. Columns (1/3, 1/2, full) collapse with the width of the container, not the screen.
-- **`form-page-builder/viewer` entry.** The same viewer in a bundle with no `"use client"`, hooks, icons or editor code, so a Next.js server component can render it directly and the page stays in the initial HTML. `FormViewer` is also exported from the main entry for client use. `npm run build` now checks the viewer bundle stays free of client-only code.
-- **Safe by default.** Links allow `http(s)`, `mailto`, `tel` and relative URLs; images allow `http(s)`, relative and raster `data:` URLs; colours must be hex, `rgb()`/`hsl()`, `var(--x)` or a keyword. Pass `sanitizeUrl` to tighten or replace the URL policy. New `defaultSanitizeUrl` export.
-- **No change for existing code.** The builder's blocks and the viewer now share one set of style functions, so what the Preview shows is what the viewer draws. `FormBuilder`'s props, exports and output are unchanged; `typography.ts` and `layout.ts` re-export what moved.
