@@ -124,6 +124,31 @@ describe("FormViewer rendering", () => {
     expect(html(withH1, { titleDisplay: "auto" })).not.toContain("My page");
   });
 
+  it("headingOffset pushes headings down (h1 to h2), caps at h6 and leaves body text alone", () => {
+    const d = doc([
+      { id: "a", type: "paragraph", tag: "h1", content: { en: "One" } },
+      { id: "b", type: "paragraph", tag: "h3", content: { en: "Three" } },
+      { id: "c", type: "paragraph", tag: "p", content: { en: "Body" } },
+      { id: "d", type: "paragraph", tag: "caption", content: { en: "Cap" } },
+    ]);
+    expect(html(d)).toMatch(/<h1[^>]*>One<\/h1>/);
+    const one = html(d, { headingOffset: 1 });
+    expect(one).toMatch(/<h2[^>]*>One<\/h2>/);
+    expect(one).toMatch(/<h4[^>]*>Three<\/h4>/);
+    expect(one).not.toContain("<h1");
+    expect(one).toMatch(/<p[^>]*>Body<\/p>/);
+    expect(one).toMatch(/<span[^>]*>Cap<\/span>/);
+    expect(html(d, { headingOffset: 9 })).toMatch(/<h6[^>]*>Three<\/h6>/);
+    expect(html(d, { headingOffset: -2 })).toMatch(/<h1[^>]*>One<\/h1>/);
+  });
+
+  it("headingOffset also moves the section titles and the title", () => {
+    const d: ViewerDocument = { title: { en: "My page" }, sections: [{ id: "s", title: { en: "Services" }, fields: [{ id: "a", type: "paragraph", content: { en: "a" } }] }] };
+    const out = html(d, { headingOffset: 1, titleDisplay: "visible" });
+    expect(out).toMatch(/<h3[^>]*>Services<\/h3>/);
+    expect(out).toMatch(/<h2[^>]*>My page<\/h2>/);
+  });
+
   it("loads the first image eagerly and the rest lazily", () => {
     const out = html(doc([
       { id: "1", type: "image", src: "https://a.com/1.png" }, { id: "2", type: "image", src: "https://a.com/2.png" },

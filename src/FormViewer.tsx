@@ -36,6 +36,8 @@ export interface FormViewerProps {
   titleDisplay?: "none" | "visible" | "auto";
   /** Draw section titles (h2). Default true. */
   sectionTitles?: boolean;
+  /** Pushes every heading down this many levels (h1 becomes h2 with 1; capped at h6). Use it when the host page already has its own h1. Default 0. */
+  headingOffset?: number;
   /** Decides which URLs reach `href`/`src`; return null to drop one. Default: `defaultSanitizeUrl`. */
   sanitizeUrl?: (url: string, kind: UrlKind) => string | null;
   /** `rel` of links that open a new tab. Default `noopener noreferrer`. */
@@ -71,12 +73,20 @@ const text = (value: LocalizedString | string | undefined, language: string): st
   return value[language] || value.en || Object.values(value).find(Boolean) || "";
 };
 
+const HEADING_LEVEL: Record<string, number> = { h1: 1, h2: 2, h3: 3 };
+
+// h1-h3 shift by the offset; other tags (p, caption) are not headings and stay as they are.
+const shiftTag = (tag: string, offset: number): string => {
+  const level = HEADING_LEVEL[tag];
+  return level ? `h${Math.min(6, level + Math.max(0, Math.floor(offset)))}` : tag;
+};
+
 const WIDTH_CLASS = { "1/3": "w3", "1/2": "w2", "1/1": "" } as const;
 
 const isH1 = (f: ViewerField, language: string) => f.type === "paragraph" && f.tag === "h1" && !!text(f.content, language);
 
 export function FormViewer({
-  document: doc, language = "en", theme, maxWidth, titleDisplay = "none", sectionTitles = true,
+  document: doc, language = "en", theme, maxWidth, titleDisplay = "none", sectionTitles = true, headingOffset = 0,
   sanitizeUrl = defaultSanitizeUrl, linkRel = "noopener noreferrer", eagerImages = 1, as: Root = "div", className, style,
 }: FormViewerProps) {
   const resolved = resolveTheme(theme, doc?.themeOverrides);
@@ -84,12 +94,14 @@ export function FormViewer({
   const title = text(doc?.title, language);
   const hasH1 = sections.some((s) => s.fields?.some((f) => isH1(f, language)));
   let imagesSeen = 0;
+  const TitleTag = shiftTag("h1", headingOffset) as ElementType;
+  const SectionTag = shiftTag("h2", headingOffset) as ElementType;
 
   const renderField = (field: ViewerField): ReactNode => {
     if (field.type === "paragraph") {
       const content = text(field.content, language);
       if (!content) return null;
-      const Tag = (TAG_TO_ELEMENT[field.tag ?? "p"] || "p") as ElementType;
+      const Tag = shiftTag(TAG_TO_ELEMENT[field.tag ?? "p"] || "p", headingOffset) as ElementType;
       return <Tag className="fpbv-p" style={paragraphStyle({ ...field, color: safeColor(field.color) })}>{content}</Tag>;
     }
 
@@ -133,7 +145,7 @@ export function FormViewer({
     <Root className={className ? `fpbv ${className}` : "fpbv"} style={rootStyle}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       {title && titleDisplay !== "none" && (titleDisplay === "visible" || !hasH1) && (
-        <h1 className={titleDisplay === "auto" ? "fpbv-sr" : undefined} style={titleDisplay === "visible" ? { margin: "0 0 20px", fontSize: 24, fontWeight: 700 } : undefined}>{title}</h1>
+        <TitleTag className={titleDisplay === "auto" ? "fpbv-sr" : undefined} style={titleDisplay === "visible" ? { margin: "0 0 20px", fontSize: 24, fontWeight: 700 } : undefined}>{title}</TitleTag>
       )}
       {sections.map((section, i) => {
         const blocks = (section.fields ?? []).map((field, j) => {
@@ -157,7 +169,7 @@ export function FormViewer({
             key={section.id ?? i} className="fpbv-s" data-section-id={section.id}
             style={{ marginBottom: "var(--fb-space-section)", ...(background ? { background, padding: 16, borderRadius: 10 } : {}) }}
           >
-            {heading && <h2 className="fpbv-s-t">{heading}</h2>}
+            {heading && <SectionTag className="fpbv-s-t">{heading}</SectionTag>}
             {blocks}
           </section>
         );

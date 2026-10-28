@@ -324,6 +324,7 @@ Import from `form-page-builder/viewer` in server components: that bundle has no 
 | `maxWidth` | `theme.layout.maxWidth` | Number (px) or any CSS length. |
 | `titleDisplay` | `"none"` | `"visible"` draws the title as an h1; `"auto"` adds a visually hidden h1 only when the document has no h1 block. |
 | `sectionTitles` | `true` | Draw section titles as h2. |
+| `headingOffset` | `0` | Pushes every heading down this many levels (`1`: h1 becomes h2, h2 becomes h3; capped at h6). Use it when the host page already has its own h1, so the page keeps exactly one. |
 | `sanitizeUrl` | `defaultSanitizeUrl` | `(url, "link" \| "image") => string \| null`; return `null` to drop the URL. |
 | `linkRel` | `"noopener noreferrer"` | `rel` for links that open a new tab (add `nofollow`/`ugc` for user content). |
 | `eagerImages` | `1` | How many leading images skip lazy loading (the likely LCP image). |
