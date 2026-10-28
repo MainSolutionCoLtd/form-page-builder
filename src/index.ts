@@ -1,4 +1,6 @@
 export { default as FormBuilder, default } from "./FormBuilder";
+export { FormViewer } from "./FormViewer";
+export { defaultSanitizeUrl } from "./lib/safeUrl";
 export { localStorageAdapter } from "./lib/storage/localStorageAdapter";
 export { DEFAULT_THEME } from "./theme/defaultTheme";
 export { DARK_THEME } from "./theme/darkTheme";
@@ -6,6 +8,8 @@ export { serializeTemplate, parseTemplate } from "./lib/template";
 export { DOCUMENT_VERSION } from "./lib/migrate";
 export { compactDocument } from "./lib/compact";
 export { DRAFT_KEY, INDEX_KEY, CLIPBOARD_KEY, formKey, savedFormId } from "./lib/storage/keys";
+export type { FormViewerProps, ViewerDocument, ViewerSection, ViewerField } from "./FormViewer";
+export type { UrlKind } from "./lib/safeUrl";
 export type {
   FormBuilderProps, StorageAdapter, Theme, ThemeLayout, ThemeOverrides,
   FormField, FieldPatch, FieldType, Option, Section, FormDocument, DocumentFields,
@@ -13,5 +17,5 @@ export type {
   InputField, TextareaField, SelectField, RadioField, CheckboxGroupField,
   CheckboxField, ToggleField, ParagraphField, ImageField, SubmitStyle,
   SubmitPayload, FormBuilderHandle, FormBuilderFeatures, ContentBlockType, InputFieldType,
-  FormTemplate, TemplateChange,
+  FormTemplate, TemplateChange, ImageUploadContext,
 } from "./types";

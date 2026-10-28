@@ -1,7 +1,9 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { createRef } from "react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import FormBuilder from "../src/FormBuilder";
+import type { FormBuilderHandle } from "../src/types";
 import { createMemoryStorage } from "./testUtils";
 
 describe("features prop", () => {
@@ -118,5 +120,92 @@ describe("features prop", () => {
 
     await user.click(screen.getByRole("button", { name: "Button" }));
     expect(screen.getByRole("button", { name: "Input" })).toBeEnabled();
+  });
+});
+
+describe("image upload + maxImages", () => {
+  it("shows an Upload button only when onImageUpload is given, and writes the resolved URL to src", async () => {
+    const user = userEvent.setup();
+    const onImageUpload = vi.fn().mockResolvedValue("https://cdn.example/a.webp");
+    render(<FormBuilder storage={createMemoryStorage()} onImageUpload={onImageUpload} />);
+    await screen.findByLabelText("Form title");
+    await user.click(screen.getByRole("button", { name: "Image" }));
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(input, new File(["x"], "a.png", { type: "image/png" }));
+
+    expect(onImageUpload).toHaveBeenCalledWith(expect.any(File), expect.objectContaining({ shape: "square" }));
+    expect(await screen.findByDisplayValue("https://cdn.example/a.webp")).toBeInTheDocument();
+  });
+
+  it("keeps the URL-only input without onImageUpload", async () => {
+    const user = userEvent.setup();
+    render(<FormBuilder storage={createMemoryStorage()} />);
+    await screen.findByLabelText("Form title");
+    await user.click(screen.getByRole("button", { name: "Image" }));
+    expect(screen.queryByRole("button", { name: "Upload image" })).not.toBeInTheDocument();
+  });
+
+  it("leaves src unchanged and shows an error when the upload rejects", async () => {
+    const user = userEvent.setup();
+    render(<FormBuilder storage={createMemoryStorage()} onImageUpload={vi.fn().mockRejectedValue(new Error("no"))} />);
+    await screen.findByLabelText("Form title");
+    await user.click(screen.getByRole("button", { name: "Image" }));
+    await user.upload(document.querySelector('input[type="file"]') as HTMLInputElement, new File(["x"], "a.png", { type: "image/png" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Upload failed");
+  });
+
+  it("stays quiet when the upload is cancelled with an AbortError", async () => {
+    const user = userEvent.setup();
+    render(<FormBuilder storage={createMemoryStorage()} onImageUpload={vi.fn().mockRejectedValue(new DOMException("cancelled", "AbortError"))} />);
+    await screen.findByLabelText("Form title");
+    await user.click(screen.getByRole("button", { name: "Image" }));
+    await user.upload(document.querySelector('input[type="file"]') as HTMLInputElement, new File(["x"], "a.png", { type: "image/png" }));
+    await screen.findByRole("button", { name: "Upload image" });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("disables the Image button at features.maxImages and re-enables after a delete", async () => {
+    const user = userEvent.setup();
+    render(<FormBuilder storage={createMemoryStorage()} features={{ maxImages: 1 }} />);
+    await screen.findByLabelText("Form title");
+    await user.click(screen.getByRole("button", { name: "Image" }));
+    expect(screen.getByRole("button", { name: "Image" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Delete field" }));
+    expect(screen.getByRole("button", { name: "Image" })).toBeEnabled();
+  });
+});
+
+describe("features.submitButtons", () => {
+  it("hides the action picker and defaults new buttons to link when false", async () => {
+    const user = userEvent.setup();
+    render(<FormBuilder storage={createMemoryStorage()} features={{ submitButtons: false }} />);
+    await screen.findByLabelText("Form title");
+    await user.click(screen.getByRole("button", { name: "Button" }));
+    expect(screen.queryByText("Submit")).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText("https://...")).toBeInTheDocument();
+  });
+});
+
+describe("onChange / markSaved", () => {
+  it("reports dirty after an edit, not on load, and clears on markSaved", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const ref = createRef<FormBuilderHandle>();
+    render(<FormBuilder ref={ref} storage={createMemoryStorage()} onChange={onChange} />);
+    await screen.findByLabelText("Form title");
+    expect(onChange).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Paragraph" }));
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith({ dirty: true }));
+    expect(onChange).toHaveBeenCalledTimes(1); // further edits while dirty do not re-fire
+
+    await user.click(screen.getByRole("button", { name: "Button" }));
+    expect(onChange).toHaveBeenCalledTimes(1);
+
+    act(() => ref.current!.markSaved());
+    expect(onChange).toHaveBeenLastCalledWith({ dirty: false });
+    await user.click(screen.getByRole("button", { name: "Image" }));
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith({ dirty: true }));
   });
 });

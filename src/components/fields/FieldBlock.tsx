@@ -3,7 +3,8 @@ import { CircleAlert } from "lucide-react";
 import type { ChromeShape } from "../../i18n/chrome";
 import type { StringsShape } from "../../i18n/strings";
 import type { ButtonField, FieldPatch, FormField, ImageField, ParagraphField } from "../../types";
-import { FONT_SIZE_OPTIONS, TAG_TO_ELEMENT } from "../../constants/typography";
+import { TAG_TO_ELEMENT } from "../../constants/typographyScale";
+import { paragraphStyle } from "../../lib/blockStyle";
 import { getMeta } from "../../constants/fieldTypes";
 import { ICON_LIBRARY, type IconComponent } from "../../constants/icons";
 import { t } from "../../lib/bilingual";
@@ -27,13 +28,8 @@ export function FieldBlock({ field, lang, onFieldChange, strings, chrome, error,
   if (field.type === "button") return <ButtonBlock field={field} lang={lang} onAction={onButtonAction} />;
 
   if (field.type === "paragraph") {
-    const fontPx = FONT_SIZE_OPTIONS.find((f) => f.value === field.fontSize)?.px || 14;
     const Tag = (TAG_TO_ELEMENT[field.tag] || "p") as ElementType;
-    return (
-      <Tag style={{ margin: 0, whiteSpace: "pre-wrap", fontSize: fontPx, fontWeight: field.fontWeight === "bold" ? 700 : 400, fontStyle: field.fontStyle === "italic" ? "italic" : "normal", textAlign: field.textAlign || "left", color: field.color || "var(--fb-ink)", lineHeight: 1.6 }}>
-        {t(field.content, lang) || "..."}
-      </Tag>
-    );
+    return <Tag style={paragraphStyle(field)}>{t(field.content, lang) || "..."}</Tag>;
   }
 
   const meta = getMeta(field.type);

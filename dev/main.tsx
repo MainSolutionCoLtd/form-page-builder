@@ -1,9 +1,10 @@
-import { StrictMode, useState, type ReactNode } from "react";
+import { StrictMode, useRef, useState, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import FormBuilder from "../src/FormBuilder";
+import { FormViewer, type ViewerDocument } from "../src/viewer";
 import { DEFAULT_THEME } from "../src/theme/defaultTheme";
 import { DARK_THEME } from "../src/theme/darkTheme";
-import type { FormDocument, StorageAdapter, SubmitPayload, Theme } from "../src/types";
+import type { FormBuilderHandle, FormDocument, StorageAdapter, SubmitPayload, Theme } from "../src/types";
 
 type UiLang = "en" | "ja";
 
@@ -98,6 +99,77 @@ const blankStarterDocument: FormDocument = {
   sections: [{ id: "s1", title: { en: "" }, background: "", collapsed: false, fields: [] }],
 };
 
+const block = (id: string, type: string, extra: Record<string, unknown>) => ({
+  id, type, label: { en: "" }, hideLabel: true, width: "1/1", verticalAlign: "top", labelPosition: "top", showIcon: false, displayIcon: "Type", ...extra,
+});
+
+/** A saved landing page, as a host would load it from its own API — drawn by <FormViewer /> in the "Read-only viewer" example. */
+const landingPageDocument: ViewerDocument = {
+  title: { en: "Kana's Studio", ja: "カナのスタジオ" },
+  sections: [
+    {
+      id: "hero",
+      fields: [
+        block("banner", "image", { src: "https://picsum.photos/id/1015/1600/500", alt: { en: "Studio banner", ja: "スタジオのバナー" }, link: "", shape: "banner" }) as never,
+        block("h", "paragraph", { content: { en: "Hello, I'm Kana", ja: "はじめまして、カナです" }, tag: "h1", fontSize: "xl", fontWeight: "bold", fontStyle: "normal", textAlign: "center", color: "" }) as never,
+        block("p", "paragraph", { content: { en: "I design calm, useful websites for small businesses.", ja: "小さな会社のための、わかりやすいウェブサイトを作っています。" }, tag: "p", fontSize: "md", fontWeight: "normal", fontStyle: "normal", textAlign: "center", color: "" }) as never,
+      ],
+    },
+    {
+      id: "cols",
+      background: "#F3F6FA",
+      title: { en: "What I do", ja: "できること" },
+      fields: [
+        block("c1", "paragraph", { width: "1/2", content: { en: "Websites — from a one-page site to a full shop.", ja: "ウェブサイト — 1ページから本格的なショップまで。" }, tag: "p", fontSize: "md", fontWeight: "normal", fontStyle: "normal", textAlign: "left", color: "" }) as never,
+        block("c2", "paragraph", { width: "1/2", content: { en: "Branding — a logo and colours you can keep using.", ja: "ブランディング — ずっと使えるロゴと配色。" }, tag: "p", fontSize: "md", fontWeight: "normal", fontStyle: "normal", textAlign: "left", color: "" }) as never,
+        block("cta", "button", { action: "link", label: { en: "Book a call", ja: "相談する" }, hideLabel: false, href: "https://example.com/book", target: "_blank", buttonStyle: { color: "", size: "lg" } }) as never,
+      ],
+    },
+  ],
+};
+
+/** The builder's starting point in the "Page builder + viewer" example. */
+const landingStarterDocument: FormDocument = {
+  version: 5,
+  title: { en: "My page", ja: "マイページ" },
+  theme: DEFAULT_THEME,
+  themeOverrides: {},
+  sections: [
+    {
+      id: "s1", title: { en: "" }, background: "", collapsed: false,
+      fields: [
+        block("t", "paragraph", { content: { en: "Hello, I'm …", ja: "はじめまして、…です" }, tag: "h1", fontSize: "xl", fontWeight: "bold", fontStyle: "normal", textAlign: "center", color: "" }),
+        block("i", "paragraph", { content: { en: "Tell visitors who you are.", ja: "あなたのことを書きましょう。" }, tag: "p", fontSize: "md", fontWeight: "normal", fontStyle: "normal", textAlign: "center", color: "" }),
+      ],
+    },
+  ] as never,
+};
+
+/** Builder on the left, the real public view on the right: "Update view" copies `getDocument()` into <FormViewer />. */
+function PageBuilderWithViewer({ theme, uiLang, dark }: { theme: Partial<Theme> | undefined; uiLang: UiLang; dark: boolean }) {
+  const ref = useRef<FormBuilderHandle>(null);
+  const [saved, setSaved] = useState<ViewerDocument>(landingStarterDocument as unknown as ViewerDocument);
+  return (
+    <div style={{ display: "grid", gap: 16 }}>
+      <FormBuilder
+        ref={ref}
+        theme={theme}
+        initialDocument={landingStarterDocument}
+        features={{ fieldTypes: false, contentBlocks: ["paragraph", "image", "button"], submitButtons: false, maxImages: 3, templates: false, newForm: false, autosave: false }}
+        storage={namespacedStorage("page-builder-viewer")}
+      />
+      <div>
+        <ToggleButton active={false} onClick={() => ref.current && setSaved(ref.current.getDocument() as unknown as ViewerDocument)}>
+          {uiLang === "ja" ? "ビューを更新" : "Update view"}
+        </ToggleButton>
+        <div style={{ marginTop: 12, border: "1px solid var(--demo-border)", borderRadius: 12, overflow: "hidden" }}>
+          <FormViewer document={saved} language={uiLang} theme={dark ? DARK_THEME : undefined} maxWidth={760} titleDisplay="auto" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const DEMO_STRINGS = {
   en: {
     title: "form-page-builder — examples",
@@ -144,6 +216,16 @@ const DEMO_STRINGS = {
         title: "Template roles: manage vs. pick-and-apply",
         description:
           "Two instances sharing one template library (same `storage`). The first uses `features.templates = { manage: true, max: 3 }` — a company-settings screen where someone curates the shared templates. The second uses `{ manage: false }` — everywhere else in the app, where a user can only apply a template as a starting point (no Save, no delete) and then edit the form. \"Copy template\" / \"Paste template\" (next to View JSON) moves a form between the two without going through the library.",
+      },
+      pageViewer: {
+        title: "Page builder + viewer",
+        description:
+          "A landing-page configuration: `fieldTypes` is off, `contentBlocks` allows paragraph, image and button, `submitButtons: false` makes every button a link and `maxImages` caps the images. The page below the builder is `<FormViewer />` — the read-only renderer a public page would use. Edit, press 'Update view', and what you see there is what visitors get (a real host stores `getDocument()` and renders it server-side).",
+      },
+      viewer: {
+        title: "Read-only viewer (FormViewer)",
+        description:
+          "A saved document drawn by `<FormViewer />` from `form-page-builder/viewer`: no toolbars, no state, safe to render in a Next.js server component. It follows the page's language and light/dark toggle; columns collapse with the width of their container, so drag the box's bottom-right corner to see it. Unsafe links such as `javascript:` are dropped, and `titleDisplay=\"auto\"` adds a visually hidden h1 only when the document has none.",
       },
     },
   },
@@ -192,6 +274,16 @@ const DEMO_STRINGS = {
         title: "テンプレートの役割: 管理 vs. 選択のみ",
         description:
           "1つのテンプレートライブラリ（同じ storage）を共有する2つのインスタンスです。1つ目は features.templates = { manage: true, max: 3 } — 共有テンプレートを整備する会社設定画面を想定しています。2つ目は { manage: false } — アプリの他の画面で、ユーザーはテンプレートを出発点として適用できるだけ（保存・削除は不可）で、その後フォームを編集します。「テンプレートをコピー」/「テンプレートを貼り付け」（View JSONの隣）で、ライブラリを介さずにフォームを2つの間で移動できます。",
+      },
+      pageViewer: {
+        title: "ページビルダー + ビューア",
+        description:
+          "ランディングページ向けの設定です: fieldTypes はオフ、contentBlocks は段落・画像・ボタンのみ、submitButtons: false で全ボタンをリンクにし、maxImages で画像数を制限しています。ビルダーの下は公開ページが使う読み取り専用レンダラー <FormViewer /> です。編集して「ビューを更新」を押すと、訪問者に表示される内容をそのまま確認できます（実際のホストでは getDocument() を保存し、サーバー側で描画します）。",
+      },
+      viewer: {
+        title: "読み取り専用ビューア（FormViewer）",
+        description:
+          "form-page-builder/viewer の <FormViewer /> で保存済みドキュメントを描画します: ツールバーも状態もなく、Next.js のサーバーコンポーネントで描画できます。ページの言語とライト/ダークの切り替えに追従し、列は親要素の幅に応じて折りたたまれるのでボックス右下の角をドラッグして確認できます。javascript: などの危険なリンクは除外され、titleDisplay=\"auto\" はドキュメントにh1が無い場合のみ非表示のh1を追加します。",
       },
     },
   },
@@ -443,6 +535,15 @@ function DemoApp() {
                 storage={namespacedStorage("company-templates")}
               />
             </div>
+          </div>
+        </Example>
+        <Example id="page-builder-viewer" title={s.examples.pageViewer.title} description={s.examples.pageViewer.description}>
+          <PageBuilderWithViewer theme={theme} uiLang={uiLang} dark={dark} />
+        </Example>
+
+        <Example id="viewer" title={s.examples.viewer.title} description={s.examples.viewer.description}>
+          <div style={{ border: "1px solid var(--demo-border)", borderRadius: 12, overflow: "hidden", resize: "horizontal", maxWidth: "100%", minWidth: 280, width: 760 }}>
+            <FormViewer document={landingPageDocument} language={uiLang} theme={dark ? DARK_THEME : undefined} maxWidth="100%" titleDisplay="auto" />
           </div>
         </Example>
       </div>

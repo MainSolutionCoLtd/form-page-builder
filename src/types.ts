@@ -249,6 +249,8 @@ export interface FormBuilderHandle {
   getDocument(): FormDocument;
   /** Replaces the current document — e.g. a form fetched from your own backend. Routes through the same migration path as opening a saved template, so older/looser JSON shapes are tolerated. */
   loadDocument(doc: FormDocument): void;
+  /** Treat the current document as saved: it becomes the baseline `onChange` compares against, and `dirty` goes false. */
+  markSaved(): void;
   /** Convenience for `JSON.stringify(getDocument())`. */
   exportJson(): string;
   /** The current document as a portable `FormTemplate` — pass to another builder's `loadTemplate()` or persist it. */
@@ -315,6 +317,10 @@ export interface FormBuilderFeatures {
   deviceToggle?: boolean;
   /** Caps the number of input-type fields (not content blocks) addable across the whole document. Default undefined (unlimited). */
   maxFields?: number;
+  /** Caps the number of image blocks across the whole document. Default undefined (unlimited). */
+  maxImages?: number;
+  /** Offer "Submit" as a button action. When false, buttons are link-only: new buttons default to link and the action picker is hidden. Default true. */
+  submitButtons?: boolean;
 }
 
 // --- props ---
@@ -338,4 +344,20 @@ export interface FormBuilderProps {
   onTemplateChange?: (change: TemplateChange) => void;
   /** localStorage key behind copy/paste (default `"form-page-builder:clipboard"`); instances sharing it can paste to each other. */
   templateClipboardKey?: string;
+  /**
+   * Adds an Upload button beside an image block's URL box. Receives the picked file (open your own crop/compress UI here if you want one)
+   * and resolves to the hosted URL, which becomes the block's `src`. Rejecting leaves the block unchanged and shows an error; reject with an `AbortError` to cancel silently (e.g. the user closed your crop dialog). Omit it to keep the URL-only input.
+   */
+  onImageUpload?: (file: File, ctx: ImageUploadContext) => Promise<string>;
+  /**
+   * Fires when the working document starts or stops differing from the loaded one (edits, template apply, paste): `dirty` is true after
+   * the first change and false again if the user edits back to it or the host calls `markSaved()` on the ref. Use it to warn about
+   * unsaved changes or enable a Save button; read the content with `getDocument()`.
+   */
+  onChange?: (info: { dirty: boolean }) => void;
+}
+
+export interface ImageUploadContext {
+  fieldId: string;
+  shape: NonNullable<ImageField["shape"]>;
 }

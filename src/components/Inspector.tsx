@@ -1,6 +1,7 @@
+import { useRef, useState } from "react";
 import { Bold, Italic, X, Plus, Trash2 } from "lucide-react";
 import type { ChromeShape } from "../i18n/chrome";
-import type { FieldPatch, FormField, Option } from "../types";
+import type { FieldPatch, FormField, ImageUploadContext, Option } from "../types";
 import type { ResolvedFeatures } from "../lib/features";
 import { getMeta, INPUT_SUBTYPES, INPUT_SUBTYPE_CHROME_KEY, IMAGE_SHAPE_CHROME_KEY } from "../constants/fieldTypes";
 import { IMAGE_SHAPES } from "../constants/fieldTypes";
@@ -24,9 +25,10 @@ export interface InspectorProps {
   onUpdateOption: (optIdx: number, patch: Partial<Option>) => void;
   onAddOption: () => void;
   onRemoveOption: (optIdx: number) => void;
+  onImageUpload?: (file: File, ctx: ImageUploadContext) => Promise<string>;
 }
 
-export function Inspector({ selected, language, chrome, features, onUpdateField, onDeleteField, onUpdateOption, onAddOption, onRemoveOption }: InspectorProps) {
+export function Inspector({ selected, language, chrome, features, onUpdateField, onDeleteField, onUpdateOption, onAddOption, onRemoveOption, onImageUpload }: InspectorProps) {
   return (
     <div className="fb-inspector" style={styles.inspector}>
       <div style={styles.panelHeading}>{chrome.properties}</div>
@@ -43,13 +45,24 @@ export function Inspector({ selected, language, chrome, features, onUpdateField,
           onUpdateOption={onUpdateOption}
           onAddOption={onAddOption}
           onRemoveOption={onRemoveOption}
+          onImageUpload={onImageUpload}
         />
       )}
     </div>
   );
 }
 
-function InspectorBody({ selected, language, chrome, features, onUpdateField, onDeleteField, onUpdateOption, onAddOption, onRemoveOption }: Omit<InspectorProps, "selected"> & { selected: FormField }) {
+function InspectorBody({ selected, language, chrome, features, onUpdateField, onDeleteField, onUpdateOption, onAddOption, onRemoveOption, onImageUpload }: Omit<InspectorProps, "selected"> & { selected: FormField }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(false);
+  const pickFile = async (file?: File) => {
+    if (!file || !onImageUpload || selected.type !== "image") return;
+    setUploading(true); setUploadError(false);
+    try { onUpdateField({ src: await onImageUpload(file, { fieldId: selected.id, shape: selected.shape || "square" }) }); }
+    catch (e) { if ((e as { name?: string })?.name !== "AbortError") setUploadError(true); } // an AbortError is a user cancel: leave the block quietly
+    finally { setUploading(false); if (fileRef.current) fileRef.current.value = ""; }
+  };
   const meta = getMeta(selected.type);
   const f = selected as any;
 
@@ -111,7 +124,17 @@ function InspectorBody({ selected, language, chrome, features, onUpdateField, on
         <>
           <label style={styles.propLabel}>{chrome.imageUrl}</label>
           <input style={styles.propInput} placeholder="https://..." value={selected.src || ""} onChange={(e) => onUpdateField({ src: e.target.value })} />
-          <p style={styles.helperText}>{chrome.imageUrlHelper}</p>
+          {onImageUpload ? (
+            <>
+              <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => pickFile(e.target.files?.[0])} />
+              <button type="button" style={{ ...styles.ghostBtn, justifyContent: "center", marginTop: 6, ...(uploading ? { opacity: 0.6 } : {}) }} disabled={uploading} onClick={() => fileRef.current?.click()}>
+                {uploading ? chrome.uploadingImage : chrome.uploadImage}
+              </button>
+              {uploadError && <p role="alert" style={{ ...styles.helperText, color: "var(--fb-danger)" }}>{chrome.uploadImageFailed}</p>}
+            </>
+          ) : (
+            <p style={styles.helperText}>{chrome.imageUrlHelper}</p>
+          )}
           <label style={styles.propLabel}>{chrome.altText}</label>
           <input style={styles.propInput} value={t(selected.alt, language)} onChange={(e) => onUpdateField({ alt: withLang(selected.alt, language, e.target.value) })} />
           <label style={styles.propLabel}>{chrome.linkOptional}</label>
@@ -126,10 +149,14 @@ function InspectorBody({ selected, language, chrome, features, onUpdateField, on
         <>
           <div style={styles.inspectorDivider} />
           <div style={styles.panelHeading}>{chrome.buttonActionTitle}</div>
-          <label style={styles.propLabel}>{chrome.buttonAction}</label>
-          <Segmented options={[{ value: "link", label: chrome.actionLink }, { value: "submit", label: chrome.actionSubmit }]} value={selected.action || "submit"} onChange={(v) => onUpdateField({ action: v as FieldPatch["action"] })} />
+          {features.submitButtons && (
+            <>
+              <label style={styles.propLabel}>{chrome.buttonAction}</label>
+              <Segmented options={[{ value: "link", label: chrome.actionLink }, { value: "submit", label: chrome.actionSubmit }]} value={selected.action || "submit"} onChange={(v) => onUpdateField({ action: v as FieldPatch["action"] })} />
+            </>
+          )}
 
-          {selected.action === "link" ? (
+          {selected.action === "link" || !features.submitButtons ? (
             <>
               <label style={styles.propLabel}>{chrome.linkOptional}</label>
               <input style={styles.propInput} placeholder="https://..." value={selected.href || ""} onChange={(e) => onUpdateField({ href: e.target.value })} />
