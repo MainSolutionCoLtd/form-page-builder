@@ -6,11 +6,11 @@
 
 **[Live demo](https://mainsolutioncoltd.github.io/form-page-builder/)**
 
-Embeddable, bilingual (EN/JA by default, extensible), drag-and-drop form builder widget for React. Ships a single `<FormBuilder />` component with a Build mode (drag/drop canvas, field inspector) and a Preview mode (responsive, validating runtime form), plus a JSON export of the resulting document.
+Embeddable, bilingual (EN/JA by default, extensible), drag-and-drop form builder widget for React. Ships a single `<FormBuilder />` component with a Build mode (drag/drop canvas, field inspector) and a Preview mode (responsive, validating runtime form), plus a JSON export of the resulting document. A separate, server-safe `<FormViewer />` (`form-page-builder/viewer`) draws a saved document read-only, for the public page.
 
 ## Examples
 
-The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gallery of `<FormBuilder />` configurations, each showing a different realistic way to compose `features`/`theme`/`storage`/`initialDocument`/`language` — jump straight to one. Its sticky header (its headings/captions, not the widget's own EN/JA switcher) has an EN/日本語 toggle, a Light/Dark toggle that swaps every example except "Branded" (badged "Fixed theme", since its whole point is a locked theme) between `DEFAULT_THEME` and `DARK_THEME`, and links back to this repo and the npm package.
+The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gallery of `<FormBuilder />` configurations and the read-only `<FormViewer />`, each showing a different realistic way to compose `features`/`theme`/`storage`/`initialDocument`/`language` — jump straight to one. Its sticky header (its headings/captions, not the widget's own EN/JA switcher) has an EN/日本語 toggle, a Light/Dark toggle that swaps every example except "Branded" (badged "Fixed theme", since its whole point is a locked theme) between `DEFAULT_THEME` and `DARK_THEME`, and links back to this repo and the npm package.
 
 | Example | What it shows |
 |---|---|
@@ -21,6 +21,8 @@ The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gal
 | [Locked-structure form](https://mainsolutioncoltd.github.io/form-page-builder/#locked-structure) | `initialDocument` seeds a fixed field set; structural toggles are off so only styling/labels stay editable. |
 | [Localized (French)](https://mainsolutioncoltd.github.io/form-page-builder/#localized) | `language`/`languages`/`strings`/`chrome` — a language beyond the built-in EN/JA, partially translated. |
 | [Template roles](https://mainsolutioncoltd.github.io/form-page-builder/#template-roles) | Two instances sharing one template library — `templates: { manage: true, max: 3 }` (curate) next to `{ manage: false }` (apply-only), plus copy/paste between them. |
+| [Page builder + viewer](https://mainsolutioncoltd.github.io/form-page-builder/#page-builder-viewer) | A landing-page setup: `fieldTypes: false`, `contentBlocks` limited to paragraph/image/button, `submitButtons: false`, `maxImages`, with a live `<FormViewer />` below fed from `getDocument()`. |
+| [Read-only viewer](https://mainsolutioncoltd.github.io/form-page-builder/#viewer) | A saved document drawn by `<FormViewer />` alone — follows language and light/dark, columns collapse with the container width (drag the corner to resize). |
 
 The source for all of them lives in [dev/main.tsx](./dev/main.tsx) — `npm run dev` runs the same gallery locally against `src/` directly, and is the fastest way to try a `features`/`theme` combination before wiring it into your app.
 
@@ -257,6 +259,13 @@ function BuilderPage() {
   if (!initialDocument) return null;
   return <FormBuilder ref={ref} initialDocument={initialDocument} />;
 }
+```
+
+To show what you saved, hand the same stored document to [`FormViewer`](#showing-a-saved-page-formviewer) — the builder's editor and the public page then draw from one set of block styles:
+
+```tsx
+// Editor (client)                                  // Public page (server component)
+await save(ref.current.getDocument());               <FormViewer document={await load(slug)} language="en" titleDisplay="auto" />
 ```
 
 ### Copy / paste templates

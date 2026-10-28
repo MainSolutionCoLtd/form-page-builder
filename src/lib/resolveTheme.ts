@@ -3,7 +3,7 @@ import { DEFAULT_THEME } from "../theme/defaultTheme";
 import { mixHex } from "./color";
 
 /** `DEFAULT_THEME`, then `base`, then `overrides` (layout merged key by key). */
-export function resolveTheme(base?: Partial<Theme>, overrides?: ThemeOverrides): Theme {
+export function resolveTheme(base?: ThemeOverrides, overrides?: ThemeOverrides): Theme {
   return {
     ...DEFAULT_THEME,
     ...(base || {}),

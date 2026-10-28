@@ -1,5 +1,5 @@
 import type { CSSProperties, ElementType, ReactNode } from "react";
-import type { FieldPatch, LocalizedString, SubmitStyle, Theme, ThemeOverrides } from "./types";
+import type { FieldPatch, LocalizedString, SubmitStyle, ThemeOverrides } from "./types";
 import { ALIGN_MAP } from "./constants/widths";
 import { TAG_TO_ELEMENT } from "./constants/typographyScale";
 import { buttonStyle, imageStyle, paragraphStyle } from "./lib/blockStyle";
@@ -29,7 +29,7 @@ export interface FormViewerProps {
   /** Language code to read translations in. Falls back to `en`, then to any translation that has text. Default `en`. */
   language?: string;
   /** Base theme, under the document's own `themeOverrides`. Values may be `var(--x)` references. */
-  theme?: Partial<Theme>;
+  theme?: ThemeOverrides;
   /** Max width of the page: a number is px, a string is any CSS length. Defaults to the theme's `layout.maxWidth`. */
   maxWidth?: number | string;
   /** `none` (default) draws no title; `visible` draws it as an h1; `auto` draws a visually hidden h1 only when the document has no h1 block. */
