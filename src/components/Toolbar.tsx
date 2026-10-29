@@ -2,7 +2,7 @@ import { Loader2, AlertCircle, Pencil, Eye, FilePlus2, FolderOpen, Save, Code2, 
 import type { ChromeShape } from "../i18n/chrome";
 import type { LanguageOption, LocalizedString } from "../types";
 import type { ResolvedFeatures } from "../lib/features";
-import { t } from "../lib/bilingual";
+import { tAny, ownText } from "../lib/bilingual";
 import { styles } from "../styles/styles";
 import { LanguageToggle } from "./LanguageToggle";
 
@@ -41,9 +41,9 @@ export function Toolbar({
       <div style={styles.toolbarLeft}>
         <div style={styles.logoMark}>FB</div>
         {features.naming ? (
-          <input value={t(title, language)} onChange={(e) => onTitleChange(e.target.value)} style={styles.titleInput} aria-label="Form title" />
+          <input value={ownText(title, language)} placeholder={tAny(title, language)} onChange={(e) => onTitleChange(e.target.value)} style={styles.titleInput} aria-label="Form title" />
         ) : (
-          <span style={styles.titleInput}>{t(title, language)}</span>
+          <span style={styles.titleInput}>{tAny(title, language)}</span>
         )}
         {templateState === "loading" ? (
           <span style={styles.saveStatus}><Loader2 size={12} className="spin" /> {chrome.templateLoading}</span>

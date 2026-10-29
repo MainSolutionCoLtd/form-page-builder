@@ -5,7 +5,7 @@ import type { FieldPatch, Section } from "../types";
 import type { ResolvedFeatures } from "../lib/features";
 import { SECTION_BG_SWATCHES } from "../constants/colors";
 import { styles } from "../styles/styles";
-import { t } from "../lib/bilingual";
+import { tAny, ownText } from "../lib/bilingual";
 import { FieldTicket } from "./FieldTicket";
 
 export interface SectionCardProps {
@@ -53,8 +53,8 @@ export function SectionCard({
         <span style={{ ...styles.colorDot, background: section.background || "var(--fb-canvas)" }} />
         <input
           style={styles.sectionTitleInput}
-          placeholder={chrome.sectionTitlePlaceholder(sIdx + 1)}
-          value={t(section.title, language)}
+          placeholder={tAny(section.title, language) || chrome.sectionTitlePlaceholder(sIdx + 1)}
+          value={ownText(section.title, language)}
           onChange={(e) => onUpdateTitle(e.target.value)}
           onClick={(e) => e.stopPropagation()}
         />

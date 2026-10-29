@@ -8,7 +8,7 @@ import { getMeta } from "./constants/fieldTypes";
 import { DEFAULT_LANGUAGES } from "./i18n/languages";
 import { DEFAULT_STRINGS } from "./i18n/strings";
 import { CHROME } from "./i18n/chrome";
-import { t } from "./lib/bilingual";
+import { tAny } from "./lib/bilingual";
 import { themeVars } from "./lib/resolveTheme";
 import { localStorageAdapter } from "./lib/storage/localStorageAdapter";
 import { DOCUMENT_VERSION, migrateDocument } from "./lib/migrate";
@@ -146,7 +146,7 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   const atImageCap = typeof features.maxImages === "number" && imageCount >= features.maxImages;
 
   const activeSectionIdx = doc.sections.findIndex((s) => s.id === doc.activeSection?.id);
-  const activeSectionLabel = t(doc.activeSection?.title, language) || `#${activeSectionIdx + 1}`;
+  const activeSectionLabel = tAny(doc.activeSection?.title, language) || `#${activeSectionIdx + 1}`;
 
   const rootStyle: CSSProperties = { ...styles.app, ...themeVars(theme) } as CSSProperties;
 

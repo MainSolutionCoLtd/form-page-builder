@@ -7,7 +7,7 @@ import { TAG_TO_ELEMENT } from "../../constants/typographyScale";
 import { paragraphStyle } from "../../lib/blockStyle";
 import { getMeta } from "../../constants/fieldTypes";
 import { ICON_LIBRARY, type IconComponent } from "../../constants/icons";
-import { t } from "../../lib/bilingual";
+import { tAny } from "../../lib/bilingual";
 import { styles } from "../../styles/styles";
 import { ImageBlock } from "./ImageBlock";
 import { ButtonBlock } from "./ButtonBlock";
@@ -29,13 +29,13 @@ export function FieldBlock({ field, lang, onFieldChange, strings, chrome, error,
 
   if (field.type === "paragraph") {
     const Tag = (TAG_TO_ELEMENT[field.tag] || "p") as ElementType;
-    return <Tag style={paragraphStyle(field)}>{t(field.content, lang) || "..."}</Tag>;
+    return <Tag style={paragraphStyle(field)}>{tAny(field.content, lang) || "..."}</Tag>;
   }
 
   const meta = getMeta(field.type);
   const IconComp = field.showIcon && field.displayIcon ? ICON_LIBRARY[field.displayIcon] : null;
   const isInline = field.labelPosition === "inline" && !meta.boolean;
-  const labelText = t(field.label, lang);
+  const labelText = tAny(field.label, lang);
   const showLabel = !meta.boolean && !field.hideLabel;
 
   return (
@@ -68,7 +68,7 @@ function renderInteractive(
   const value = field.defaultValue;
   const set = (v: string | boolean | string[]) => onFieldChange(field.id, { defaultValue: v });
   const inputStyle = hasError ? { ...styles.realInput, ...styles.realInputError } : styles.realInput;
-  const common = { style: inputStyle, placeholder: t("placeholder" in field ? field.placeholder : undefined, lang), value: (value as string) || "", onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => set(e.target.value) };
+  const common = { style: inputStyle, placeholder: tAny("placeholder" in field ? field.placeholder : undefined, lang), value: (value as string) || "", onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => set(e.target.value) };
 
   if (field.type === "input") {
     switch (field.inputType) {
@@ -89,23 +89,23 @@ function renderInteractive(
       return (
         <select style={inputStyle} value={(value as string) || ""} onChange={(e) => set(e.target.value)}>
           <option value="">{strings.selectPlaceholder}</option>
-          {(field.options || []).map((o) => (<option key={o.value} value={o.value}>{t(o.label, lang)}</option>))}
+          {(field.options || []).map((o) => (<option key={o.value} value={o.value}>{tAny(o.label, lang)}</option>))}
         </select>
       );
     case "radio":
-      return (<div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 4 }}>{(field.options || []).map((o) => (<label key={o.value} style={styles.previewRadio}><input type="radio" name={field.id} value={o.value} checked={value === o.value} onChange={(e) => set(e.target.value)} />{t(o.label, lang)}</label>))}</div>);
+      return (<div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 4 }}>{(field.options || []).map((o) => (<label key={o.value} style={styles.previewRadio}><input type="radio" name={field.id} value={o.value} checked={value === o.value} onChange={(e) => set(e.target.value)} />{tAny(o.label, lang)}</label>))}</div>);
     case "checkboxGroup": {
       const vals = Array.isArray(value) ? value : [];
       return (
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 4 }}>
-          {(field.options || []).map((o) => { const checked = vals.includes(o.value); return (<label key={o.value} style={styles.previewRadio}><input type="checkbox" checked={checked} onChange={(e) => { const next = e.target.checked ? [...vals, o.value] : vals.filter((v) => v !== o.value); set(next); }} style={{ accentColor: "var(--fb-primary)" }} />{t(o.label, lang)}</label>); })}
+          {(field.options || []).map((o) => { const checked = vals.includes(o.value); return (<label key={o.value} style={styles.previewRadio}><input type="checkbox" checked={checked} onChange={(e) => { const next = e.target.checked ? [...vals, o.value] : vals.filter((v) => v !== o.value); set(next); }} style={{ accentColor: "var(--fb-primary)" }} />{tAny(o.label, lang)}</label>); })}
         </div>
       );
     }
     case "checkbox":
-      return (<label style={styles.previewRadio}><input type="checkbox" checked={!!value} onChange={(e) => set(e.target.checked)} style={{ accentColor: "var(--fb-primary)" }} />{IconComp && <IconComp size={14} color="var(--fb-muted)" />}{t(field.label, lang)}{field.required && <span style={{ color: "var(--fb-danger)" }}> *</span>}</label>);
+      return (<label style={styles.previewRadio}><input type="checkbox" checked={!!value} onChange={(e) => set(e.target.checked)} style={{ accentColor: "var(--fb-primary)" }} />{IconComp && <IconComp size={14} color="var(--fb-muted)" />}{tAny(field.label, lang)}{field.required && <span style={{ color: "var(--fb-danger)" }}> *</span>}</label>);
     case "toggle":
-      return (<label style={styles.previewRadio}><input type="checkbox" checked={!!value} onChange={(e) => set(e.target.checked)} style={{ accentColor: "var(--fb-primary)" }} />{IconComp && <IconComp size={14} color="var(--fb-muted)" />}{t(field.label, lang)}</label>);
+      return (<label style={styles.previewRadio}><input type="checkbox" checked={!!value} onChange={(e) => set(e.target.checked)} style={{ accentColor: "var(--fb-primary)" }} />{IconComp && <IconComp size={14} color="var(--fb-muted)" />}{tAny(field.label, lang)}</label>);
     default:
       return <input type="text" {...common} />;
   }
