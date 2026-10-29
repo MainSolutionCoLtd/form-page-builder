@@ -297,7 +297,7 @@ export interface FormBuilderFeatures {
   jsonView?: boolean;
   /** Build/Preview mode tabs. When false, the builder stays in Build mode and the tabs are hidden. Default true. */
   previewMode?: boolean;
-  /** Language switcher in the Toolbar. Default true. */
+  /** Language switcher in the Toolbar. Default true, or false when the host passes `language` (the host then owns the language; set this to true to show the switcher anyway). */
   languageSwitcher?: boolean;
   /** Global "Design" tab (colors/spacing) in the sidebar. Replaces the old `themeEditable` prop. Default false. */
   design?: boolean;
@@ -326,7 +326,10 @@ export interface FormBuilderFeatures {
 // --- props ---
 export interface FormBuilderProps {
   theme?: Partial<Theme>;
+  /** Language the builder shows. The builder follows this whenever it changes, and hides its own switcher (override with `features.languageSwitcher: true`). Omit it to let the builder keep its own language and switcher. */
   language?: string;
+  /** Fires when the user picks a language with the builder's own switcher (not when the `language` prop changes). */
+  onLanguageChange?: (code: string) => void;
   languages?: LanguageOption[];
   strings?: Record<string, Partial<StringsShape>>;
   chrome?: Record<string, Partial<ChromeShape>>;

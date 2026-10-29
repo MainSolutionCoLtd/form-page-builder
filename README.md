@@ -68,7 +68,8 @@ Above ~720px wide, Build mode is the usual three-column Palette/Canvas/Inspector
 |---|---|---|
 | `theme` | `Partial<Theme>` | Override default colors/layout spacing — see "Features vs. theming" below. |
 | `features` | `FormBuilderFeatures` | Independently toggle UI surfaces on/off — full-featured by default. See "Features" below. |
-| `language` | `string` | Initial builder language (defaults to the first entry in `languages`). |
+| `language` | `string` | The language the builder shows (defaults to the first entry in `languages`). Pass it when your app already has its own language setting: the builder follows it whenever it changes, and hides its own switcher so users see one. Omit it to let the builder keep its own language and switcher. See "Language and your app's own toggle" below. |
+| `onLanguageChange` | `(code: string) => void` | Fires when the user picks a language with the builder's own switcher (only visible if you omit `language` or set `features.languageSwitcher: true`). |
 | `languages` | `{ code: string; label: string }[]` | Language switcher options (default: EN/JA). |
 | `strings` | `Record<string, Partial<StringsShape>>` | Overrides for the text end users see in Preview (validation messages, the submitted summary, Yes/No, …), keyed by language code. Anything you leave out keeps the built-in text. |
 | `chrome` | `Record<string, Partial<ChromeShape>>` | Overrides for the builder's own UI text (buttons, labels, inspector), keyed by language code. Anything you leave out keeps the built-in text. |
@@ -120,7 +121,7 @@ Every optional UI surface can be switched on or off independently through one `f
 | `jsonView` | `boolean` | `true` | The "View JSON" button and modal. |
 | `templateClipboard` | `boolean` | `true` | The "Copy template" / "Paste template" icon buttons next to "View JSON". Paste is enabled only once another builder instance in the same browser has copied one. |
 | `previewMode` | `boolean` | `true` | The Build/Preview tabs. When `false`, the tabs are hidden and the builder stays in whichever mode it started in (`initialMode`, Build by default). |
-| `languageSwitcher` | `boolean` | `true` | The language-switcher pill in the toolbar. |
+| `languageSwitcher` | `boolean` | `true`, or `false` when you pass `language` | The language-switcher pill in the toolbar. Hidden by default once you pass `language`, because your app then owns the language; set it to `true` to show it anyway. |
 | `design` | `boolean` | `false` | The global "Design" tab (colors/spacing), i.e. the old `themeEditable` prop. |
 | `blockStyling` | `boolean` | `true` | Per-field styling controls: paragraph heading/font/color, button color — independent of `design`. |
 | `contentBlocks` | `boolean \| ("paragraph" \| "image" \| "button")[]` | `true` | Which content blocks can be *added* from the palette. `true` = all, `false` = none, or an allowlist. |
@@ -132,6 +133,19 @@ Every optional UI surface can be switched on or off independently through one `f
 | `submitButtons` | `boolean` | `true` | When `false`, buttons are link-only: new buttons default to the link action and the Link/Submit picker is hidden. Use it when the host stores no submissions. Any leftover submit button then behaves as a link in Preview, and editing its URL switches it to the link action. |
 | `maxImages` | `number` | `undefined` (unlimited) | Caps the number of image blocks across the whole document. The palette shows "Images: n / max"; at the cap the Image button disables and Duplicate on an image (or a section containing images) is ignored until one is removed. |
 | `maxFields` | `number` | `undefined` (unlimited) | Caps the total number of input-type fields (not content blocks) addable across the whole document. The palette shows a live "Fields: n / max" count; once reached, the Form Fields buttons disable and a limit message replaces the count until a field is removed. |
+
+### Language and your app's own toggle
+
+If your app already has a language toggle, pass its value as `language`. The builder then shows that language, follows it when it changes, and hides its own switcher, so users don't see two. With no `language` prop the builder keeps its own state and switcher, as before.
+
+```tsx
+const [lang, setLang] = useState<"en" | "ja">("ja");
+
+<AppLanguageToggle value={lang} onChange={setLang} />
+<FormBuilder language={lang} />
+```
+
+If you want the builder's switcher as well, set `features={{ languageSwitcher: true }}` and listen with `onLanguageChange` to keep your app in step.
 
 ### Languages and missing translations
 

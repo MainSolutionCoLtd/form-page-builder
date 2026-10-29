@@ -494,6 +494,7 @@ function DemoApp() {
           <FormBuilder
             theme={theme}
             language="fr"
+            features={{ languageSwitcher: true }}
             languages={[{ code: "en", label: "EN" }, { code: "fr", label: "FR" }]}
             chrome={{
               fr: {

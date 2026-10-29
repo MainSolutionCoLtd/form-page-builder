@@ -34,6 +34,7 @@ import { styles } from "./styles/styles";
 const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function FormBuilder({
   theme: themeOverrideProp,
   language: languageOverride,
+  onLanguageChange,
   languages = DEFAULT_LANGUAGES,
   strings: stringsOverride,
   chrome: chromeOverride,
@@ -48,11 +49,22 @@ const FormBuilder = forwardRef<FormBuilderHandle, FormBuilderProps>(function For
   onImageUpload,
   onChange,
 }, ref) {
-  const features = resolveFeatures(featuresProp);
+  // A host that passes `language` owns it, so the builder's own switcher is hidden unless asked for.
+  const features = resolveFeatures({ ...featuresProp, languageSwitcher: featuresProp?.languageSwitcher ?? languageOverride === undefined });
   const storage = storageProp ?? localStorageAdapter;
   const { theme, updateThemeColor, updateThemeLayout, resetTheme, replaceThemeOverrides, themeOverrides } = useTheme(themeOverrideProp);
 
-  const [language, setLanguage] = useState(languageOverride || languages[0]?.code || "en");
+  const [language, setLanguageState] = useState(languageOverride || languages[0]?.code || "en");
+  // Follow the host: when the `language` prop changes, adopt it.
+  const [seenLanguageProp, setSeenLanguageProp] = useState(languageOverride);
+  if (languageOverride !== seenLanguageProp) {
+    setSeenLanguageProp(languageOverride);
+    if (languageOverride) setLanguageState(languageOverride);
+  }
+  const setLanguage = (code: string) => {
+    setLanguageState(code);
+    onLanguageChange?.(code);
+  };
   const strings = { ...(DEFAULT_STRINGS[language as keyof typeof DEFAULT_STRINGS] || DEFAULT_STRINGS.en), ...((stringsOverride && stringsOverride[language]) || {}) };
   const chrome = { ...(CHROME[language as keyof typeof CHROME] || CHROME.en), ...((chromeOverride && chromeOverride[language]) || {}) };
 
