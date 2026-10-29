@@ -8,9 +8,11 @@
 
 Embeddable, bilingual (EN/JA by default, extensible), drag-and-drop form builder widget for React. Ships a single `<FormBuilder />` component with a Build mode (drag/drop canvas, field inspector) and a Preview mode (responsive, validating runtime form), plus a JSON export of the resulting document. A separate, server-safe `<FormViewer />` (`form-page-builder/viewer`) draws a saved document read-only, for the public page.
 
+**How the pieces fit:** an author uses `<FormBuilder />` to build a page or form → you read it with `ref.current.getDocument()` and store it wherever you like → visitors see it through `<FormViewer />` (read-only, server-safe). Both draw blocks with the same styles, so the public page matches what the author previewed. Nothing is sent anywhere by the package itself.
+
 ## Examples
 
-The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gallery of `<FormBuilder />` configurations and the read-only `<FormViewer />`, each showing a different realistic way to compose `features`/`theme`/`storage`/`initialDocument`/`language` — jump straight to one. Its sticky header (its headings/captions, not the widget's own EN/JA switcher) has an EN/日本語 toggle, a Light/Dark toggle that swaps every example except "Branded" (badged "Fixed theme", since its whole point is a locked theme) between `DEFAULT_THEME` and `DARK_THEME`, and links back to this repo and the npm package.
+The [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) is a gallery of `<FormBuilder />` configurations and the read-only `<FormViewer />`, each showing a different realistic way to compose `features`/`theme`/`storage`/`initialDocument`/`language` — jump straight to one. Use the demo's header to switch its own text between English and Japanese, and every example except "Branded" (whose theme is locked) between light and dark.
 
 | Example | What it shows |
 |---|---|
@@ -68,10 +70,10 @@ Above ~720px wide, Build mode is the usual three-column Palette/Canvas/Inspector
 | `features` | `FormBuilderFeatures` | Independently toggle UI surfaces on/off — full-featured by default. See "Features" below. |
 | `language` | `string` | Initial builder language (defaults to the first entry in `languages`). |
 | `languages` | `{ code: string; label: string }[]` | Language switcher options (default: EN/JA). |
-| `strings` | partial override of runtime/validation strings, keyed by language code | |
-| `chrome` | partial override of builder-UI strings, keyed by language code | |
+| `strings` | `Record<string, Partial<StringsShape>>` | Overrides for the text end users see in Preview (validation messages, the submitted summary, Yes/No, …), keyed by language code. Anything you leave out keeps the built-in text. |
+| `chrome` | `Record<string, Partial<ChromeShape>>` | Overrides for the builder's own UI text (buttons, labels, inspector), keyed by language code. Anything you leave out keeps the built-in text. |
 | `storage` | `StorageAdapter` | Pluggable persistence backend for the builder's own draft/Templates library — see below. |
-| `onSubmit` | `(payload: SubmitPayload) => void` | Called when Preview mode's Submit button is clicked and validation passes — see below. |
+| `onSubmit` | `(payload: SubmitPayload) => void` | Called when a Submit-action **Button block** in Preview is clicked and validation passes — see below. Preview has no Submit button of its own: you add one as a block. |
 | `initialDocument` | `FormDocument` | Seeds the builder with this document on mount instead of the autosaved draft — see "Programmatic integration" below. |
 | `initialMode` | `"build" \| "preview"` | Which mode the widget mounts into (default `"build"`). Pair with `features.previewMode: false` to lock a consumer to just one mode with no tabs — e.g. a fill-only embed that never shows the Build canvas. Or leave `previewMode` on and pick `initialMode` per document (e.g. `"preview"` once a document already has saved data) so the widget opens on the right mode while still letting the built-in tabs switch it. |
 | `onModeChange` | `(mode: "build" \| "preview") => void` | Fires on mount and on every Build/Preview toggle. Lets a host mirror the current mode (e.g. to show its own Save button only in Build mode) without building a separate tab UI around the widget. |
@@ -80,7 +82,7 @@ Above ~720px wide, Build mode is the usual three-column Palette/Canvas/Inspector
 | `onTemplateChange` | `(change: TemplateChange) => void` | Fires when a template is created (`source: "new"`), overwritten (`"saved"`), applied as the working document (`"applied"`), or deleted (`"deleted"`). `change` is `{ id: string \| null; title: string; source }`. Useful for syncing a host's own state or backend index. |
 | `templateClipboardKey` | `string` | Overrides the localStorage key behind "Copy template" / "Paste template" (default `"form-page-builder:clipboard"`). Instances sharing a key can copy/paste between each other. |
 
-A `ref` on `<FormBuilder />` gives you a `FormBuilderHandle` (`getDocument()` / `loadDocument()` / `exportJson()` / `getTemplate()` / `loadTemplate()`) — see "Programmatic integration" and "Copy / paste templates" below.
+A `ref` on `<FormBuilder />` gives you a `FormBuilderHandle` (`getDocument()` / `loadDocument()` / `exportJson()` / `getTemplate()` / `loadTemplate()` / `markSaved()`) — see "Programmatic integration" and "Copy / paste templates" below.
 
 ### Features: `features`
 
@@ -127,9 +129,15 @@ Every optional UI surface can be switched on or off independently through one `f
 | `sectionBackground` | `boolean` | inherits `sections` | Per-section background-color swatches + custom-color picker in the section header. Independent of `sections` — set it `false` to lock section backgrounds while keeping the structural controls, or leave it unset and it follows whatever `sections` is. |
 | `dragReorder` | `boolean` | `true` | Drag-to-reorder fields within a section. |
 | `deviceToggle` | `boolean` | `true` | The Laptop/Tablet/Mobile width switcher above the Preview canvas. When `false`, Preview always renders at the Laptop (full) width. |
-| `submitButtons` | `boolean` | `true` | When `false`, buttons are link-only: new buttons default to the link action and the Link/Submit picker is hidden. Use it when the host stores no submissions. |
+| `submitButtons` | `boolean` | `true` | When `false`, buttons are link-only: new buttons default to the link action and the Link/Submit picker is hidden. Use it when the host stores no submissions. Any leftover submit button then behaves as a link in Preview, and editing its URL switches it to the link action. |
 | `maxImages` | `number` | `undefined` (unlimited) | Caps the number of image blocks across the whole document. The palette shows "Images: n / max"; at the cap the Image button disables and Duplicate on an image (or a section containing images) is ignored until one is removed. |
 | `maxFields` | `number` | `undefined` (unlimited) | Caps the total number of input-type fields (not content blocks) addable across the whole document. The palette shows a live "Fields: n / max" count; once reached, the Form Fields buttons disable and a limit message replaces the count until a field is removed. |
+
+### Languages and missing translations
+
+Every piece of text a document holds (labels, placeholders, option names, paragraph text, section and form titles, alt text) is stored per language, e.g. `{ en: "Name", ja: "お名前" }`. A new block gets its default text only in the language the author was using when they added it. When a language has no text for something, the builder, Preview and `FormViewer` all show the same fallback: the current language, then `en`, then any other language that has text. So switching the language never turns written content into a blank or a placeholder; it shows the nearest translation until the author types one in. In the inspector each language's input shows only the text stored for that language; when it is empty, the text it would fall back to appears as a grey hint.
+
+Most authors only ever fill in one language, and nothing here requires a second one. If you do use several, a built-in default (a new field's "Input", an option's "Option 1", "Untitled form") is cleared in the other languages as soon as the author types their own text in one, so a leftover default never sits next to the author's wording. Text the author wrote is never cleared. For example, a field added in English starts as `{ en: "Input", ja: "" }`; typing "名前" in Japanese makes it `{ en: "", ja: "名前" }`, and English then shows the Japanese text until someone writes English.
 
 Disabling `contentBlocks`/`fieldTypes` for a given type only hides it from the palette going forward — if a document loaded via `initialDocument` (or a saved template) already contains fields of a now-disabled type, they still render and remain editable in Build mode; nothing is stripped or hidden.
 
@@ -161,7 +169,7 @@ import { FormBuilder, DARK_THEME } from "form-page-builder";
 <FormBuilder theme={DARK_THEME} />;
 ```
 
-`DARK_THEME` (and `DEFAULT_THEME`, the light palette used when `theme` is omitted) are both exported as plain `Theme` objects, so you can spread and tweak either one (`{ ...DARK_THEME, primary: "#22c55e" }`) or swap between them at runtime for a user-facing light/dark toggle — see the "Localized (French)"-adjacent light/Dark switch in the [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) for a working example.
+`DARK_THEME` (and `DEFAULT_THEME`, the light palette used when `theme` is omitted) are both exported as plain `Theme` objects, so you can spread and tweak either one (`{ ...DARK_THEME, primary: "#22c55e" }`) or swap between them at runtime for a user-facing light/dark toggle — the [live demo](https://mainsolutioncoltd.github.io/form-page-builder/) has a Light/Dark toggle that does exactly this.
 
 ### Persistence: `StorageAdapter`
 
@@ -212,7 +220,7 @@ This is separate from — and unrelated to — however you choose to handle real
 
 ### Handling submissions: `onSubmit`
 
-A submit action lives on a **Button field** — drag one into a section from the palette (next to Paragraph/Image) and set its "When clicked" mode to Submit, with a scope of either "This section" or "Whole form". There's no document-level submit setting anymore; you can place as many buttons as you like (e.g. a per-section "Next" alongside a final "Submit", or a plain "Open link" CTA button that doesn't submit at all).
+**The form has no Submit button until you add one.** A submit action lives on a **Button block**: add one from the palette (next to Paragraph/Image), then in its inspector set **When clicked** to **Submit** and **Submits** to either **This section** or **Whole form**. (A new button defaults to Submit unless `features.submitButtons` is `false`, in which case it defaults to **Open link**.) There's no document-level submit setting anymore; you can place as many buttons as you like (e.g. a per-section "Next" alongside a final "Submit", or a plain "Open link" CTA button that doesn't submit at all). If a form needs no submissions at all, set `features.submitButtons` to `false`.
 
 Clicking a submit-action button validates the fields in its scope and, once they pass, calls `onSubmit` with the entered values — pass this if you want to do something with them (send to your backend, log them, etc.) instead of just seeing the built-in "here's what would be sent" confirmation:
 
@@ -302,7 +310,18 @@ Documents saved in the compact form need this package version (or newer) to be r
 
 ## Showing a saved page (`FormViewer`)
 
-`FormViewer` is the read-only counterpart of Preview: no toolbars, no state, just the blocks. Use it for the public page that visitors see, so it can never look different from what the author previewed. It draws paragraph, image and link-button blocks; form inputs and submit buttons are skipped.
+`FormViewer` is the read-only counterpart of Preview: no toolbars, no state, just the blocks. Use it for the public page that visitors see, so it can never look different from what the author previewed.
+
+| Block | What the viewer draws |
+|---|---|
+| Paragraph | The text, with its heading level, size, weight, alignment and colour. Empty paragraphs are skipped. |
+| Image | The image (and its link, if any). Skipped when it has no `src`, or the URL is rejected by `sanitizeUrl`. |
+| Button, **Open link** with a URL | A link styled as a button (`<a>`). |
+| Button, **Open link** with no URL | The button, shown but inert. |
+| Button, **Submit** | The button, shown but inert. The viewer has nowhere to send a submission, so it does nothing when clicked. |
+| Form inputs (text, select, checkbox, …) | Not drawn. |
+
+A button with no label is never drawn, and neither is a link button whose URL `sanitizeUrl` rejects (e.g. `javascript:`).
 
 ```tsx
 // app/p/[slug]/page.tsx — a Next.js server component, rendered into the initial HTML
