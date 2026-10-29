@@ -21,7 +21,7 @@ export interface Option {
 }
 
 // --- field union ---
-export type WidthOption = "1/3" | "1/2" | "1/1";
+export type WidthOption = "1/3" | "1/2" | "2/3" | "1/1";
 export type VerticalAlign = "top" | "middle" | "bottom";
 export type LabelPosition = "top" | "inline";
 
@@ -98,7 +98,8 @@ export interface ImageField extends BaseField {
   src: string;
   alt: LocalizedString;
   link: string;
-  shape: "square" | "circle" | "banner";
+  /** `auto` keeps the picture's own proportions (no cropping); the others crop to fill. */
+  shape: "square" | "circle" | "banner" | "auto";
 }
 export interface ButtonField extends BaseField {
   type: "button";
@@ -197,6 +198,8 @@ export interface SavedFormMeta {
 // --- theme ---
 export interface ThemeLayout {
   maxWidth: number;
+  /** Square and circle images never grow wider than this many px. Default 480. */
+  imageMaxWidth?: number;
   pagePadding: number;
   canvasPadding: number;
   sectionGap: number;
@@ -297,7 +300,7 @@ export interface FormBuilderFeatures {
   jsonView?: boolean;
   /** Build/Preview mode tabs. When false, the builder stays in Build mode and the tabs are hidden. Default true. */
   previewMode?: boolean;
-  /** Language switcher in the Toolbar. Default true. */
+  /** Language switcher in the Toolbar. Default true, or false when the host passes `language` (the host then owns the language; set this to true to show the switcher anyway). */
   languageSwitcher?: boolean;
   /** Global "Design" tab (colors/spacing) in the sidebar. Replaces the old `themeEditable` prop. Default false. */
   design?: boolean;
@@ -325,8 +328,12 @@ export interface FormBuilderFeatures {
 
 // --- props ---
 export interface FormBuilderProps {
-  theme?: Partial<Theme>;
+  /** Colors and spacing, on top of `DEFAULT_THEME`. `layout` may set just the keys you want (e.g. `{ layout: { imageMaxWidth: 640 } }`). */
+  theme?: ThemeOverrides;
+  /** Language the builder shows. The builder follows this whenever it changes, and hides its own switcher (override with `features.languageSwitcher: true`). Omit it to let the builder keep its own language and switcher. */
   language?: string;
+  /** Fires when the user picks a language with the builder's own switcher (not when the `language` prop changes). */
+  onLanguageChange?: (code: string) => void;
   languages?: LanguageOption[];
   strings?: Record<string, Partial<StringsShape>>;
   chrome?: Record<string, Partial<ChromeShape>>;

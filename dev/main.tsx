@@ -123,6 +123,7 @@ const landingPageDocument: ViewerDocument = {
         block("c1", "paragraph", { width: "1/2", content: { en: "Websites — from a one-page site to a full shop.", ja: "ウェブサイト — 1ページから本格的なショップまで。" }, tag: "p", fontSize: "md", fontWeight: "normal", fontStyle: "normal", textAlign: "left", color: "" }) as never,
         block("c2", "paragraph", { width: "1/2", content: { en: "Branding — a logo and colours you can keep using.", ja: "ブランディング — ずっと使えるロゴと配色。" }, tag: "p", fontSize: "md", fontWeight: "normal", fontStyle: "normal", textAlign: "left", color: "" }) as never,
         block("cta", "button", { action: "link", label: { en: "Book a call", ja: "相談する" }, hideLabel: false, href: "https://example.com/book", target: "_blank", buttonStyle: { color: "", size: "lg" } }) as never,
+        block("soon", "button", { action: "link", label: { en: "Newsletter (coming soon)", ja: "ニュースレター（準備中）" }, hideLabel: false, href: "", target: "_self", buttonStyle: { color: "#6B7280", size: "md" } }) as never,
       ],
     },
   ],
@@ -493,6 +494,7 @@ function DemoApp() {
           <FormBuilder
             theme={theme}
             language="fr"
+            features={{ languageSwitcher: true }}
             languages={[{ code: "en", label: "EN" }, { code: "fr", label: "FR" }]}
             chrome={{
               fr: {

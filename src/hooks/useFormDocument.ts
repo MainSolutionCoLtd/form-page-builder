@@ -3,6 +3,7 @@ import type { ChromeShape } from "../i18n/chrome";
 import type { DocumentFields, FieldPatch, FieldType, FormField, LocalizedString, Section } from "../types";
 import { bi, withLang } from "../lib/bilingual";
 import { defaultFieldFor, defaultSection } from "../lib/fieldDefaults";
+import { collectDefaultTexts, dropStaleDefaults, DEFAULT_FORM_TITLE } from "../lib/defaultText";
 import { genSectionId, nextId, resyncIdCounter } from "../lib/id";
 
 export interface UseFormDocumentArgs {
@@ -13,7 +14,7 @@ export interface UseFormDocumentArgs {
 }
 
 export function useFormDocument({ language, chrome, linkButtonsOnly }: UseFormDocumentArgs) {
-  const [title, setTitle] = useState<LocalizedString>(bi("Untitled form", ""));
+  const [title, setTitle] = useState<LocalizedString>(bi(DEFAULT_FORM_TITLE, ""));
   const [sections, setSections] = useState<Section[]>([defaultSection()]);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -23,7 +24,7 @@ export function useFormDocument({ language, chrome, linkButtonsOnly }: UseFormDo
   const activeSection = sections.find((s) => s.id === activeSectionId) || sections[0] || defaultSection();
 
   function updateTitle(value: string) {
-    setTitle((prev) => withLang(prev, language, value));
+    setTitle((prev) => dropStaleDefaults(prev, withLang(prev, language, value), collectDefaultTexts(chrome)));
   }
 
   function addSection() {
@@ -44,12 +45,10 @@ export function useFormDocument({ language, chrome, linkButtonsOnly }: UseFormDo
     setActiveSectionId(newSectionId);
   }
   function deleteSection(sectionId: string) {
-    setSections((prev) => {
-      if (prev.length <= 1) return prev;
-      const next = prev.filter((s) => s.id !== sectionId);
-      setActiveSectionId((curr) => (curr === sectionId ? next[0].id : curr));
-      return next;
-    });
+    if (sections.length <= 1) return;
+    const next = sections.filter((s) => s.id !== sectionId);
+    setSections(next);
+    setActiveSectionId((curr) => (curr === sectionId ? next[0].id : curr));
   }
   function moveSection(sectionId: string, dir: 1 | -1) {
     setSections((prev) => {
@@ -80,7 +79,7 @@ export function useFormDocument({ language, chrome, linkButtonsOnly }: UseFormDo
     setSelectedId(field.id);
   }
   function updateField(fieldId: string, patch: FieldPatch) {
-    setSections((prev) => prev.map((s) => ({ ...s, fields: s.fields.map((f) => (f.id === fieldId ? ({ ...f, ...patch } as FormField) : f)) })));
+    setSections((prev) => prev.map((s) => ({ ...s, fields: s.fields.map((f) => (f.id === fieldId ? ({ ...f, ...patch, ...(patch.label ? { label: dropStaleDefaults(f.label, patch.label, collectDefaultTexts(chrome)) } : {}) } as FormField) : f)) })));
   }
   function deleteField(fieldId: string) {
     setSections((prev) => prev.map((s) => ({ ...s, fields: s.fields.filter((f) => f.id !== fieldId) })));
@@ -124,7 +123,7 @@ export function useFormDocument({ language, chrome, linkButtonsOnly }: UseFormDo
       ...s,
       fields: s.fields.map((f) => {
         if (f.id !== fieldId || !("options" in f) || !f.options) return f;
-        return { ...f, options: f.options.map((o, i) => (i === optIdx ? { ...o, ...patch } : o)) };
+        return { ...f, options: f.options.map((o, i) => (i === optIdx ? { ...o, ...patch, ...(patch.label ? { label: dropStaleDefaults(o.label, patch.label, collectDefaultTexts(chrome)) } : {}) } : o)) };
       }),
     })));
   }
@@ -168,7 +167,7 @@ export function useFormDocument({ language, chrome, linkButtonsOnly }: UseFormDo
     const s = defaultSection();
     setSections([s]);
     setActiveSectionId(s.id);
-    setTitle(bi("Untitled form", ""));
+    setTitle(bi(DEFAULT_FORM_TITLE, ""));
     setSelectedId(null);
   }
 

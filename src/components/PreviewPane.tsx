@@ -9,7 +9,8 @@ import { getMeta } from "../constants/fieldTypes";
 import { validateField } from "../lib/validate";
 import { formatValue } from "../lib/format";
 import { collectFieldValues } from "../lib/collectSubmission";
-import { t } from "../lib/bilingual";
+import { tAny } from "../lib/bilingual";
+import { defaultSanitizeUrl } from "../lib/safeUrl";
 import { styles } from "../styles/styles";
 import { Segmented } from "./Segmented";
 import { FieldBlock } from "./fields/FieldBlock";
@@ -58,7 +59,7 @@ export function PreviewPane({ title, sections, onFieldChange, language, strings,
     setErrors(errs);
     setAttemptedButtonId(buttonId);
     if (Object.keys(errs).length > 0) { setSubmitted(null); return; }
-    setSubmitted(allFields.filter((f) => !getMeta(f.type).isContent).map((f) => ({ label: t(f.label, language), value: formatValue(f, language) })));
+    setSubmitted(allFields.filter((f) => !getMeta(f.type).isContent).map((f) => ({ label: tAny(f.label, language), value: formatValue(f, language, strings) })));
     const sectionsBreakdown = buildSectionsBreakdown();
     const all = collectFieldValues(allFields);
     onSubmit?.({ buttonId, scope: "form", values: all, sections: sectionsBreakdown, all });
@@ -73,15 +74,25 @@ export function PreviewPane({ title, sections, onFieldChange, language, strings,
     });
     setAttemptedButtonId(buttonId);
     if (Object.keys(errs).length > 0) { setSubmitted(null); return; }
-    setSubmitted(section.fields.filter((f) => !getMeta(f.type).isContent).map((f) => ({ label: t(f.label, language), value: formatValue(f, language) })));
+    setSubmitted(section.fields.filter((f) => !getMeta(f.type).isContent).map((f) => ({ label: tAny(f.label, language), value: formatValue(f, language, strings) })));
     const sectionsBreakdown = buildSectionsBreakdown();
     const all = collectFieldValues(allFields);
     onSubmit?.({ buttonId, scope: "section", sectionId: section.id, values: collectFieldValues(section.fields), sections: sectionsBreakdown, all });
   }
 
+  // Editing a field clears its own validation message instead of leaving it up until the next submit.
+  function handleFieldChange(fieldId: string, patch: FieldPatch) {
+    if ("defaultValue" in patch && errors[fieldId]) {
+      setErrors((prev) => { const next = { ...prev }; delete next[fieldId]; return next; });
+    }
+    onFieldChange(fieldId, patch);
+  }
+
   function handleButtonAction(field: ButtonField) {
-    if (field.action === "link") {
-      if (field.href) window.open(field.href, field.target === "_blank" ? "_blank" : "_self", field.target === "_blank" ? "noopener,noreferrer" : undefined);
+    // With `submitButtons: false` the editor only offers link settings, so a leftover submit action still acts as a link.
+    if (field.action === "link" || !features.submitButtons) {
+      const href = defaultSanitizeUrl(field.href, "link");
+      if (href) window.open(href, field.target === "_blank" ? "_blank" : "_self", field.target === "_blank" ? "noopener,noreferrer" : undefined);
       return;
     }
     if (field.submitScope === "section") {
@@ -99,20 +110,20 @@ export function PreviewPane({ title, sections, onFieldChange, language, strings,
           <div style={styles.previewToolbar}><Segmented options={deviceOptions} value={device} onChange={setDevice} /></div>
         )}
         <div className="fb-form" style={{ ...styles.previewCard, maxWidth, width: "100%" }}>
-          {features.formTitle && <h2 style={styles.previewTitle}>{t(title, language)}</h2>}
+          {features.formTitle && <h2 style={styles.previewTitle}>{tAny(title, language)}</h2>}
           {allFields.length === 0 && <p style={{ color: "var(--fb-muted)", fontSize: 14 }}>{strings.addFieldsHint}</p>}
 
           {sections.map((section) => {
             return (
               <div key={section.id} className="fb-section" data-section-id={section.id} style={{ background: section.background || "transparent", padding: section.background ? 16 : 0, borderRadius: section.background ? 10 : 0, marginBottom: "var(--fb-space-section)" }}>
-                {t(section.title, language) && <h3 style={styles.sectionRuntimeTitle}>{t(section.title, language)}</h3>}
+                {tAny(section.title, language) && <h3 style={styles.sectionRuntimeTitle}>{tAny(section.title, language)}</h3>}
                 <div style={styles.previewGrid}>
                   {section.fields.map((field) => {
                     const width = effectiveWidth(field.width, device);
                     const flexBasis = `1 1 calc(${WIDTH_PERCENT[width]} - 14px)`;
                     return (
                       <div key={field.id} className={`fb-field fb-field--${field.type} fb-field--${field.id}`} data-field-id={field.id} style={{ flex: flexBasis, minWidth: 0, alignSelf: ALIGN_MAP[field.verticalAlign || "top"] }}>
-                        <FieldBlock field={field} lang={language} onFieldChange={onFieldChange} strings={strings} chrome={chrome} error={errors[field.id]} onButtonAction={handleButtonAction} />
+                        <FieldBlock field={field} lang={language} onFieldChange={handleFieldChange} strings={strings} chrome={chrome} error={errors[field.id]} onButtonAction={handleButtonAction} />
                         {field.type === "button" && field.id === attemptedButtonId && Object.keys(errors).length > 0 && (
                           <p style={styles.formErrorNote}><CircleAlert size={13} /> {strings.fixErrors}</p>
                         )}

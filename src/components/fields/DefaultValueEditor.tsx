@@ -1,7 +1,7 @@
 import type { ChromeShape } from "../../i18n/chrome";
 import type { FieldPatch, FormField } from "../../types";
 import type { FieldTypeMeta } from "../../constants/fieldTypes";
-import { t } from "../../lib/bilingual";
+import { tAny } from "../../lib/bilingual";
 import { styles } from "../../styles/styles";
 
 export interface DefaultValueEditorProps {
@@ -39,7 +39,7 @@ export function DefaultValueEditor({ field, meta, lang, chrome, onChange }: Defa
             return (
               <label key={o.value} style={{ ...styles.previewRadio, cursor: "pointer" }}>
                 <input type="checkbox" checked={checked} onChange={(e) => { const next = e.target.checked ? [...selectedVals, o.value] : selectedVals.filter((v) => v !== o.value); onChange({ defaultValue: next }); }} style={{ accentColor: "var(--fb-primary)" }} />
-                {t(o.label, lang)}
+                {tAny(o.label, lang)}
               </label>
             );
           })}
@@ -54,7 +54,7 @@ export function DefaultValueEditor({ field, meta, lang, chrome, onChange }: Defa
         <label style={styles.propLabel}>{chrome.defaultValue}</label>
         <select style={styles.propInput} value={f.defaultValue || ""} onChange={(e) => onChange({ defaultValue: e.target.value })}>
           <option value="">{chrome.none}</option>
-          {(f.options || []).map((o: any) => (<option key={o.value} value={o.value}>{t(o.label, lang)}</option>))}
+          {(f.options || []).map((o: any) => (<option key={o.value} value={o.value}>{tAny(o.label, lang)}</option>))}
         </select>
       </>
     );

@@ -183,4 +183,80 @@ describe("Preview mode submit flow", () => {
     expect(payload.scope).toBe("form");
     expect(payload.values).toEqual({ f1: "Jane Doe" });
   });
+
+  it("clears a field's error as soon as it is edited", async () => {
+    const { user } = await renderInPreview();
+
+    await user.click(screen.getByRole("button", { name: "Submit" }));
+    expect(await screen.findByText("This field is required.")).toBeInTheDocument();
+
+    await user.type(screen.getByRole("textbox", { name: "" }), "J");
+    expect(screen.queryByText("This field is required.")).not.toBeInTheDocument();
+  });
+
+  it("treats a leftover submit button as a link when features.submitButtons is false", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    const linkDoc = { ...doc, sections: [{ ...doc.sections[0], fields: [{ ...doc.sections[0].fields[1], href: "https://example.com/x" }] }] } as FormDocument;
+    render(<FormBuilder storage={createMemoryStorage()} initialDocument={linkDoc} initialMode="preview" features={{ submitButtons: false }} onSubmit={onSubmit} />);
+
+    await user.click(await screen.findByRole("button", { name: "Submit" }));
+
+    expect(open).toHaveBeenCalledWith("https://example.com/x", "_self", undefined);
+    expect(onSubmit).not.toHaveBeenCalled();
+    open.mockRestore();
+  });
+
+  it("does not open an unsafe link", async () => {
+    const user = userEvent.setup();
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    const linkDoc = { ...doc, sections: [{ ...doc.sections[0], fields: [{ ...doc.sections[0].fields[1], action: "link", href: "javascript:alert(1)" }] }] } as FormDocument;
+    render(<FormBuilder storage={createMemoryStorage()} initialDocument={linkDoc} initialMode="preview" />);
+
+    await user.click(await screen.findByRole("button", { name: "Submit" }));
+
+    expect(open).not.toHaveBeenCalled();
+    open.mockRestore();
+  });
+
+  it("shows the submitted summary's Yes/No in the current language", async () => {
+    const user = userEvent.setup();
+    const toggleDoc = { ...doc, sections: [{ ...doc.sections[0], fields: [
+      { id: "t1", type: "toggle", label: { en: "News", ja: "ニュース" }, hideLabel: false, width: "1/1", verticalAlign: "top", labelPosition: "top", showIcon: false, displayIcon: "ToggleLeft", defaultValue: true, required: false } as any,
+      doc.sections[0].fields[1],
+    ] }] } as FormDocument;
+    render(<FormBuilder storage={createMemoryStorage()} initialDocument={toggleDoc} initialMode="preview" language="ja" />);
+
+    await user.click(await screen.findByRole("button", { name: "Submit" }));
+
+    expect(await screen.findByText("はい")).toBeInTheDocument();
+  });
+
+  it("shows a button label written only in another language instead of a blank", async () => {
+    const onlyJa = { ...doc, sections: [{ ...doc.sections[0], fields: [{ ...doc.sections[0].fields[1], label: { en: "", ja: "送る" } }] }] } as FormDocument;
+    render(<FormBuilder storage={createMemoryStorage()} initialDocument={onlyJa} initialMode="preview" />);
+
+    expect(await screen.findByRole("button", { name: "送る" })).toBeInTheDocument();
+  });
+
+  it("shows content written in only one language when the language changes, instead of blanks or placeholders", async () => {
+    const user = userEvent.setup();
+    const base = { hideLabel: false, width: "1/1", verticalAlign: "top", labelPosition: "top", showIcon: false, displayIcon: "Type" };
+    const jaOnly = { ...doc, title: { en: "", ja: "お問い合わせ" }, sections: [{ ...doc.sections[0], title: { en: "", ja: "連絡先" }, fields: [
+      { ...base, id: "r1", type: "radio", label: { en: "", ja: "性別" }, required: false, defaultValue: "", options: [{ label: { en: "", ja: "男性" }, value: "m" }, { label: { en: "", ja: "女性" }, value: "f" }] } as any,
+      { ...base, id: "p1", type: "paragraph", content: { en: "", ja: "ようこそ" }, tag: "p", fontSize: "md", fontWeight: "normal", fontStyle: "normal", textAlign: "left", color: "" } as any,
+    ] }] } as FormDocument;
+    render(<FormBuilder storage={createMemoryStorage()} initialDocument={jaOnly} language="en" />);
+
+    // Build canvas: no "Untitled field" / "..." placeholder while a translation exists.
+    expect(await screen.findByText("性別")).toBeInTheDocument();
+    expect(screen.queryByText("Untitled field")).not.toBeInTheDocument();
+    expect(screen.getByText("ようこそ")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+    expect(await screen.findByText("男性")).toBeInTheDocument();
+    expect(screen.getByText("女性")).toBeInTheDocument();
+    expect(screen.getByText("連絡先")).toBeInTheDocument();
+  });
 });

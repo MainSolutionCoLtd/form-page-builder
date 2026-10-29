@@ -10,7 +10,7 @@ import { COLOR_SWATCHES, BUTTON_COLOR_SWATCHES } from "../constants/colors";
 import { SUBMIT_SIZE_OPTIONS } from "../constants/submitStyle";
 import { WIDTH_OPTIONS } from "../constants/layout";
 import { ICON_LIBRARY } from "../constants/icons";
-import { t, withLang } from "../lib/bilingual";
+import { tAny, withLang, ownText } from "../lib/bilingual";
 import { styles } from "../styles/styles";
 import { Segmented } from "./Segmented";
 import { DefaultValueEditor } from "./fields/DefaultValueEditor";
@@ -71,7 +71,7 @@ function InspectorBody({ selected, language, chrome, features, onUpdateField, on
       {(!meta.isContent || selected.type === "button") && (
         <>
           <label style={styles.propLabel}>{selected.type === "button" ? chrome.buttonText : chrome.label}</label>
-          <input style={styles.propInput} value={t(selected.label, language)} onChange={(e) => onUpdateField({ label: withLang(selected.label, language, e.target.value) })} />
+          <input style={styles.propInput} value={ownText(selected.label, language)} placeholder={tAny(selected.label, language)} onChange={(e) => onUpdateField({ label: withLang(selected.label, language, e.target.value) })} />
           {!meta.isContent && (
             <label style={styles.toggleRow}>
               <input type="checkbox" checked={!!selected.hideLabel} onChange={(e) => onUpdateField({ hideLabel: e.target.checked })} style={{ width: 15, height: 15, accentColor: "var(--fb-primary)" }} />
@@ -93,7 +93,7 @@ function InspectorBody({ selected, language, chrome, features, onUpdateField, on
       {selected.type === "paragraph" && (
         <>
           <label style={styles.propLabel}>{chrome.content}</label>
-          <textarea style={{ ...styles.propInput, minHeight: 70, resize: "vertical" }} value={t(selected.content, language)} onChange={(e) => onUpdateField({ content: withLang(selected.content, language, e.target.value) })} />
+          <textarea style={{ ...styles.propInput, minHeight: 70, resize: "vertical" }} value={ownText(selected.content, language)} placeholder={tAny(selected.content, language)} onChange={(e) => onUpdateField({ content: withLang(selected.content, language, e.target.value) })} />
 
           {features.blockStyling && (
             <>
@@ -136,12 +136,12 @@ function InspectorBody({ selected, language, chrome, features, onUpdateField, on
             <p style={styles.helperText}>{chrome.imageUrlHelper}</p>
           )}
           <label style={styles.propLabel}>{chrome.altText}</label>
-          <input style={styles.propInput} value={t(selected.alt, language)} onChange={(e) => onUpdateField({ alt: withLang(selected.alt, language, e.target.value) })} />
+          <input style={styles.propInput} value={ownText(selected.alt, language)} placeholder={tAny(selected.alt, language)} onChange={(e) => onUpdateField({ alt: withLang(selected.alt, language, e.target.value) })} />
           <label style={styles.propLabel}>{chrome.linkOptional}</label>
           <input style={styles.propInput} placeholder="https://..." value={selected.link || ""} onChange={(e) => onUpdateField({ link: e.target.value })} />
           <label style={styles.propLabel}>{chrome.shape}</label>
           <Segmented options={IMAGE_SHAPES.map((v) => ({ value: v, label: chrome[IMAGE_SHAPE_CHROME_KEY[v] as keyof ChromeShape] as string }))} value={selected.shape || "square"} onChange={(v) => onUpdateField({ shape: v })} />
-          <p style={styles.helperText}>Fills the field's own width (set below under Layout) and scales height automatically — always responsive, never overflows.</p>
+          <p style={styles.helperText}>Fills the field's own width (set below under Layout) and scales height automatically; Square and Circle stop growing at 480px, Original keeps the picture's own proportions.</p>
         </>
       )}
 
@@ -159,7 +159,7 @@ function InspectorBody({ selected, language, chrome, features, onUpdateField, on
           {selected.action === "link" || !features.submitButtons ? (
             <>
               <label style={styles.propLabel}>{chrome.linkOptional}</label>
-              <input style={styles.propInput} placeholder="https://..." value={selected.href || ""} onChange={(e) => onUpdateField({ href: e.target.value })} />
+              <input style={styles.propInput} placeholder="https://..." value={selected.href || ""} onChange={(e) => onUpdateField(features.submitButtons ? { href: e.target.value } : { href: e.target.value, action: "link" })} />
               <label style={styles.propLabel}>{chrome.openIn}</label>
               <Segmented options={[{ value: "_self", label: chrome.sameTab }, { value: "_blank", label: chrome.newTab }]} value={selected.target || "_self"} onChange={(v) => onUpdateField({ target: v as FieldPatch["target"] })} />
             </>
@@ -187,7 +187,7 @@ function InspectorBody({ selected, language, chrome, features, onUpdateField, on
       {meta.placeholder && (
         <>
           <label style={styles.propLabel}>{chrome.placeholder}</label>
-          <input style={styles.propInput} value={t(f.placeholder, language)} onChange={(e) => onUpdateField({ placeholder: withLang(f.placeholder, language, e.target.value) })} />
+          <input style={styles.propInput} value={ownText(f.placeholder, language)} placeholder={tAny(f.placeholder, language)} onChange={(e) => onUpdateField({ placeholder: withLang(f.placeholder, language, e.target.value) })} />
         </>
       )}
 
@@ -210,7 +210,7 @@ function InspectorBody({ selected, language, chrome, features, onUpdateField, on
           <div style={styles.optionList}>
             {((f.options || []) as Option[]).map((opt, i) => (
               <div key={i} style={styles.optionRow}>
-                <input style={styles.optionInput} value={t(opt.label, language)} onChange={(e) => onUpdateOption(i, { label: withLang(opt.label, language, e.target.value) })} />
+                <input style={styles.optionInput} value={ownText(opt.label, language)} placeholder={tAny(opt.label, language)} onChange={(e) => onUpdateOption(i, { label: withLang(opt.label, language, e.target.value) })} />
                 <button style={styles.iconBtn} onClick={() => onRemoveOption(i)} disabled={(f.options || []).length <= 1}><X size={13} /></button>
               </div>
             ))}

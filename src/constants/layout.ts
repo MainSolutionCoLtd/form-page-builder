@@ -7,12 +7,13 @@ import { ALIGN_MAP, WIDTH_PERCENT } from "./widths";
 export { ALIGN_MAP, WIDTH_PERCENT };
 
 export const WIDTH_OPTIONS: { value: WidthOption; label?: string; labelKey?: string }[] = [
-  { value: "1/3", label: "1/3" }, { value: "1/2", label: "1/2" }, { value: "1/1", labelKey: "full" },
+  { value: "1/3", label: "1/3" }, { value: "1/2", label: "1/2" }, { value: "2/3", label: "2/3" }, { value: "1/1", labelKey: "full" },
 ];
 
 export function effectiveWidth(width: WidthOption | undefined, device: string): WidthOption {
   if (device === "mobile") return "1/1";
-  if (device === "tablet" && width === "1/3") return "1/2";
+  // 1/3 + 2/3 become two halves, so a pair stays side by side.
+  if (device === "tablet" && (width === "1/3" || width === "2/3")) return "1/2";
   return width || "1/1";
 }
 

@@ -2,12 +2,13 @@ import type { CSSProperties, ElementType, ReactNode } from "react";
 import type { FieldPatch, LocalizedString, SubmitStyle, ThemeOverrides } from "./types";
 import { ALIGN_MAP } from "./constants/widths";
 import { TAG_TO_ELEMENT } from "./constants/typographyScale";
+import { tAny } from "./lib/bilingual";
 import { buttonStyle, imageStyle, paragraphStyle } from "./lib/blockStyle";
 import { resolveTheme, themeVars } from "./lib/resolveTheme";
 import { defaultSanitizeUrl, safeColor, type UrlKind } from "./lib/safeUrl";
 
 // Read-only, server-renderable view of a document: no hooks, no state, no icons, no editor chrome.
-// Only content blocks (paragraph, image, link button) are drawn; form inputs and submit buttons are skipped.
+// Only content blocks (paragraph, image, button) are drawn; form inputs are skipped. Submit buttons, and link buttons with no URL, are drawn inert.
 
 /** A stored field: any subset of the field props (compacted documents omit defaults). */
 export type ViewerField = Omit<FieldPatch, "buttonStyle"> & { id?: string; type: string; buttonStyle?: Partial<SubmitStyle> };
@@ -58,20 +59,17 @@ const CSS = `
 .fpbv-f{min-width:0;flex:0 0 100%}
 .fpbv-f.w2{flex-basis:calc(50% - var(--fb-space-field) / 2)}
 .fpbv-f.w3{flex-basis:calc(33.3333% - var(--fb-space-field) * 2 / 3)}
+.fpbv-f.w23{flex-basis:calc(66.6667% - var(--fb-space-field) / 3)}
 .fpbv-p{overflow-wrap:anywhere}
 .fpbv-a{display:block;text-decoration:none}
 .fpbv-b{display:block;text-align:center;text-decoration:none}
 .fpbv-b:hover{opacity:.9}
 .fpbv-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@container (max-width:720px){.fpbv-f.w3{flex-basis:calc(50% - var(--fb-space-field) / 2)}}
-@container (max-width:480px){.fpbv-f.w2,.fpbv-f.w3{flex-basis:100%}}
+@container (max-width:720px){.fpbv-f.w3,.fpbv-f.w23{flex-basis:calc(50% - var(--fb-space-field) / 2)}}
+@container (max-width:480px){.fpbv-f.w2,.fpbv-f.w3,.fpbv-f.w23{flex-basis:100%}}
 `;
 
-const text = (value: LocalizedString | string | undefined, language: string): string => {
-  if (typeof value === "string") return value;
-  if (!value) return "";
-  return value[language] || value.en || Object.values(value).find(Boolean) || "";
-};
+const text = tAny;
 
 const HEADING_LEVEL: Record<string, number> = { h1: 1, h2: 2, h3: 3 };
 
@@ -81,7 +79,7 @@ const shiftTag = (tag: string, offset: number): string => {
   return level ? `h${Math.min(6, level + Math.max(0, Math.floor(offset)))}` : tag;
 };
 
-const WIDTH_CLASS = { "1/3": "w3", "1/2": "w2", "1/1": "" } as const;
+const WIDTH_CLASS = { "1/3": "w3", "1/2": "w2", "2/3": "w23", "1/1": "" } as const;
 
 const isH1 = (f: ViewerField, language: string) => f.type === "paragraph" && f.tag === "h1" && !!text(f.content, language);
 
@@ -90,14 +88,16 @@ export function FormViewer({
   sanitizeUrl = defaultSanitizeUrl, linkRel = "noopener noreferrer", eagerImages = 1, as: Root = "div", className, style,
 }: FormViewerProps) {
   const resolved = resolveTheme(theme, doc?.themeOverrides);
-  const sections = doc?.sections ?? [];
+  // Stored data may be malformed; skip anything that is not an object rather than failing the whole page.
+  const sections = (Array.isArray(doc?.sections) ? doc.sections : []).filter((s): s is ViewerSection => !!s && typeof s === "object");
   const title = text(doc?.title, language);
-  const hasH1 = sections.some((s) => s.fields?.some((f) => isH1(f, language)));
+  const hasH1 = sections.some((s) => Array.isArray(s.fields) && s.fields.some((f) => !!f && isH1(f, language)));
   let imagesSeen = 0;
   const TitleTag = shiftTag("h1", headingOffset) as ElementType;
   const SectionTag = shiftTag("h2", headingOffset) as ElementType;
 
   const renderField = (field: ViewerField): ReactNode => {
+    if (!field || typeof field !== "object") return null;
     if (field.type === "paragraph") {
       const content = text(field.content, language);
       if (!content) return null;
@@ -109,22 +109,22 @@ export function FormViewer({
       const src = field.src ? sanitizeUrl(field.src, "image") : null;
       if (!src) return null;
       const eager = imagesSeen++ < eagerImages;
-      const img = <img src={src} alt={text(field.alt, language)} loading={eager ? "eager" : "lazy"} decoding="async" style={imageStyle(field)} />;
+      const img = <img src={src} alt={text(field.alt, language)} loading={eager ? "eager" : "lazy"} decoding="async" referrerPolicy="no-referrer" style={imageStyle(field)} />;
       const href = field.link ? sanitizeUrl(field.link, "link") : null;
       return href ? <a className="fpbv-a" href={href} target="_blank" rel={linkRel}>{img}</a> : img;
     }
 
     if (field.type === "button") {
-      if (field.action === "submit") return null;
-      const href = field.href ? sanitizeUrl(field.href, "link") : null;
+      const isSubmit = field.action === "submit";
+      const href = !isSubmit && field.href ? sanitizeUrl(field.href, "link") : null;
       const label = text(field.label, language);
-      if (!href || !label) return null;
+      if (!label) return null;
       const blank = field.target === "_blank";
+      const style = { ...buttonStyle({ buttonStyle: { ...field.buttonStyle, color: safeColor(field.buttonStyle?.color) } }), marginTop: 0 };
+      // Submit buttons and link buttons with no URL still show, as inert blocks, to match the editor preview; a rejected (unsafe) URL drops it.
+      if (!href) return !isSubmit && field.href ? null : <span className="fpbv-b" style={style}>{label}</span>;
       return (
-        <a
-          className="fpbv-b" href={href} {...(blank ? { target: "_blank", rel: linkRel } : {})}
-          style={{ ...buttonStyle({ buttonStyle: { ...field.buttonStyle, color: safeColor(field.buttonStyle?.color) } }), marginTop: 0 }}
-        >
+        <a className="fpbv-b" href={href} {...(blank ? { target: "_blank", rel: linkRel } : {})} style={style}>
           {label}
         </a>
       );
@@ -148,7 +148,7 @@ export function FormViewer({
         <TitleTag className={titleDisplay === "auto" ? "fpbv-sr" : undefined} style={titleDisplay === "visible" ? { margin: "0 0 20px", fontSize: 24, fontWeight: 700 } : undefined}>{title}</TitleTag>
       )}
       {sections.map((section, i) => {
-        const blocks = (section.fields ?? []).map((field, j) => {
+        const blocks = (Array.isArray(section.fields) ? section.fields : []).map((field, j) => {
           const node = renderField(field);
           if (!node) return null;
           const width = WIDTH_CLASS[field.width ?? "1/1"] ?? "";
