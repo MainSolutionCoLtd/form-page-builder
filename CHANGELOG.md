@@ -1,5 +1,45 @@
 # form-page-builder
 
+## 2.6.0
+
+### Minor Changes
+
+- [#22](https://github.com/MainSolutionCoLtd/form-page-builder/pull/22) [`59dbda5`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/59dbda5c4f258e82306eb86f71b01df804276482) Thanks [@sabalpoudel](https://github.com/sabalpoudel)! - - **Square and circle images no longer grow without limit.** They stop at 480px (change it with the new `theme.layout.imageMaxWidth`) and are centred, in the builder and in `FormViewer` (both use `imageStyle`), so a full-width image on a large screen is no longer as tall as the page is wide. Banners are unchanged.
+
+  - **New image shape `"auto"` ("Original").** Keeps the picture's own proportions with no cropping, for images from arbitrary URLs. `ImageUploadContext.shape` can now be `"auto"`: if your `onImageUpload` handler switches on `shape`, skip cropping for it.
+  - **New width `"2/3"`.** Pair 1/3 with 2/3 in one row. On a tablet that pair becomes two halves; on a phone everything stacks. `FormViewer` collapses it with the container like the other widths.
+  - **Images that fail to load** show the placeholder in the builder instead of a broken-image icon, and images are requested with `referrerPolicy="no-referrer"` so more hotlink-protected hosts serve them.
+
+- [#22](https://github.com/MainSolutionCoLtd/form-page-builder/pull/22) [`38a5175`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/38a5175ccb7faa6906f8444d756013ae4758aa82) Thanks [@sabalpoudel](https://github.com/sabalpoudel)! - - **`language` now follows the host.** The builder used to read `language` only on mount; it now adopts it whenever the prop changes, so an app with its own language toggle stays in sync with the builder.
+
+  - **One switcher, not two.** When you pass `language`, the builder's own switcher is hidden by default (the host owns the language). Set `features.languageSwitcher: true` to show it anyway. Without a `language` prop nothing changes.
+  - **New `onLanguageChange(code)` prop**, called when the user picks a language with the builder's own switcher.
+  - **Upgrade note:** if you pass `language` and relied on the builder's switcher, add `features={{ languageSwitcher: true }}`.
+
+- [#22](https://github.com/MainSolutionCoLtd/form-page-builder/pull/22) [`0939cf6`](https://github.com/MainSolutionCoLtd/form-page-builder/commit/0939cf6bc1d94486c785ab6a1dab6380540051a6) Thanks [@sabalpoudel](https://github.com/sabalpoudel)! - **Viewer and Preview**
+
+  - **`FormViewer` no longer hides buttons.** A button with a label is always drawn. Submit buttons (the default for a new button) and link buttons with no URL show as inert blocks styled like Preview; link buttons with a safe URL stay links. A button with no label, or whose URL `sanitizeUrl` rejects, is still not drawn.
+  - **`FormViewer` survives malformed stored data** (null or non-array sections and fields) instead of throwing.
+  - **Preview** opens only URLs allowed by `defaultSanitizeUrl` (no `javascript:` links), and a field's validation message clears as soon as the field is edited.
+  - **`submitButtons: false`.** A leftover submit button acts as a link in Preview, and editing its URL in the inspector switches it to the link action, so the saved document and `FormViewer` agree with the editor.
+
+  **Languages**
+
+  - **Content no longer disappears when the language changes.** Labels, option names, placeholders, section and form titles and alt text use the same fallback as `FormViewer` (current language, then `en`, then any translation with text) in the Build canvas, Preview and the submitted summary. Previously text that existed only in another language showed as blank, "Untitled field" or "...".
+  - **Editing a default clears the untouched default in other languages.** A new field's name ("Input"), an option's ("Option 1") and the form title ("Untitled form") are cleared in every other language once the author types their own text in one; text the author wrote is never touched. The inspector now shows each language's own stored text, with the fallback as a grey hint.
+  - **Yes/No in the submitted summary** follows the language (new `strings` keys `yes` and `no`; add them to a custom `strings` language if you have one).
+
+  **Other fixes**
+
+  - An edit made just before the builder unmounts is saved instead of lost to the 600 ms autosave debounce.
+  - Saving over a template while editing in another language no longer blanks its title in the Templates list.
+  - The error / selected / drag-over borders no longer trigger React's mixed `border`/`borderColor` style warning.
+  - The `theme` prop accepts a partial `layout`, e.g. `theme={{ layout: { imageMaxWidth: 640 } }}`.
+
+  **Docs**
+
+  - README: how the builder, `storage` and `FormViewer` fit together, that a form has no Submit button until you add one, what the viewer draws for each block, how missing translations behave, and the `strings`/`chrome` props.
+
 ## 2.5.0
 
 ### Minor Changes
