@@ -363,7 +363,7 @@ Import from `form-page-builder/viewer` in server components: that bundle has no 
 | `eagerImages` | `1` | How many leading images skip lazy loading (the likely LCP image). |
 | `as`, `className`, `style` | `div` | Wrapper element and root styling. `style` can override padding/background. |
 
-Columns (1/3, 1/2, full) collapse by the width of the container via CSS container queries, so it behaves in a narrow sidebar as well as on a phone.
+Columns (1/3, 1/2, 2/3, full) collapse by the width of the container via CSS container queries, so it behaves in a narrow sidebar as well as on a phone.
 
 ## Using in a plain HTML page (no bundler)
 

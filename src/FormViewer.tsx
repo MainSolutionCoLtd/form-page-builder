@@ -59,13 +59,14 @@ const CSS = `
 .fpbv-f{min-width:0;flex:0 0 100%}
 .fpbv-f.w2{flex-basis:calc(50% - var(--fb-space-field) / 2)}
 .fpbv-f.w3{flex-basis:calc(33.3333% - var(--fb-space-field) * 2 / 3)}
+.fpbv-f.w23{flex-basis:calc(66.6667% - var(--fb-space-field) / 3)}
 .fpbv-p{overflow-wrap:anywhere}
 .fpbv-a{display:block;text-decoration:none}
 .fpbv-b{display:block;text-align:center;text-decoration:none}
 .fpbv-b:hover{opacity:.9}
 .fpbv-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@container (max-width:720px){.fpbv-f.w3{flex-basis:calc(50% - var(--fb-space-field) / 2)}}
-@container (max-width:480px){.fpbv-f.w2,.fpbv-f.w3{flex-basis:100%}}
+@container (max-width:720px){.fpbv-f.w3,.fpbv-f.w23{flex-basis:calc(50% - var(--fb-space-field) / 2)}}
+@container (max-width:480px){.fpbv-f.w2,.fpbv-f.w3,.fpbv-f.w23{flex-basis:100%}}
 `;
 
 const text = tAny;
@@ -78,7 +79,7 @@ const shiftTag = (tag: string, offset: number): string => {
   return level ? `h${Math.min(6, level + Math.max(0, Math.floor(offset)))}` : tag;
 };
 
-const WIDTH_CLASS = { "1/3": "w3", "1/2": "w2", "1/1": "" } as const;
+const WIDTH_CLASS = { "1/3": "w3", "1/2": "w2", "2/3": "w23", "1/1": "" } as const;
 
 const isH1 = (f: ViewerField, language: string) => f.type === "paragraph" && f.tag === "h1" && !!text(f.content, language);
 

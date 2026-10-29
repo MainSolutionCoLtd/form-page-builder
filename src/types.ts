@@ -21,7 +21,7 @@ export interface Option {
 }
 
 // --- field union ---
-export type WidthOption = "1/3" | "1/2" | "1/1";
+export type WidthOption = "1/3" | "1/2" | "2/3" | "1/1";
 export type VerticalAlign = "top" | "middle" | "bottom";
 export type LabelPosition = "top" | "inline";
 
