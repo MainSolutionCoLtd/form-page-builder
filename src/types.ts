@@ -98,7 +98,8 @@ export interface ImageField extends BaseField {
   src: string;
   alt: LocalizedString;
   link: string;
-  shape: "square" | "circle" | "banner";
+  /** `auto` keeps the picture's own proportions (no cropping); the others crop to fill. */
+  shape: "square" | "circle" | "banner" | "auto";
 }
 export interface ButtonField extends BaseField {
   type: "button";
@@ -197,6 +198,8 @@ export interface SavedFormMeta {
 // --- theme ---
 export interface ThemeLayout {
   maxWidth: number;
+  /** Square and circle images never grow wider than this many px. Default 480. */
+  imageMaxWidth?: number;
   pagePadding: number;
   canvasPadding: number;
   sectionGap: number;

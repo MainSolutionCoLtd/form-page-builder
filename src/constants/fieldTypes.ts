@@ -42,7 +42,7 @@ export function getMeta(type: FieldType): FieldTypeMeta {
 
 export const LEGACY_INPUT_TYPES = ["text", "email", "phone", "number", "password", "date"] as const;
 export const INPUT_SUBTYPES = ["text", "email", "phone", "number", "password", "date", "time"] as const;
-export const IMAGE_SHAPES = ["square", "circle", "banner"] as const;
+export const IMAGE_SHAPES = ["square", "circle", "banner", "auto"] as const;
 
 export const FIELD_TYPE_CHROME_KEY: Record<FieldType, string> = {
   paragraph: "fieldTypeParagraph", image: "fieldTypeImage", button: "fieldTypeButton", input: "fieldTypeInput",
@@ -54,5 +54,5 @@ export const INPUT_SUBTYPE_CHROME_KEY: Record<string, string> = {
   password: "subtypePassword", date: "subtypeDate", time: "subtypeTime",
 };
 export const IMAGE_SHAPE_CHROME_KEY: Record<string, string> = {
-  square: "shapeSquare", circle: "shapeCircle", banner: "shapeBanner",
+  square: "shapeSquare", circle: "shapeCircle", banner: "shapeBanner", auto: "shapeAuto",
 };

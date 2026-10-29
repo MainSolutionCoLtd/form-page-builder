@@ -109,7 +109,7 @@ export function FormViewer({
       const src = field.src ? sanitizeUrl(field.src, "image") : null;
       if (!src) return null;
       const eager = imagesSeen++ < eagerImages;
-      const img = <img src={src} alt={text(field.alt, language)} loading={eager ? "eager" : "lazy"} decoding="async" style={imageStyle(field)} />;
+      const img = <img src={src} alt={text(field.alt, language)} loading={eager ? "eager" : "lazy"} decoding="async" referrerPolicy="no-referrer" style={imageStyle(field)} />;
       const href = field.link ? sanitizeUrl(field.link, "link") : null;
       return href ? <a className="fpbv-a" href={href} target="_blank" rel={linkRel}>{img}</a> : img;
     }

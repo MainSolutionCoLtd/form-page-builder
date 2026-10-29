@@ -78,7 +78,7 @@ Above ~720px wide, Build mode is the usual three-column Palette/Canvas/Inspector
 | `initialDocument` | `FormDocument` | Seeds the builder with this document on mount instead of the autosaved draft — see "Programmatic integration" below. |
 | `initialMode` | `"build" \| "preview"` | Which mode the widget mounts into (default `"build"`). Pair with `features.previewMode: false` to lock a consumer to just one mode with no tabs — e.g. a fill-only embed that never shows the Build canvas. Or leave `previewMode` on and pick `initialMode` per document (e.g. `"preview"` once a document already has saved data) so the widget opens on the right mode while still letting the built-in tabs switch it. |
 | `onModeChange` | `(mode: "build" \| "preview") => void` | Fires on mount and on every Build/Preview toggle. Lets a host mirror the current mode (e.g. to show its own Save button only in Build mode) without building a separate tab UI around the widget. |
-| `onImageUpload` | `(file: File, ctx: { fieldId: string; shape: "square" \| "circle" \| "banner" }) => Promise<string>` | Adds an **Upload image** button beside an image block's URL box. Receives the picked file (open your own crop/compress dialog inside it if you like) and resolves to the hosted URL, which becomes the block's `src`. If it rejects, the block is left unchanged and a short error shows; reject with `new DOMException("cancelled", "AbortError")` to cancel silently (e.g. the user closed your crop dialog). Omit it to keep the URL-only input. The package never uploads or hosts anything itself. |
+| `onImageUpload` | `(file: File, ctx: { fieldId: string; shape: "square" \| "circle" \| "banner" \| "auto" }) => Promise<string>` | Adds an **Upload image** button beside an image block's URL box. Receives the picked file (open your own crop/compress dialog inside it if you like) and resolves to the hosted URL, which becomes the block's `src`. If it rejects, the block is left unchanged and a short error shows; reject with `new DOMException("cancelled", "AbortError")` to cancel silently (e.g. the user closed your crop dialog). Omit it to keep the URL-only input. The package never uploads or hosts anything itself. |
 | `onChange` | `(info: { dirty: boolean }) => void` | Fires when the working document starts or stops differing from the loaded one: `dirty` is true after the first change, false again if the user edits back to it or you call `ref.markSaved()` after saving. Use it to warn about unsaved changes. Not fired for the initial load. |
 | `onTemplateChange` | `(change: TemplateChange) => void` | Fires when a template is created (`source: "new"`), overwritten (`"saved"`), applied as the working document (`"applied"`), or deleted (`"deleted"`). `change` is `{ id: string \| null; title: string; source }`. Useful for syncing a host's own state or backend index. |
 | `templateClipboardKey` | `string` | Overrides the localStorage key behind "Copy template" / "Paste template" (default `"form-page-builder:clipboard"`). Instances sharing a key can copy/paste between each other. |
@@ -154,6 +154,29 @@ Every piece of text a document holds (labels, placeholders, option names, paragr
 Most authors only ever fill in one language, and nothing here requires a second one. If you do use several, a built-in default (a new field's "Input", an option's "Option 1", "Untitled form") is cleared in the other languages as soon as the author types their own text in one, so a leftover default never sits next to the author's wording. Text the author wrote is never cleared. For example, a field added in English starts as `{ en: "Input", ja: "" }`; typing "名前" in Japanese makes it `{ en: "", ja: "名前" }`, and English then shows the Japanese text until someone writes English.
 
 Disabling `contentBlocks`/`fieldTypes` for a given type only hides it from the palette going forward — if a document loaded via `initialDocument` (or a saved template) already contains fields of a now-disabled type, they still render and remain editable in Build mode; nothing is stripped or hidden.
+
+### Images and column widths
+
+An image block has a **Shape** and the field has a **Width** (1/3, 1/2, 2/3 or full). Pair 1/3 with 2/3 for the common "picture beside text" layout; on a tablet that pair becomes two halves, and on a phone every block stacks.
+
+| Shape | What it does |
+|---|---|
+| Square, Circle | Crops to fill a 1:1 box. Never wider than `theme.layout.imageMaxWidth` (default 480px) and centred, so a full-width column on a big screen does not produce a page-tall picture. |
+| Banner | Crops to a wide 16:5 strip at the full column width. |
+| Original | Keeps the picture's own proportions, with no cropping and a height limit. Best for an image pasted from an arbitrary URL, whose shape you don't control. |
+
+To change the cap for the whole site, set it in the theme, in the builder and in `FormViewer` alike:
+
+```tsx
+<FormBuilder theme={{ ...DEFAULT_THEME, layout: { ...DEFAULT_THEME.layout, imageMaxWidth: 640 } }} />
+<FormViewer document={doc} theme={{ layout: { imageMaxWidth: 640 } }} />
+```
+
+An author who wants a bigger picture can pick **Original**, which is not capped by width.
+
+A URL that fails to load (typo, not an image, blocked) shows the empty placeholder instead of a broken-image icon in the builder. Images are requested without a referrer, which lets most hotlink-protected hosts serve them.
+
+With `onImageUpload`, `ctx.shape` tells your crop dialog what to produce: crop to 1:1 for `square`/`circle`, 16:5 for `banner`, and skip cropping for `auto`.
 
 ### Styling hooks
 

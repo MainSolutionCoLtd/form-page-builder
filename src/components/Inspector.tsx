@@ -141,7 +141,7 @@ function InspectorBody({ selected, language, chrome, features, onUpdateField, on
           <input style={styles.propInput} placeholder="https://..." value={selected.link || ""} onChange={(e) => onUpdateField({ link: e.target.value })} />
           <label style={styles.propLabel}>{chrome.shape}</label>
           <Segmented options={IMAGE_SHAPES.map((v) => ({ value: v, label: chrome[IMAGE_SHAPE_CHROME_KEY[v] as keyof ChromeShape] as string }))} value={selected.shape || "square"} onChange={(v) => onUpdateField({ shape: v })} />
-          <p style={styles.helperText}>Fills the field's own width (set below under Layout) and scales height automatically — always responsive, never overflows.</p>
+          <p style={styles.helperText}>Fills the field's own width (set below under Layout) and scales height automatically; Square and Circle stop growing at 480px, Original keeps the picture's own proportions.</p>
         </>
       )}
 
