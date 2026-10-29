@@ -35,21 +35,38 @@ describe("FormViewer rendering", () => {
     }
   });
 
-  it("skips form inputs, submit buttons and empty blocks", () => {
+  it("skips form inputs and empty blocks", () => {
     const out = html(doc([
       { id: "1", type: "input", label: { en: "Name" } },
-      { id: "2", type: "button", action: "submit", label: { en: "Send" }, href: "https://ok.com" },
       { id: "3", type: "button", action: "link", label: { en: "" }, href: "https://ok.com" },
       { id: "4", type: "image", src: "" },
       { id: "5", type: "paragraph", content: { en: "" } },
     ]));
     expect(out).not.toContain("<section");
     expect(out).not.toContain("Name");
-    expect(out).not.toContain("Send");
+  });
+
+  it("shows a submit button as an inert block", () => {
+    const out = html(doc([{ id: "1", type: "button", action: "submit", label: { en: "Send" }, href: "https://ok.com" }]));
+    expect(out).toContain("Send");
+    expect(out).not.toContain("<a ");
   });
 
   it("treats a button without an action but with a link as a link button", () => {
     expect(html(doc([{ id: "1", type: "button", label: { en: "Go" }, href: "https://ok.com" }]))).toContain('href="https://ok.com"');
+  });
+
+  it("shows a link button that has text but no href as an inert block", () => {
+    const out = html(doc([{ id: "1", type: "button", action: "link", label: { en: "Soon" } }]));
+    expect(out).toContain("Soon");
+    expect(out).not.toContain("<a ");
+  });
+
+  it("does not throw on malformed stored data", () => {
+    const bad: any = { sections: [null, { id: "x", fields: [null, 5, { type: "button" }, { type: "button", label: "Go", action: "submit", href: 5 }] }, { id: "y", fields: "nope" }] };
+    expect(() => html(bad)).not.toThrow();
+    expect(html(bad)).toContain("Go");
+    expect(() => html({ sections: "nope" } as any)).not.toThrow();
   });
 
   it("drops unsafe links and image sources", () => {
