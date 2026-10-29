@@ -66,7 +66,7 @@ Above ~720px wide, Build mode is the usual three-column Palette/Canvas/Inspector
 
 | Prop | Type | Description |
 |---|---|---|
-| `theme` | `Partial<Theme>` | Override default colors/layout spacing — see "Features vs. theming" below. |
+| `theme` | `ThemeOverrides` (a `Partial<Theme>` whose `layout` may also be partial) | Override default colors and layout spacing — see "Features vs. theming" below. |
 | `features` | `FormBuilderFeatures` | Independently toggle UI surfaces on/off — full-featured by default. See "Features" below. |
 | `language` | `string` | The language the builder shows (defaults to the first entry in `languages`). Pass it when your app already has its own language setting: the builder follows it whenever it changes, and hides its own switcher so users see one. Omit it to let the builder keep its own language and switcher. See "Language and your app's own toggle" below. |
 | `onLanguageChange` | `(code: string) => void` | Fires when the user picks a language with the builder's own switcher (only visible if you omit `language` or set `features.languageSwitcher: true`). |
@@ -168,7 +168,7 @@ An image block has a **Shape** and the field has a **Width** (1/3, 1/2, 2/3 or f
 To change the cap for the whole site, set it in the theme, in the builder and in `FormViewer` alike:
 
 ```tsx
-<FormBuilder theme={{ ...DEFAULT_THEME, layout: { ...DEFAULT_THEME.layout, imageMaxWidth: 640 } }} />
+<FormBuilder theme={{ layout: { imageMaxWidth: 640 } }} />
 <FormViewer document={doc} theme={{ layout: { imageMaxWidth: 640 } }} />
 ```
 

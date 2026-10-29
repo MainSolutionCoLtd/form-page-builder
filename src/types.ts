@@ -328,7 +328,8 @@ export interface FormBuilderFeatures {
 
 // --- props ---
 export interface FormBuilderProps {
-  theme?: Partial<Theme>;
+  /** Colors and spacing, on top of `DEFAULT_THEME`. `layout` may set just the keys you want (e.g. `{ layout: { imageMaxWidth: 640 } }`). */
+  theme?: ThemeOverrides;
   /** Language the builder shows. The builder follows this whenever it changes, and hides its own switcher (override with `features.languageSwitcher: true`). Omit it to let the builder keep its own language and switcher. */
   language?: string;
   /** Fires when the user picks a language with the builder's own switcher (not when the `language` prop changes). */

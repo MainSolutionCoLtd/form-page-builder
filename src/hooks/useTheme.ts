@@ -11,7 +11,7 @@ export interface UseThemeResult {
   replaceThemeOverrides: (overrides: ThemeOverrides) => void;
 }
 
-export function useTheme(themeOverrideProp?: Partial<Theme>): UseThemeResult {
+export function useTheme(themeOverrideProp?: ThemeOverrides): UseThemeResult {
   const [themeOverrides, setThemeOverrides] = useState<ThemeOverrides>({});
 
   const baseTheme = useMemo<Theme>(() => resolveTheme(themeOverrideProp), [themeOverrideProp]);

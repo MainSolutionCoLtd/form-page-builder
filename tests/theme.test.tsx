@@ -19,4 +19,13 @@ describe("theme", () => {
     expect(root.style.getPropertyValue("--fb-surface")).toBe(DARK_THEME.surface);
     expect(root.style.getPropertyValue("--fb-primary")).toBe(DARK_THEME.primary);
   });
+
+  it("accepts a partial layout and keeps the other layout defaults", async () => {
+    const { container } = render(<FormBuilder storage={createMemoryStorage()} theme={{ layout: { imageMaxWidth: 640 } }} />);
+    await screen.findByLabelText("Form title");
+
+    const root = container.querySelector(".fb-root") as HTMLElement;
+    expect(root.style.getPropertyValue("--fb-image-max")).toBe("640px");
+    expect(root.style.getPropertyValue("--fb-space-section")).toBe(`${DEFAULT_THEME.layout.sectionGap}px`);
+  });
 });
