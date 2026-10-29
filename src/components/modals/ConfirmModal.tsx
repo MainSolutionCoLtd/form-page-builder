@@ -19,7 +19,7 @@ export function ConfirmModal({ chrome, title, message, onConfirm, confirmLabel, 
   const panelRef = useModalA11y<HTMLDivElement>(onClose);
   const confirmStyle =
     tone === "danger"
-      ? { ...styles.primaryBtn, background: "var(--fb-danger)", borderColor: "var(--fb-danger)" }
+      ? { ...styles.primaryBtn, background: "var(--fb-danger)", border: "1px solid var(--fb-danger)" }
       : styles.primaryBtn;
 
   return (

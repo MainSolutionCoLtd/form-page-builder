@@ -5,7 +5,7 @@ import { DRAFT_KEY, INDEX_KEY, formKey } from "../lib/storage/keys";
 import { DOCUMENT_VERSION, migrateDocument } from "../lib/migrate";
 import { genFormId } from "../lib/id";
 import { compactDocument } from "../lib/compact";
-import { bi, t } from "../lib/bilingual";
+import { bi, tAny } from "../lib/bilingual";
 
 export interface UsePersistenceArgs {
   storage: StorageAdapter;
@@ -53,6 +53,8 @@ export function usePersistence({
 
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasLoadedOnce = useRef(false);
+  // The write a pending debounce would perform; flushed on unmount so the last edit is not lost.
+  const pendingSave = useRef<(() => Promise<void>) | null>(null);
   // Document JSON as last synced with a template; compared to the live doc for the "Edited" flag. null = no active template.
   const savedSnapshot = useRef<string | null>(null);
 
@@ -121,9 +123,12 @@ export function usePersistence({
     if (!hasLoadedOnce.current || !autosave) return;
     setSaveState("saving");
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    const write = () => storage.set(DRAFT_KEY, JSON.stringify({ version: DOCUMENT_VERSION, ...compactDocument(document), currentFormId }));
+    pendingSave.current = write;
     autosaveTimer.current = setTimeout(async () => {
+      pendingSave.current = null;
       try {
-        await storage.set(DRAFT_KEY, JSON.stringify({ version: DOCUMENT_VERSION, ...compactDocument(document), currentFormId }));
+        await write();
         setSaveState("saved");
       } catch {
         setSaveState("error");
@@ -134,6 +139,13 @@ export function usePersistence({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [document.title, document.themeOverrides, document.sections, currentFormId]);
+
+  useEffect(() => () => {
+    const flush = pendingSave.current;
+    pendingSave.current = null;
+    // Best effort: a failing or throwing adapter must not break unmounting.
+    try { Promise.resolve(flush?.()).catch(() => {}); } catch { /* ignore */ }
+  }, []);
 
   async function saveAs(name: string) {
     if (!templateManage) return;
@@ -166,19 +178,19 @@ export function usePersistence({
   async function saveExisting() {
     if (!templateManage) return;
     if (!currentFormId) {
-      setSaveAsPrompt({ open: true, suggestedName: t(document.title, language) });
+      setSaveAsPrompt({ open: true, suggestedName: tAny(document.title, language) });
       return;
     }
     const now = Date.now();
     setTemplateState("saving");
     try {
       await storage.set(formKey(currentFormId), JSON.stringify({ version: DOCUMENT_VERSION, ...compactDocument(document), id: currentFormId, updatedAt: now }));
-      const next = savedForms.map((f) => (f.id === currentFormId ? { ...f, title: t(document.title, "en"), updatedAt: now } : f));
+      const next = savedForms.map((f) => (f.id === currentFormId ? { ...f, title: tAny(document.title, language), updatedAt: now } : f));
       setSavedForms(next);
       await storage.set(INDEX_KEY, JSON.stringify(next));
       savedSnapshot.current = snapshotOf(document);
       flashSaved();
-      onTemplateChange?.({ id: currentFormId, title: t(document.title, language), source: "saved" });
+      onTemplateChange?.({ id: currentFormId, title: tAny(document.title, language), source: "saved" });
     } catch {
       setTemplateState("error");
     }
@@ -206,7 +218,7 @@ export function usePersistence({
       setCurrentFormId(boundId);
       savedSnapshot.current = boundId ? snapshotOf(doc) : null;
       setTemplateState("idle");
-      onTemplateChange?.({ id, title: t(doc.title, language), source: "applied" });
+      onTemplateChange?.({ id, title: tAny(doc.title, language), source: "applied" });
       return true;
     } catch (err) {
       console.error(`[form-page-builder] loadForm(${id}) threw`, err);

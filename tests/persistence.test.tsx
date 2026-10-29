@@ -22,6 +22,20 @@ describe("autosave", () => {
     expect(JSON.parse(raw!).sections[0].fields).toHaveLength(1);
   }, 2000);
 
+  it("flushes a pending edit when the builder unmounts before the debounce fires", async () => {
+    const storage = createMemoryStorage();
+    const { unmount } = render(<FormBuilder storage={storage} />);
+    await screen.findByLabelText("Form title");
+
+    fireEvent.click(screen.getByRole("button", { name: "Input" }));
+    unmount();
+    await wait(50);
+
+    const raw = await storage.get(DRAFT_KEY);
+    expect(raw).not.toBeNull();
+    expect(JSON.parse(raw!).sections[0].fields).toHaveLength(1);
+  }, 2000);
+
   it("never writes a draft when features.autosave is false", async () => {
     const storage = createMemoryStorage();
     render(<FormBuilder storage={storage} features={{ autosave: false }} />);
